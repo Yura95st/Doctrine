@@ -1,0 +1,87 @@
+namespace Doctrine.Domain.Models
+{
+    using System;
+    using System.Collections.Generic;
+    using System.ComponentModel.DataAnnotations;
+    using System.ComponentModel.DataAnnotations.Schema;
+
+    [Table("User")]
+    public class User
+    {
+        public User()
+        {
+            this.Comments = new HashSet<Comment>();
+            this.CommentVotes = new HashSet<CommentVote>();
+            this.UserActivities = new HashSet<UserActivity>();
+            this.UserFavorites = new HashSet<UserFavorite>();
+            this.UserReadHistories = new HashSet<UserReadHistory>();
+        }
+
+        public virtual ICollection<Comment> Comments
+        {
+            get;
+            set;
+        }
+
+        public virtual ICollection<CommentVote> CommentVotes
+        {
+            get;
+            set;
+        }
+
+        [Required]
+        [StringLength(150)]
+        public string Email
+        {
+            get;
+            set;
+        }
+
+        [Required]
+        [StringLength(50)]
+        public string FullName
+        {
+            get;
+            set;
+        }
+
+        [Required]
+        [StringLength(50)]
+        public string Password
+        {
+            get;
+            set;
+        }
+
+        public DateTime RegistrationDate
+        {
+            get;
+            set;
+        }
+
+        public virtual ICollection<UserActivity> UserActivities
+        {
+            get;
+            set;
+        }
+
+        public virtual ICollection<UserFavorite> UserFavorites
+        {
+            get;
+            set;
+        }
+
+        [DatabaseGenerated(DatabaseGeneratedOption.None)]
+        public int UserId
+        {
+            get;
+            set;
+        }
+
+        public virtual ICollection<UserReadHistory> UserReadHistories
+        {
+            get;
+            set;
+        }
+    }
+}
