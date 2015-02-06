@@ -45,11 +45,15 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Dal\DoctrineContext.cs" />
+    <Compile Include="Dal\IUnitOfWork.cs" />
+    <Compile Include="Dal\Repositories\Common\IRepository.cs" />
+    <Compile Include="Dal\Repositories\Common\Repository.cs" />
+    <Compile Include="Dal\UnitOfWork.cs" />
     <Compile Include="Models\Article.cs" />
     <Compile Include="Models\ArticleVisitor.cs" />
     <Compile Include="Models\Comment.cs" />
     <Compile Include="Models\CommentVote.cs" />
-    <Compile Include="Dal\DoctrineContext.cs" />
     <Compile Include="Models\Tag.cs" />
     <Compile Include="Models\Topic.cs" />
     <Compile Include="Models\User.cs" />
