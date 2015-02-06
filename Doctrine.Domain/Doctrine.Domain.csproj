@@ -39,16 +39,18 @@
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.Core" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Runtime.Serialization" />
-    <Reference Include="System.Security" />
-    <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Dal\DoctrineContext.cs" />
     <Compile Include="Dal\IUnitOfWork.cs" />
     <Compile Include="Dal\Repositories\Common\IRepository.cs" />
     <Compile Include="Dal\Repositories\Common\Repository.cs" />
+    <Compile Include="Dal\Repositories\Abstract\ICommentRepository.cs" />
+    <Compile Include="Dal\Repositories\Abstract\ITagRepository.cs" />
+    <Compile Include="Dal\Repositories\Abstract\ITopicRepository.cs" />
+    <Compile Include="Dal\Repositories\Abstract\IVisitorRepository.cs" />
+    <Compile Include="Dal\Repositories\Abstract\IUserRepository.cs" />
+    <Compile Include="Dal\Repositories\Abstract\IArticleRepository.cs" />
     <Compile Include="Dal\UnitOfWork.cs" />
     <Compile Include="Models\Article.cs" />
     <Compile Include="Models\ArticleVisitor.cs" />
@@ -62,10 +64,21 @@
     <Compile Include="Models\UserReadHistory.cs" />
     <Compile Include="Models\Visitor.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Services\Abstract\IArticleService.cs" />
+    <Compile Include="Services\Abstract\ICommentService.cs" />
+    <Compile Include="Services\Abstract\ITagService.cs" />
+    <Compile Include="Services\Abstract\ITopicService.cs" />
+    <Compile Include="Services\Abstract\IUserService.cs" />
+    <Compile Include="Services\Abstract\IVisitorService.cs" />
+    <Compile Include="Services\Common\IService.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Dal\Repositories\Concrete\" />
+    <Folder Include="Services\Concrete\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

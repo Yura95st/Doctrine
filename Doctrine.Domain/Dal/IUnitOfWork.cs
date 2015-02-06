@@ -5,7 +5,7 @@
     using Doctrine.Domain.Dal.Repositories.Common;
     using Doctrine.Domain.Models;
 
-    internal interface IUnitOfWork : IDisposable
+    public interface IUnitOfWork : IDisposable
     {
         IRepository<User> UserRepository
         {
