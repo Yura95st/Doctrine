@@ -3,7 +3,7 @@
     using Doctrine.Domain.Models;
     using Doctrine.Domain.Services.Common;
 
-    public interface ICommentService : IService<Article>
+    public interface ICommentService : IService<Comment>
     {
     }
 }

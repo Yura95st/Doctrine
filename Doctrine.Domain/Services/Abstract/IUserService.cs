@@ -3,7 +3,7 @@
     using Doctrine.Domain.Models;
     using Doctrine.Domain.Services.Common;
 
-    public interface IUserService : IService<Article>
+    public interface IUserService : IService<User>
     {
     }
 }

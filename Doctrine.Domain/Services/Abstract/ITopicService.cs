@@ -3,7 +3,7 @@
     using Doctrine.Domain.Models;
     using Doctrine.Domain.Services.Common;
 
-    public interface ITopicService : IService<Article>
+    public interface ITopicService : IService<Topic>
     {
     }
 }
