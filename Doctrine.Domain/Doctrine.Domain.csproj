@@ -58,6 +58,9 @@
     <Compile Include="Dal\Repositories\Concrete\UserRepository.cs" />
     <Compile Include="Dal\Repositories\Concrete\VisitorRepository.cs" />
     <Compile Include="Dal\UnitOfWork.cs" />
+    <Compile Include="Exceptions\InvalidIpAddressFormatException.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Models\Article.cs" />
     <Compile Include="Models\ArticleVisitor.cs" />
     <Compile Include="Models\Comment.cs" />
