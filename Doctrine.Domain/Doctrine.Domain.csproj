@@ -83,6 +83,7 @@
     <Compile Include="Services\Concrete\TagService.cs" />
     <Compile Include="Services\Concrete\CommentService.cs" />
     <Compile Include="Services\Concrete\ArticleService.cs" />
+    <Compile Include="Utils\Guard.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
