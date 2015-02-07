@@ -51,6 +51,12 @@
     <Compile Include="Dal\Repositories\Abstract\IVisitorRepository.cs" />
     <Compile Include="Dal\Repositories\Abstract\IUserRepository.cs" />
     <Compile Include="Dal\Repositories\Abstract\IArticleRepository.cs" />
+    <Compile Include="Dal\Repositories\Concrete\ArticleRepository.cs" />
+    <Compile Include="Dal\Repositories\Concrete\CommentRepository.cs" />
+    <Compile Include="Dal\Repositories\Concrete\TagRepository.cs" />
+    <Compile Include="Dal\Repositories\Concrete\TopicRepository.cs" />
+    <Compile Include="Dal\Repositories\Concrete\UserRepository.cs" />
+    <Compile Include="Dal\Repositories\Concrete\VisitorRepository.cs" />
     <Compile Include="Dal\UnitOfWork.cs" />
     <Compile Include="Models\Article.cs" />
     <Compile Include="Models\ArticleVisitor.cs" />
@@ -77,7 +83,6 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Dal\Repositories\Concrete\" />
     <Folder Include="Services\Concrete\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

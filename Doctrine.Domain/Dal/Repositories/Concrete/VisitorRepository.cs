@@ -1,0 +1,14 @@
+﻿namespace Doctrine.Domain.Dal.Repositories.Concrete
+{
+    using Doctrine.Domain.Dal.Repositories.Abstract;
+    using Doctrine.Domain.Dal.Repositories.Common;
+    using Doctrine.Domain.Models;
+
+    public class VisitorRepository : Repository<Visitor>, IVisitorRepository
+    {
+        public VisitorRepository(DoctrineContext context)
+        : base(context)
+        {
+        }
+    }
+}

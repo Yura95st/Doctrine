@@ -2,12 +2,36 @@
 {
     using System;
 
-    using Doctrine.Domain.Dal.Repositories.Common;
-    using Doctrine.Domain.Models;
+    using Doctrine.Domain.Dal.Repositories.Abstract;
 
     public interface IUnitOfWork : IDisposable
     {
-        IRepository<User> UserRepository
+        IArticleRepository ArticleRepository
+        {
+            get;
+        }
+
+        ICommentRepository CommentRepository
+        {
+            get;
+        }
+
+        ITagRepository TagRepository
+        {
+            get;
+        }
+
+        ITopicRepository TopicRepository
+        {
+            get;
+        }
+
+        IUserRepository UserRepository
+        {
+            get;
+        }
+
+        IVisitorRepository VisitorRepository
         {
             get;
         }

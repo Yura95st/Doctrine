@@ -2,16 +2,28 @@
 {
     using System;
 
+    using Doctrine.Domain.Dal.Repositories.Abstract;
     using Doctrine.Domain.Dal.Repositories.Common;
+    using Doctrine.Domain.Dal.Repositories.Concrete;
     using Doctrine.Domain.Models;
 
     public class UnitOfWork : IUnitOfWork
     {
         private readonly DoctrineContext _context = new DoctrineContext();
 
-        private Repository<User> _courseRepository;
+        private IArticleRepository _articleRepository;
+
+        private ICommentRepository _commentRepository;
 
         private bool _disposed;
+
+        private ITagRepository _tagRepository;
+
+        private ITopicRepository _topicRepository;
+
+        private IUserRepository _userRepository;
+
+        private IVisitorRepository _visitorRepository;
 
         #region IUnitOfWork Members
 
@@ -26,15 +38,75 @@
             this._context.SaveChanges();
         }
 
-        public IRepository<User> UserRepository
+        public IArticleRepository ArticleRepository
         {
             get
             {
-                if (this._courseRepository == null)
+                if (this._articleRepository == null)
                 {
-                    this._courseRepository = new Repository<User>(this._context);
+                    this._articleRepository = new ArticleRepository(this._context);
                 }
-                return this._courseRepository;
+                return this._articleRepository;
+            }
+        }
+
+        public ICommentRepository CommentRepository
+        {
+            get
+            {
+                if (this._commentRepository == null)
+                {
+                    this._commentRepository = new CommentRepository(this._context);
+                }
+                return this._commentRepository;
+            }
+        }
+
+        public ITagRepository TagRepository
+        {
+            get
+            {
+                if (this._tagRepository == null)
+                {
+                    this._tagRepository = new TagRepository(this._context);
+                }
+                return this._tagRepository;
+            }
+        }
+
+        public ITopicRepository TopicRepository
+        {
+            get
+            {
+                if (this._topicRepository == null)
+                {
+                    this._topicRepository = new TopicRepository(this._context);
+                }
+                return this._topicRepository;
+            }
+        }
+
+        public IUserRepository UserRepository
+        {
+            get
+            {
+                if (this._userRepository == null)
+                {
+                    this._userRepository = new UserRepository(this._context);
+                }
+                return this._userRepository;
+            }
+        }
+
+        public IVisitorRepository VisitorRepository
+        {
+            get
+            {
+                if (this._visitorRepository == null)
+                {
+                    this._visitorRepository = new VisitorRepository(this._context);
+                }
+                return this._visitorRepository;
             }
         }
 
