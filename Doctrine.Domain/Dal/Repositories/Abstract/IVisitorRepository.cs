@@ -5,5 +5,6 @@
 
     public interface IVisitorRepository : IRepository<Visitor>
     {
+        Visitor GetByIpAddress(string ipAddress);
     }
 }

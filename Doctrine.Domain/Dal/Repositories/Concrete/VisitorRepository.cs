@@ -10,5 +10,10 @@
         : base(context)
         {
         }
+
+        public Visitor GetByIpAddress(string ipAddress)
+        {
+            throw new System.NotImplementedException();
+        }
     }
 }
