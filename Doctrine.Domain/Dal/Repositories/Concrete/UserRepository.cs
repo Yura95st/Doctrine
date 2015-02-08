@@ -10,5 +10,10 @@
         : base(context)
         {
         }
+
+        public User GetByEmail(string email)
+        {
+            throw new System.NotImplementedException();
+        }
     }
 }
