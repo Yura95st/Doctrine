@@ -5,6 +5,7 @@
     using Doctrine.Domain.Dal;
     using Doctrine.Domain.Dal.Repositories.Abstract;
     using Doctrine.Domain.Exceptions;
+    using Doctrine.Domain.Exceptions.InvalidFormat;
     using Doctrine.Domain.Models;
     using Doctrine.Domain.Services.Abstract;
     using Doctrine.Domain.Services.Concrete;
@@ -16,6 +17,15 @@
     [TestFixture]
     public class VisitorServiceTests
     {
+        [SetUp]
+        public void Init()
+        {
+            //mockRepository.Setup(r => r.Get(It.IsAny<Expression<Func<Visitor, bool>>>(), null, ""))
+            //.Returns(
+            //(Expression<Func<Visitor, bool>> predicate, Func<IQueryable<Visitor>, IOrderedQueryable<Visitor>> orderBy,
+            // string includeProperties) => new[] { visitor }.Where(predicate.Compile()));
+        }
+
         [Test]
         public void RegisterIpAddress_IpAddressFormatIsInvalid_ThrowsInvalidIpAddressFormatException()
         {

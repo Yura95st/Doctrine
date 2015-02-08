@@ -1,4 +1,4 @@
-﻿namespace Doctrine.Domain.Exceptions
+﻿namespace Doctrine.Domain.Exceptions.InvalidFormat
 {
     using System;
 
@@ -11,12 +11,12 @@
         }
 
         public InvalidEmailFormatException(string message)
-            : base(message)
+        : base(message)
         {
         }
 
         public InvalidEmailFormatException(string message, Exception inner)
-            : base(message, inner)
+        : base(message, inner)
         {
         }
 

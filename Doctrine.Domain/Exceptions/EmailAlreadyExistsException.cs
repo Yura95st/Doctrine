@@ -2,20 +2,20 @@
 {
     using System;
 
-    public class NonexistentEmailException : Exception
+    public class EmailAlreadyExistsException : Exception
     {
         #region Constructors
 
-        public NonexistentEmailException()
+        public EmailAlreadyExistsException()
         {
         }
 
-        public NonexistentEmailException(string message)
+        public EmailAlreadyExistsException(string message)
         : base(message)
         {
         }
 
-        public NonexistentEmailException(string message, Exception inner)
+        public EmailAlreadyExistsException(string message, Exception inner)
         : base(message, inner)
         {
         }

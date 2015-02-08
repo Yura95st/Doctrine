@@ -11,12 +11,12 @@
         }
 
         public WrongPasswordException(string message)
-            : base(message)
+        : base(message)
         {
         }
 
         public WrongPasswordException(string message, Exception inner)
-            : base(message, inner)
+        : base(message, inner)
         {
         }
 

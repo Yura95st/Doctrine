@@ -5,6 +5,7 @@
 
     using Doctrine.Domain.Dal;
     using Doctrine.Domain.Exceptions;
+    using Doctrine.Domain.Exceptions.InvalidFormat;
     using Doctrine.Domain.Models;
     using Doctrine.Domain.Services.Abstract;
     using Doctrine.Domain.Services.Common;

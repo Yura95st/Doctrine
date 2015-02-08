@@ -4,6 +4,7 @@
 
     using Doctrine.Domain.Dal;
     using Doctrine.Domain.Exceptions;
+    using Doctrine.Domain.Exceptions.InvalidFormat;
     using Doctrine.Domain.Models;
     using Doctrine.Domain.Services.Abstract;
     using Doctrine.Domain.Services.Common;
@@ -51,7 +52,38 @@
 
         public User Create(string email, string fullName, string password)
         {
-            throw new NotImplementedException();
+            Guard.NotNullOrEmpty(email, "email");
+            Guard.NotNullOrEmpty(fullName, "fullName");
+            Guard.NotNullOrEmpty(password, "password");
+
+            if (!this._userValidation.IsValidEmail(email))
+            {
+                throw new InvalidEmailFormatException(String.Format("Email '{0}' has invalid format.", email));
+            }
+
+            if (!this._userValidation.IsValidFullName(fullName))
+            {
+                throw new InvalidFullNameFormatException(String.Format("Full name '{0}' has invalid format.", fullName));
+            }
+
+            if (!this._userValidation.IsValidPassword(password))
+            {
+                throw new InvalidPasswordFormatException(String.Format("Password '{0}' has invalid format.", password));
+            }
+
+            User user = this._unitOfWork.UserRepository.GetByEmail(email);
+
+            if (user != null)
+            {
+                throw new EmailAlreadyExistsException(String.Format("User with email '{0}' already exists.", email));
+            }
+
+            user = new User { Email = email, FullName = fullName, Password = password, RegistrationDate = DateTime.Now };
+
+            this._unitOfWork.UserRepository.Insert(user);
+            this._unitOfWork.Save();
+
+            return user;
         }
 
         public void Delete(int userId)

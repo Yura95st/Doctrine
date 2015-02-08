@@ -58,10 +58,15 @@
     <Compile Include="Dal\Repositories\Concrete\UserRepository.cs" />
     <Compile Include="Dal\Repositories\Concrete\VisitorRepository.cs" />
     <Compile Include="Dal\UnitOfWork.cs" />
+    <Compile Include="Exceptions\EmailAlreadyExistsException.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Exceptions\InvalidFormat\InvalidPasswordFormatException.cs" />
+    <Compile Include="Exceptions\InvalidFormat\InvalidFullNameFormatException.cs" />
     <Compile Include="Exceptions\WrongPasswordException.cs" />
     <Compile Include="Exceptions\NonexistentEmailException.cs" />
-    <Compile Include="Exceptions\InvalidEmailFormatException.cs" />
-    <Compile Include="Exceptions\InvalidIpAddressFormatException.cs">
+    <Compile Include="Exceptions\InvalidFormat\InvalidEmailFormatException.cs" />
+    <Compile Include="Exceptions\InvalidFormat\InvalidIpAddressFormatException.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Models\Article.cs" />

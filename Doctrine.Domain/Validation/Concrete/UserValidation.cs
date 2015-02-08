@@ -18,6 +18,16 @@
             return regex.IsMatch(email);
         }
 
+        public bool IsValidFullName(string fullName)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public bool IsValidPassword(string password)
+        {
+            throw new System.NotImplementedException();
+        }
+
         #endregion
     }
 }
