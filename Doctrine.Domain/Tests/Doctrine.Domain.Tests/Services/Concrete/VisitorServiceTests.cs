@@ -4,11 +4,11 @@
 
     using Doctrine.Domain.Dal;
     using Doctrine.Domain.Dal.Repositories.Abstract;
-    using Doctrine.Domain.Exceptions;
     using Doctrine.Domain.Exceptions.InvalidFormat;
     using Doctrine.Domain.Models;
     using Doctrine.Domain.Services.Abstract;
     using Doctrine.Domain.Services.Concrete;
+    using Doctrine.Domain.Validation.Abstract;
 
     using Moq;
 
@@ -17,9 +17,13 @@
     [TestFixture]
     public class VisitorServiceTests
     {
+        private Mock<IVisitorValidation> _visitorValidation;
+
         [SetUp]
         public void Init()
         {
+            this.MockVisitorValidation();
+
             //mockRepository.Setup(r => r.Get(It.IsAny<Expression<Func<Visitor, bool>>>(), null, ""))
             //.Returns(
             //(Expression<Func<Visitor, bool>> predicate, Func<IQueryable<Visitor>, IOrderedQueryable<Visitor>> orderBy,
@@ -29,15 +33,16 @@
         [Test]
         public void RegisterIpAddress_IpAddressFormatIsInvalid_ThrowsInvalidIpAddressFormatException()
         {
-            IVisitorService target = new VisitorService(new Mock<IUnitOfWork>().Object);
+            // Arrange
+            string ipAddress = "127.0.0.1";
 
-            Assert.Throws<InvalidIpAddressFormatException>(() => target.RegisterIpAddress(""));
+            this._visitorValidation.Setup(v => v.IsValidIpAddress(ipAddress))
+.Returns(false);
 
-            Assert.Throws<InvalidIpAddressFormatException>(() => target.RegisterIpAddress("1.2.3.999"));
+            IVisitorService target = new VisitorService(new Mock<IUnitOfWork>().Object, this._visitorValidation.Object);
 
-            Assert.Throws<InvalidIpAddressFormatException>(() => target.RegisterIpAddress("-1.2.3.4"));
-
-            Assert.Throws<InvalidIpAddressFormatException>(() => target.RegisterIpAddress("invalid_ip_address"));
+            // Act and Assert
+            Assert.Throws<InvalidIpAddressFormatException>(() => target.RegisterIpAddress(ipAddress));
         }
 
         [Test]
@@ -56,9 +61,9 @@
             unitOfWorkMock.SetupGet(unitOfWork => unitOfWork.VisitorRepository)
             .Returns(visitorRepositoryMock.Object);
 
-            // Act
-            IVisitorService target = new VisitorService(unitOfWorkMock.Object);
+            IVisitorService target = new VisitorService(unitOfWorkMock.Object, this._visitorValidation.Object);
 
+            // Act
             Visitor registeredVisitor = target.RegisterIpAddress(visitor.IpAddress);
 
             // Assert
@@ -66,6 +71,7 @@
 
             visitorRepositoryMock.Verify(r => r.GetByIpAddress(visitor.IpAddress), Times.Once);
             visitorRepositoryMock.Verify(r => r.Insert(It.IsAny<Visitor>()), Times.Never);
+
             unitOfWorkMock.Verify(r => r.Save(), Times.Never);
         }
 
@@ -94,9 +100,9 @@
             unitOfWorkMock.Setup(u => u.Save())
             .Callback(() => newVisitor.VisitorId = newVisitorId);
 
-            // Act
-            IVisitorService target = new VisitorService(unitOfWorkMock.Object);
+            IVisitorService target = new VisitorService(unitOfWorkMock.Object, this._visitorValidation.Object);
 
+            // Act
             Visitor registeredVisitor = target.RegisterIpAddress(ipAddress);
 
             // Assert
@@ -106,15 +112,26 @@
 
             visitorRepositoryMock.Verify(r => r.GetByIpAddress(ipAddress), Times.Once);
             visitorRepositoryMock.Verify(r => r.Insert(It.Is<Visitor>(v => v.IpAddress == ipAddress)), Times.Once);
+
             unitOfWorkMock.Verify(r => r.Save(), Times.Once);
         }
 
         [Test]
         public void RegisterIpAddress_IpAddressIsNull_ThrowsArgumentNullException()
         {
-            IVisitorService target = new VisitorService(new Mock<IUnitOfWork>().Object);
+            // Arrange
+            IVisitorService target = new VisitorService(new Mock<IUnitOfWork>().Object, this._visitorValidation.Object);
 
+            // Act and Assert
             Assert.Throws<ArgumentNullException>(() => target.RegisterIpAddress(null));
+        }
+
+        private void MockVisitorValidation()
+        {
+            this._visitorValidation = new Mock<IVisitorValidation>();
+
+            this._visitorValidation.Setup(v => v.IsValidIpAddress(It.IsAny<string>()))
+            .Returns(true);
         }
     }
 }

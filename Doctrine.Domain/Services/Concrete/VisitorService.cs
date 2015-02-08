@@ -1,21 +1,25 @@
 ﻿namespace Doctrine.Domain.Services.Concrete
 {
     using System;
-    using System.Net;
 
     using Doctrine.Domain.Dal;
-    using Doctrine.Domain.Exceptions;
     using Doctrine.Domain.Exceptions.InvalidFormat;
     using Doctrine.Domain.Models;
     using Doctrine.Domain.Services.Abstract;
     using Doctrine.Domain.Services.Common;
     using Doctrine.Domain.Utils;
+    using Doctrine.Domain.Validation.Abstract;
 
     public class VisitorService : ServiceBase, IVisitorService
     {
-        public VisitorService(IUnitOfWork unitOfWork)
+        private readonly IVisitorValidation _visitorValidation;
+
+        public VisitorService(IUnitOfWork unitOfWork, IVisitorValidation visitorValidation)
         : base(unitOfWork)
         {
+            Guard.NotNull(visitorValidation, "visitorValidation");
+
+            this._visitorValidation = visitorValidation;
         }
 
         #region IVisitorService Members
@@ -24,13 +28,10 @@
         {
             Guard.NotNull(ipAddress, "ipAddress");
 
-            IPAddress address;
-            if (!IPAddress.TryParse(ipAddress, out address))
+            if (!this._visitorValidation.IsValidIpAddress(ipAddress))
             {
-                throw new InvalidIpAddressFormatException(String.Format("Ip address '{0}' has invalid format.", ipAddress));
+                throw new InvalidIpAddressFormatException(String.Format("IP address '{0}' has invalid format.", ipAddress));
             }
-
-            ipAddress = address.ToString();
 
             Visitor visitor = this._unitOfWork.VisitorRepository.GetByIpAddress(ipAddress);
 

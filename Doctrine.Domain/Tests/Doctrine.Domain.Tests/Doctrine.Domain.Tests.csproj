@@ -44,6 +44,7 @@
     <Compile Include="Services\Concrete\UserServiceTests.cs" />
     <Compile Include="Services\Concrete\VisitorServiceTests.cs" />
     <Compile Include="Validation\Concrete\UserValidationTests.cs" />
+    <Compile Include="Validation\Concrete\VisitorValidationTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

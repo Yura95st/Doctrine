@@ -95,8 +95,10 @@
     <Compile Include="Services\Concrete\CommentService.cs" />
     <Compile Include="Services\Concrete\ArticleService.cs" />
     <Compile Include="Utils\Guard.cs" />
+    <Compile Include="Validation\Abstract\IVisitorValidation.cs" />
     <Compile Include="Validation\Abstract\IUserValidation.cs" />
     <Compile Include="Validation\Concrete\UserValidation.cs" />
+    <Compile Include="Validation\Concrete\VisitorValidation.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

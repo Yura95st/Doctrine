@@ -22,13 +22,13 @@
         public void IsValidEmail_EmailIsInvalid_ReturnsFalse()
         {
             // Arrange
-            string[] validEmails =
+            string[] invalidEmails =
             {
                 "", "invalid_email", "invalid_email@", "invalid_email@somewhere",
                 "invalid_email@somewhere.", "invalid email with spaces@somewhere.else"
             };
 
-            foreach (string email in validEmails)
+            foreach (string email in invalidEmails)
             {
                 // Act
                 bool result = this._target.IsValidEmail(email);
