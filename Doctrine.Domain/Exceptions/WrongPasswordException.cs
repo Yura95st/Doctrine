@@ -2,20 +2,20 @@
 {
     using System;
 
-    public class InvalidPasswordException : Exception
+    public class WrongPasswordException : Exception
     {
         #region Constructors
 
-        public InvalidPasswordException()
+        public WrongPasswordException()
         {
         }
 
-        public InvalidPasswordException(string message)
+        public WrongPasswordException(string message)
             : base(message)
         {
         }
 
-        public InvalidPasswordException(string message, Exception inner)
+        public WrongPasswordException(string message, Exception inner)
             : base(message, inner)
         {
         }

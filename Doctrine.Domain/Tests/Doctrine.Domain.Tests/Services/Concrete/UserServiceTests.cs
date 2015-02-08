@@ -8,6 +8,7 @@
     using Doctrine.Domain.Models;
     using Doctrine.Domain.Services.Abstract;
     using Doctrine.Domain.Services.Concrete;
+    using Doctrine.Domain.Validation.Abstract;
 
     using Moq;
 
@@ -16,6 +17,8 @@
     [TestFixture]
     public class UserServiceTests
     {
+        private Mock<IUserValidation> _userValidationMock;
+
         [Test]
         public void Authenticate_CredentialsAreValid_ReturnsUser()
         {
@@ -37,7 +40,7 @@
             .Returns(userRepositoryMock.Object);
 
             // Act
-            IUserService target = new UserService(unitOfWorkMock.Object);
+            IUserService target = new UserService(unitOfWorkMock.Object, this._userValidationMock.Object);
             User user = target.Authenticate(testUser.Email, testUser.Password);
 
             // Assert
@@ -48,8 +51,10 @@
         [Test]
         public void Authenticate_EmailOrPasswordIsEmpty_ThrowsArgumentException()
         {
-            IUserService target = new UserService(new Mock<IUnitOfWork>().Object);
+            // Arrange
+            IUserService target = new UserService(new Mock<IUnitOfWork>().Object, this._userValidationMock.Object);
 
+            // Act and Assert
             Assert.Throws<ArgumentException>(() => target.Authenticate("", "password"));
             Assert.Throws<ArgumentException>(() => target.Authenticate("user@email.com", ""));
         }
@@ -57,8 +62,10 @@
         [Test]
         public void Authenticate_EmailOrPasswordIsNull_ThrowsArgumentNullException()
         {
-            IUserService target = new UserService(new Mock<IUnitOfWork>().Object);
+            // Arrange
+            IUserService target = new UserService(new Mock<IUnitOfWork>().Object, this._userValidationMock.Object);
 
+            // Act and Assert
             Assert.Throws<ArgumentNullException>(() => target.Authenticate(null, null));
             Assert.Throws<ArgumentNullException>(() => target.Authenticate("user@email.com", null));
             Assert.Throws<ArgumentNullException>(() => target.Authenticate(null, "password"));
@@ -67,42 +74,17 @@
         [Test]
         public void Authenticate_InvalidEmailFormat_ThrowsInvalidEmailFormatException()
         {
+            // Arrange
+            string email = "invalid@email.com";
             string password = "password";
 
-            IUserService target = new UserService(new Mock<IUnitOfWork>().Object);
+            this._userValidationMock.Setup(v => v.IsValidEmail(email))
+            .Returns(false);
 
-            Assert.Throws<InvalidEmailFormatException>(() => target.Authenticate("invalid@email_com", password));
-            Assert.Throws<InvalidEmailFormatException>(() => target.Authenticate("invalid_email.com", password));
-        }
+            IUserService target = new UserService(new Mock<IUnitOfWork>().Object, this._userValidationMock.Object);
 
-        [Test]
-        public void Authenticate_InvalidPassword_ThrowsInvalidPasswordException()
-        {
-            // Arrange
-            string password = "invalid_password";
-
-            User testUser = new User
-            {
-                UserId = 1, FullName = "user_fullName", Email = "user@email.com", Password = "user_password",
-                RegistrationDate = DateTime.Now
-            };
-
-            // Arrange - mock userRepository
-            Mock<IUserRepository> userRepositoryMock = new Mock<IUserRepository>();
-            userRepositoryMock.Setup(r => r.GetByEmail(testUser.Email))
-            .Returns(testUser);
-
-            // Arrange - mock unitOfWork
-            Mock<IUnitOfWork> unitOfWorkMock = new Mock<IUnitOfWork>();
-            unitOfWorkMock.SetupGet(u => u.UserRepository)
-            .Returns(userRepositoryMock.Object);
-
-            // Act
-            IUserService target = new UserService(unitOfWorkMock.Object);
-            Assert.Throws<InvalidPasswordException>(() => target.Authenticate(testUser.Email, password));
-
-            // Assert
-            userRepositoryMock.Verify(r => r.GetByEmail(testUser.Email), Times.Once);
+            // Act and Assert
+            Assert.Throws<InvalidEmailFormatException>(() => target.Authenticate(email, password));
         }
 
         [Test]
@@ -123,12 +105,42 @@
             .Returns(userRepositoryMock.Object);
 
             // Act
-            IUserService target = new UserService(unitOfWorkMock.Object);
+            IUserService target = new UserService(unitOfWorkMock.Object, this._userValidationMock.Object);
 
             Assert.Throws<NonexistentEmailException>(() => target.Authenticate(email, password));
 
             // Assert
             userRepositoryMock.Verify(r => r.GetByEmail(email), Times.Once);
+        }
+
+        [Test]
+        public void Authenticate_WrongPassword_ThrowsWrongPasswordException()
+        {
+            // Arrange
+            string password = "wrong_password";
+
+            User testUser = new User
+            {
+                UserId = 1, FullName = "user_fullName", Email = "user@email.com", Password = "user_password",
+                RegistrationDate = DateTime.Now
+            };
+
+            // Arrange - mock userRepository
+            Mock<IUserRepository> userRepositoryMock = new Mock<IUserRepository>();
+            userRepositoryMock.Setup(r => r.GetByEmail(testUser.Email))
+            .Returns(testUser);
+
+            // Arrange - mock unitOfWork
+            Mock<IUnitOfWork> unitOfWorkMock = new Mock<IUnitOfWork>();
+            unitOfWorkMock.SetupGet(u => u.UserRepository)
+            .Returns(userRepositoryMock.Object);
+
+            // Act
+            IUserService target = new UserService(unitOfWorkMock.Object, this._userValidationMock.Object);
+            Assert.Throws<WrongPasswordException>(() => target.Authenticate(testUser.Email, password));
+
+            // Assert
+            userRepositoryMock.Verify(r => r.GetByEmail(testUser.Email), Times.Once);
         }
 
         [Test]
@@ -148,7 +160,7 @@
             .Returns(userRepositoryMock.Object);
 
             // Act
-            IUserService target = new UserService(unitOfWorkMock.Object);
+            IUserService target = new UserService(unitOfWorkMock.Object, this._userValidationMock.Object);
             User user = target.GetById(userId);
 
             // Assert
@@ -159,8 +171,10 @@
         [Test]
         public void GetById_UserIdIsLessOrEqualToZero_ThrowsArgumentOutOfRangeException()
         {
-            IUserService target = new UserService(new Mock<IUnitOfWork>().Object);
+            // Arrange
+            IUserService target = new UserService(new Mock<IUnitOfWork>().Object, this._userValidationMock.Object);
 
+            // Act and Assert
             Assert.Throws<ArgumentOutOfRangeException>(() => target.GetById(-1));
             Assert.Throws<ArgumentOutOfRangeException>(() => target.GetById(0));
         }
@@ -186,12 +200,26 @@
             .Returns(userRepositoryMock.Object);
 
             // Act
-            IUserService target = new UserService(unitOfWorkMock.Object);
+            IUserService target = new UserService(unitOfWorkMock.Object, this._userValidationMock.Object);
             User user = target.GetById(testUser.UserId);
 
             // Assert
             Assert.AreSame(user, testUser);
             userRepositoryMock.Verify(r => r.GetById(testUser.UserId), Times.Once);
+        }
+
+        [SetUp]
+        public void Init()
+        {
+            this.MockUserValidation();
+        }
+
+        private void MockUserValidation()
+        {
+            this._userValidationMock = new Mock<IUserValidation>();
+
+            this._userValidationMock.Setup(v => v.IsValidEmail(It.IsAny<string>()))
+            .Returns(true);
         }
     }
 }

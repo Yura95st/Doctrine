@@ -1,7 +1,6 @@
 ﻿namespace Doctrine.Domain.Services.Concrete
 {
     using System;
-    using System.Text.RegularExpressions;
 
     using Doctrine.Domain.Dal;
     using Doctrine.Domain.Exceptions;
@@ -9,12 +8,18 @@
     using Doctrine.Domain.Services.Abstract;
     using Doctrine.Domain.Services.Common;
     using Doctrine.Domain.Utils;
+    using Doctrine.Domain.Validation.Abstract;
 
     public class UserService : ServiceBase, IUserService
     {
-        public UserService(IUnitOfWork unitOfWork)
+        private readonly IUserValidation _userValidation;
+
+        public UserService(IUnitOfWork unitOfWork, IUserValidation userValidation)
         : base(unitOfWork)
         {
+            Guard.NotNull(userValidation, "userValidation");
+
+            this._userValidation = userValidation;
         }
 
         #region IUserService Members
@@ -24,7 +29,7 @@
             Guard.NotNullOrEmpty(email, "email");
             Guard.NotNullOrEmpty(password, "password");
 
-            if (!UserService.IsValidEmail(email))
+            if (!this._userValidation.IsValidEmail(email))
             {
                 throw new InvalidEmailFormatException(String.Format("Email '{0}' has invalid format.", email));
             }
@@ -38,7 +43,7 @@
 
             if (user.Password != password)
             {
-                throw new InvalidPasswordException(String.Format("Password '{0}' is invalid.", password));
+                throw new WrongPasswordException(String.Format("Password '{0}' is wrong.", password));
             }
 
             return user;
@@ -62,15 +67,5 @@
         }
 
         #endregion
-
-        private static bool IsValidEmail(string email)
-        {
-            string pattern = @"^(?!\.)(""([^""\r\\]|\\[""\r\\])*""|" + @"([-a-z0-9!#$%&'*+/=?^_`{|}~]|(?<!\.)\.)*)(?<!\.)"
-                             + @"@[a-z0-9][\w\.-]*[a-z0-9]\.[a-z][a-z\.]*[a-z]$";
-
-            Regex regex = new Regex(pattern, RegexOptions.IgnoreCase);
-
-            return regex.IsMatch(email);
-        }
     }
 }
