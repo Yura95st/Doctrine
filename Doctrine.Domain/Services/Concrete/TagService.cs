@@ -1,40 +1,14 @@
 ﻿namespace Doctrine.Domain.Services.Concrete
 {
-    using System;
-    using System.Collections.Generic;
-
-    using Doctrine.Domain.Models;
+    using Doctrine.Domain.Dal;
     using Doctrine.Domain.Services.Abstract;
+    using Doctrine.Domain.Services.Common;
 
-    public class TagService : ITagService
+    public class TagService : ServiceBase, ITagService
     {
-        #region ITagService Members
-
-        public void Create(Tag entity)
+        public TagService(IUnitOfWork unitOfWork)
+        : base(unitOfWork)
         {
-            throw new NotImplementedException();
         }
-
-        public void Delete(Tag entity)
-        {
-            throw new NotImplementedException();
-        }
-
-        public IEnumerable<Tag> GetAll()
-        {
-            throw new NotImplementedException();
-        }
-
-        public Tag GetById(int id)
-        {
-            throw new NotImplementedException();
-        }
-
-        public void Update(Tag entity)
-        {
-            throw new NotImplementedException();
-        }
-
-        #endregion
     }
 }

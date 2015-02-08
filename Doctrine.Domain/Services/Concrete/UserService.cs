@@ -1,40 +1,14 @@
 ﻿namespace Doctrine.Domain.Services.Concrete
 {
-    using System;
-    using System.Collections.Generic;
-
-    using Doctrine.Domain.Models;
+    using Doctrine.Domain.Dal;
     using Doctrine.Domain.Services.Abstract;
+    using Doctrine.Domain.Services.Common;
 
-    public class UserService : IUserService
+    public class UserService : ServiceBase, IUserService
     {
-        #region IUserService Members
-
-        public void Create(User entity)
+        public UserService(IUnitOfWork unitOfWork)
+        : base(unitOfWork)
         {
-            throw new NotImplementedException();
         }
-
-        public void Delete(User entity)
-        {
-            throw new NotImplementedException();
-        }
-
-        public IEnumerable<User> GetAll()
-        {
-            throw new NotImplementedException();
-        }
-
-        public User GetById(int id)
-        {
-            throw new NotImplementedException();
-        }
-
-        public void Update(User entity)
-        {
-            throw new NotImplementedException();
-        }
-
-        #endregion
     }
 }

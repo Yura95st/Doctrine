@@ -1,52 +1,23 @@
 ﻿namespace Doctrine.Domain.Services.Concrete
 {
     using System;
-    using System.Collections.Generic;
     using System.Net;
 
     using Doctrine.Domain.Dal;
     using Doctrine.Domain.Exceptions;
     using Doctrine.Domain.Models;
     using Doctrine.Domain.Services.Abstract;
+    using Doctrine.Domain.Services.Common;
     using Doctrine.Domain.Utils;
 
-    public class VisitorService : IVisitorService
+    public class VisitorService : ServiceBase, IVisitorService
     {
-        private readonly IUnitOfWork _unitOfWork;
-
         public VisitorService(IUnitOfWork unitOfWork)
+        : base(unitOfWork)
         {
-            Guard.NotNull(unitOfWork, "unitOfWork");
-
-            this._unitOfWork = unitOfWork;
         }
 
         #region IVisitorService Members
-
-        public void Create(Visitor entity)
-        {
-            throw new NotImplementedException();
-        }
-
-        public void Delete(Visitor entity)
-        {
-            throw new NotImplementedException();
-        }
-
-        public IEnumerable<Visitor> GetAll()
-        {
-            throw new NotImplementedException();
-        }
-
-        public Visitor GetById(int id)
-        {
-            throw new NotImplementedException();
-        }
-
-        public void Update(Visitor entity)
-        {
-            throw new NotImplementedException();
-        }
 
         public Visitor RegisterIpAddress(string ipAddress)
         {

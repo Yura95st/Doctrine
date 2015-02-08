@@ -79,7 +79,7 @@
     <Compile Include="Services\Abstract\ITopicService.cs" />
     <Compile Include="Services\Abstract\IUserService.cs" />
     <Compile Include="Services\Abstract\IVisitorService.cs" />
-    <Compile Include="Services\Common\IService.cs" />
+    <Compile Include="Services\Common\ServiceBase.cs" />
     <Compile Include="Services\Concrete\VisitorService.cs" />
     <Compile Include="Services\Concrete\UserService.cs" />
     <Compile Include="Services\Concrete\TopicService.cs" />

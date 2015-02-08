@@ -1,40 +1,14 @@
 ﻿namespace Doctrine.Domain.Services.Concrete
 {
-    using System;
-    using System.Collections.Generic;
-
-    using Doctrine.Domain.Models;
+    using Doctrine.Domain.Dal;
     using Doctrine.Domain.Services.Abstract;
+    using Doctrine.Domain.Services.Common;
 
-    public class TopicService : ITopicService
+    public class TopicService : ServiceBase, ITopicService
     {
-        #region ITopicService Members
-
-        public void Create(Topic entity)
+        public TopicService(IUnitOfWork unitOfWork)
+        : base(unitOfWork)
         {
-            throw new NotImplementedException();
         }
-
-        public void Delete(Topic entity)
-        {
-            throw new NotImplementedException();
-        }
-
-        public IEnumerable<Topic> GetAll()
-        {
-            throw new NotImplementedException();
-        }
-
-        public Topic GetById(int id)
-        {
-            throw new NotImplementedException();
-        }
-
-        public void Update(Topic entity)
-        {
-            throw new NotImplementedException();
-        }
-
-        #endregion
     }
 }

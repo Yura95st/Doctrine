@@ -1,40 +1,14 @@
 ﻿namespace Doctrine.Domain.Services.Concrete
 {
-    using System;
-    using System.Collections.Generic;
-
-    using Doctrine.Domain.Models;
+    using Doctrine.Domain.Dal;
     using Doctrine.Domain.Services.Abstract;
+    using Doctrine.Domain.Services.Common;
 
-    public class ArticleService : IArticleService
+    public class ArticleService : ServiceBase, IArticleService
     {
-        #region IArticleService Members
-
-        public void Create(Article entity)
+        public ArticleService(IUnitOfWork unitOfWork)
+        : base(unitOfWork)
         {
-            throw new NotImplementedException();
         }
-
-        public void Delete(Article entity)
-        {
-            throw new NotImplementedException();
-        }
-
-        public IEnumerable<Article> GetAll()
-        {
-            throw new NotImplementedException();
-        }
-
-        public Article GetById(int id)
-        {
-            throw new NotImplementedException();
-        }
-
-        public void Update(Article entity)
-        {
-            throw new NotImplementedException();
-        }
-
-        #endregion
     }
 }

@@ -1,40 +1,14 @@
 ﻿namespace Doctrine.Domain.Services.Concrete
 {
-    using System;
-    using System.Collections.Generic;
-
-    using Doctrine.Domain.Models;
+    using Doctrine.Domain.Dal;
     using Doctrine.Domain.Services.Abstract;
+    using Doctrine.Domain.Services.Common;
 
-    public class CommentService : ICommentService
+    public class CommentService : ServiceBase, ICommentService
     {
-        #region ICommentService Members
-
-        public void Create(Comment entity)
+        public CommentService(IUnitOfWork unitOfWork)
+        : base(unitOfWork)
         {
-            throw new NotImplementedException();
         }
-
-        public void Delete(Comment entity)
-        {
-            throw new NotImplementedException();
-        }
-
-        public IEnumerable<Comment> GetAll()
-        {
-            throw new NotImplementedException();
-        }
-
-        public Comment GetById(int id)
-        {
-            throw new NotImplementedException();
-        }
-
-        public void Update(Comment entity)
-        {
-            throw new NotImplementedException();
-        }
-
-        #endregion
     }
 }
