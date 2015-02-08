@@ -1,15 +1,14 @@
 ﻿namespace Doctrine.Domain.Dal
 {
     using System;
+    using System.Diagnostics;
 
     using Doctrine.Domain.Dal.Repositories.Abstract;
-    using Doctrine.Domain.Dal.Repositories.Common;
     using Doctrine.Domain.Dal.Repositories.Concrete;
-    using Doctrine.Domain.Models;
 
     public class UnitOfWork : IUnitOfWork
     {
-        private readonly DoctrineContext _context = new DoctrineContext();
+        private readonly DoctrineContext _context;
 
         private IArticleRepository _articleRepository;
 
@@ -24,6 +23,14 @@
         private IUserRepository _userRepository;
 
         private IVisitorRepository _visitorRepository;
+
+        public UnitOfWork()
+        {
+            this._context = new DoctrineContext();
+
+            // Log all the data from Entity Framework to Output window
+            this._context.Database.Log = s => Debug.WriteLine(s);
+        }
 
         #region IUnitOfWork Members
 

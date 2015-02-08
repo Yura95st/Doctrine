@@ -14,7 +14,7 @@
 
         IEnumerable<TEntity> Get(Expression<Func<TEntity, bool>> filter = null,
                                  Func<IQueryable<TEntity>, IOrderedQueryable<TEntity>> orderBy = null,
-                                 string includeProperties = "");
+                                 params Expression<Func<TEntity, object>>[] selector);
 
         TEntity GetById(object id);
 

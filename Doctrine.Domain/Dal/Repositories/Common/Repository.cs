@@ -39,7 +39,7 @@
 
         public virtual IEnumerable<TEntity> Get(Expression<Func<TEntity, bool>> filter = null,
                                                 Func<IQueryable<TEntity>, IOrderedQueryable<TEntity>> orderBy = null,
-                                                string includeProperties = "")
+                                                params Expression<Func<TEntity, object>>[] selector)
         {
             IQueryable<TEntity> query = this._dbSet;
 
@@ -48,9 +48,9 @@
                 query = query.Where(filter);
             }
 
-            foreach (string includeProperty in includeProperties.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
+            for (int i = 0; i < selector.Length; i++)
             {
-                query = query.Include(includeProperty);
+                query = query.Include(selector[i]);
             }
 
             if (orderBy != null)
