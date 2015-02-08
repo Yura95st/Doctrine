@@ -99,7 +99,7 @@
 
             // Act
             IUserService target = new UserService(unitOfWorkMock.Object);
-            Assert.Throws<NonexistentEmailException>(() => target.Authenticate(testUser.Email, password));
+            Assert.Throws<InvalidPasswordException>(() => target.Authenticate(testUser.Email, password));
 
             // Assert
             userRepositoryMock.Verify(r => r.GetByEmail(testUser.Email), Times.Once);
