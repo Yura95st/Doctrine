@@ -5,6 +5,9 @@
 
     public interface IVisitorRepository : IRepository<Visitor>
     {
+        /// <summary>Gets the visitor by ip address.</summary>
+        /// <param name="ipAddress">The ip address.</param>
+        /// <returns>The visitor.</returns>
         Visitor GetByIpAddress(string ipAddress);
     }
 }

@@ -7,6 +7,10 @@
     {
         protected readonly IUnitOfWork _unitOfWork;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ServiceBase"/> class.
+        /// </summary>
+        /// <param name="unitOfWork">The unit of work.</param>
         protected ServiceBase(IUnitOfWork unitOfWork)
         {
             Guard.NotNull(unitOfWork, "unitOfWork");
