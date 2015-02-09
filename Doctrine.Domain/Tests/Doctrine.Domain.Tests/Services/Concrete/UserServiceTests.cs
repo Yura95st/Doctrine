@@ -270,7 +270,7 @@
             Assert.IsNotNull(lastUserActivity);
             Assert.AreEqual(userActivityId, lastUserActivity.ActivityId);
             Assert.AreEqual(visitor.VisitorId, lastUserActivity.VisitorId);
-            Assert.IsTrue(new DateTime() != lastUserActivity.LogonDate);
+            Assert.IsTrue(new DateTime() != lastUserActivity.LogOnDate);
 
             userRepositoryMock.Verify(r => r.GetByEmail(user.Email), Times.Once);
             userRepositoryMock.Verify(r => r.Update(It.Is<User>(u => u.UserId == user.UserId)), Times.Once);

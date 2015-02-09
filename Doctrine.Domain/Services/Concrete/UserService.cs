@@ -64,7 +64,7 @@
 
             // Save user LogOn activity
             user.UserActivities.Add(new UserActivity
-            { UserId = user.UserId, VisitorId = visitor.VisitorId, LogonDate = DateTime.Now });
+            { UserId = user.UserId, VisitorId = visitor.VisitorId, LogOnDate = DateTime.Now });
 
             this._unitOfWork.UserRepository.Update(user);
             this._unitOfWork.Save();

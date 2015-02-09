@@ -15,7 +15,7 @@ namespace Doctrine.Domain.Models
             set;
         }
 
-        public DateTime LogonDate
+        public DateTime LogOnDate
         {
             get;
             set;
