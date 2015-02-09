@@ -25,8 +25,9 @@
 
         #region IUserService Members
 
-        public User Authenticate(string email, string password)
+        public User Authenticate(int visitorId, string email, string password)
         {
+            Guard.IntMoreThanZero(visitorId, "visitorId");
             Guard.NotNullOrEmpty(email, "email");
             Guard.NotNullOrEmpty(password, "password");
 
@@ -46,6 +47,20 @@
             {
                 throw new WrongPasswordException(String.Format("Password '{0}' is wrong.", password));
             }
+
+            Visitor visitor = this._unitOfWork.VisitorRepository.GetById(visitorId);
+
+            if (visitor == null)
+            {
+                throw new VisitorNotFoundException(String.Format("Visitor with id '{0}' was not found.", visitorId));
+            }
+
+            // Save user LogOn activity
+            user.UserActivities.Add(new UserActivity
+            { UserId = user.UserId, VisitorId = visitor.VisitorId, LogonDate = DateTime.Now });
+
+            this._unitOfWork.UserRepository.Update(user);
+            this._unitOfWork.Save();
 
             return user;
         }

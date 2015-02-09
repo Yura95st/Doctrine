@@ -4,11 +4,12 @@
 
     public interface IUserService
     {
-        /// <summary>Authenticates the user.</summary>
+        /// <summary>Authenticates the visitor as user.</summary>
+        /// <param name="visitorId">The visitor identifier.</param>
         /// <param name="email">The email.</param>
         /// <param name="password">The password.</param>
         /// <returns>Authenticated user.</returns>
-        User Authenticate(string email, string password);
+        User Authenticate(int visitorId, string email, string password);
 
         /// <summary>Creates new user.</summary>
         /// <param name="email">The email.</param>
