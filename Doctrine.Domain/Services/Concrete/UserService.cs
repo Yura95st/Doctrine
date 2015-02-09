@@ -40,7 +40,7 @@
 
             if (user == null)
             {
-                throw new NonexistentEmailException(String.Format("User with email '{0}' doesn't exist.", email));
+                throw new UserNotFoundException(String.Format("User with email '{0}' was not found.", email));
             }
 
             if (user.Password != password)

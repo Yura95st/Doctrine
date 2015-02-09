@@ -2,20 +2,20 @@
 {
     using System;
 
-    public class NonexistentEmailException : Exception
+    public class UserNotFoundException : Exception
     {
         #region Constructors
 
-        public NonexistentEmailException()
+        public UserNotFoundException()
         {
         }
 
-        public NonexistentEmailException(string message)
+        public UserNotFoundException(string message)
         : base(message)
         {
         }
 
-        public NonexistentEmailException(string message, Exception inner)
+        public UserNotFoundException(string message, Exception inner)
         : base(message, inner)
         {
         }

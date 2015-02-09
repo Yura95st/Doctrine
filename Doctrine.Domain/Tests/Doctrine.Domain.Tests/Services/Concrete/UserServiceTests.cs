@@ -120,7 +120,7 @@
         }
 
         [Test]
-        public void Authenticate_NonexistentEmail_ThrowsNonexistentEmailException()
+        public void Authenticate_NonexistentEmail_ThrowsUserNotFoundException()
         {
             // Arrange
             int visitorId = 1;
@@ -140,7 +140,7 @@
             IUserService target = new UserService(unitOfWorkMock.Object, this._userValidationMock.Object);
 
             // Act and Assert
-            Assert.Throws<NonexistentEmailException>(() => target.Authenticate(visitorId, email, password));
+            Assert.Throws<UserNotFoundException>(() => target.Authenticate(visitorId, email, password));
 
             userRepositoryMock.Verify(r => r.GetByEmail(email), Times.Once);
         }
