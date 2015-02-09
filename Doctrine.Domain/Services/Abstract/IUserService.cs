@@ -4,6 +4,11 @@
 
     public interface IUserService
     {
+        /// <summary>Adds the article to user's favorites.</summary>
+        /// <param name="userId">The user identifier.</param>
+        /// <param name="articleId">The article identifier.</param>
+        void AddArticleToFavorites(int userId, int articleId);
+
         /// <summary>Authenticates the visitor as user.</summary>
         /// <param name="visitorId">The visitor identifier.</param>
         /// <param name="email">The email.</param>
@@ -26,5 +31,15 @@
         /// <param name="userId">The user identifier.</param>
         /// <returns>User.</returns>
         User GetById(int userId);
+
+        /// <summary>Reads the article.</summary>
+        /// <param name="userId">The user identifier.</param>
+        /// <param name="articleId">The article identifier.</param>
+        void ReadArticle(int userId, int articleId);
+
+        /// <summary>Removes the article from user's favorites.</summary>
+        /// <param name="userId">The user identifier.</param>
+        /// <param name="articleId">The article identifier.</param>
+        void RemoveArticleFromFavorites(int userId, int articleId);
     }
 }

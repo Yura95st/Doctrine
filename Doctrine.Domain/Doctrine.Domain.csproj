@@ -63,6 +63,7 @@
     </Compile>
     <Compile Include="Exceptions\InvalidFormat\InvalidPasswordFormatException.cs" />
     <Compile Include="Exceptions\InvalidFormat\InvalidFullNameFormatException.cs" />
+    <Compile Include="Exceptions\ArticleNotFoundException.cs" />
     <Compile Include="Exceptions\VisitorNotFoundException.cs" />
     <Compile Include="Exceptions\WrongPasswordException.cs" />
     <Compile Include="Exceptions\UserNotFoundException.cs" />

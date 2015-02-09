@@ -1,6 +1,7 @@
 ﻿namespace Doctrine.Domain.Services.Concrete
 {
     using System;
+    using System.Linq;
 
     using Doctrine.Domain.Dal;
     using Doctrine.Domain.Exceptions;
@@ -24,6 +25,44 @@
         }
 
         #region IUserService Members
+
+        public void AddArticleToFavorites(int userId, int articleId)
+        {
+            Guard.IntMoreThanZero(userId, "userId");
+            Guard.IntMoreThanZero(articleId, "articleId");
+
+            User user = this._unitOfWork.UserRepository.Get(u => u.UserId == userId, selector: u => u.UserFavorites).FirstOrDefault();
+
+            if (user == null)
+            {
+                throw new UserNotFoundException(String.Format("User with ID '{0}' was not found.", userId));
+            }
+
+            UserFavorite userFavorite = user.UserFavorites.FirstOrDefault(f => f.ArticleId == articleId);
+
+            if (userFavorite == null)
+            {
+                Article article = this._unitOfWork.ArticleRepository.GetById(articleId);
+
+                if (article == null)
+                {
+                    throw new ArticleNotFoundException(String.Format("Article with ID '{0}' was not found.", articleId));
+                }
+
+                userFavorite = new UserFavorite
+                {
+                    UserId = user.UserId,
+                    ArticleId = article.ArticleId
+                };
+
+                user.UserFavorites.Add(userFavorite);
+            }
+
+            userFavorite.AddDate = DateTime.Now;
+
+            this._unitOfWork.UserRepository.Update(user);
+            this._unitOfWork.Save();
+        }
 
         public User Authenticate(int visitorId, string email, string password)
         {
@@ -111,6 +150,16 @@
             Guard.IntMoreThanZero(userId, "userId");
 
             return this._unitOfWork.UserRepository.GetById(userId);
+        }
+
+        public void ReadArticle(int userId, int articleId)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void RemoveArticleFromFavorites(int userId, int articleId)
+        {
+            throw new NotImplementedException();
         }
 
         #endregion
