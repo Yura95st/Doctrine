@@ -39,7 +39,7 @@
             .Returns(new[] { user });
 
             UserFavorite newUserFavorite = null;
-            userRepositoryMock.Setup(r => r.Update(It.IsAny<User>()))
+            userRepositoryMock.Setup(r => r.Update(It.Is<User>(u => u.UserId == user.UserId)))
             .Callback((User u) => newUserFavorite = u.UserFavorites.FirstOrDefault());
 
             // Arrange - mock articleRepository
@@ -88,8 +88,6 @@
 
             User user = new User { UserId = userId, UserFavorites = new List<UserFavorite> { userFavorite } };
 
-            Article article = new Article { ArticleId = articleId };
-
             // Arrange - mock userRepository
             Mock<IUserRepository> userRepositoryMock = new Mock<IUserRepository>();
             userRepositoryMock.Setup(
@@ -97,7 +95,7 @@
             .Returns(new[] { user });
 
             UserFavorite newUserFavorite = null;
-            userRepositoryMock.Setup(r => r.Update(It.IsAny<User>()))
+            userRepositoryMock.Setup(r => r.Update(It.Is<User>(u => u.UserId == userId)))
             .Callback((User u) => newUserFavorite = u.UserFavorites.FirstOrDefault());
 
             // Arrange - mock unitOfWork
@@ -238,7 +236,7 @@
             .Returns(user);
 
             UserActivity newUserActivity = null;
-            userRepositoryMock.Setup(r => r.Update(It.IsAny<User>()))
+            userRepositoryMock.Setup(r => r.Update(It.Is<User>(u => u.UserId == user.UserId)))
             .Callback((User u) => newUserActivity = u.UserActivities.FirstOrDefault());
 
             // Arrange - mock visitorRepository
@@ -449,7 +447,7 @@
             .Returns((User)null);
 
             User newUser = null;
-            userRepositoryMock.Setup(r => r.Insert(It.IsAny<User>()))
+            userRepositoryMock.Setup(r => r.Insert(It.Is<User>(u => u.Email == email)))
             .Callback((User u) => newUser = u);
 
             // Arrange - mock unitOfWork
