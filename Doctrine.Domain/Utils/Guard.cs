@@ -10,6 +10,20 @@
         #region Public Methods
 
         /// <summary>
+        ///     Throws <see cref="ArgumentOutOfRangeException" /> if the given argument is not greater than 0.
+        /// </summary>
+        /// <param name="argumentIntValue">The argument value to test.</param>
+        /// <param name="argumentName">The name of the argument to test.</param>
+        public static void IntMoreThanZero(int argumentIntValue, string argumentName)
+        {
+            if (argumentIntValue <= 0)
+            {
+                throw new ArgumentOutOfRangeException(argumentName,
+                String.Format("Argument '{0}' must be greater than 0.", argumentName));
+            }
+        }
+
+        /// <summary>
         ///     Throws <see cref="ArgumentNullException" /> if the given argument is null.
         /// </summary>
         /// <exception cref="ArgumentNullException">The value is null.</exception>
@@ -19,7 +33,7 @@
         {
             if (argumentValue == null)
             {
-                throw new ArgumentNullException(argumentName);
+                throw new ArgumentNullException(argumentName, String.Format("Argument '{0}' must not be null.", argumentName));
             }
         }
 
@@ -32,27 +46,11 @@
         /// <param name="argumentName">The name of the argument to test.</param>
         public static void NotNullOrEmpty(string argumentValue, string argumentName)
         {
-            if (argumentValue == null)
-            {
-                throw new ArgumentNullException(argumentName);
-            }
+            Guard.NotNull(argumentValue, argumentName);
 
             if (argumentValue.Length == 0)
             {
-                throw new ArgumentException("The argument cannot be empty.", argumentName);
-            }
-        }
-
-        /// <summary>
-        ///     Throws <see cref="ArgumentOutOfRangeException" /> if the given argument is not greater than 0.
-        /// </summary>
-        /// <param name="argumentIntValue">The argument value to test.</param>
-        /// <param name="argumentName">The name of the argument to test.</param>
-        public static void IntMoreThanZero(int argumentIntValue, string argumentName)
-        {
-            if (argumentIntValue <= 0)
-            {
-                throw new ArgumentOutOfRangeException(argumentName, "The argument must be greater than 0.");
+                throw new ArgumentException(String.Format("Argument '{0}' must not be empty.", argumentName), argumentName);
             }
         }
 
