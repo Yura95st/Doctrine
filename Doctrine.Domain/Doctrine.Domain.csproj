@@ -63,10 +63,10 @@
     </Compile>
     <Compile Include="Exceptions\InvalidFormat\InvalidPasswordFormatException.cs" />
     <Compile Include="Exceptions\InvalidFormat\InvalidFullNameFormatException.cs" />
-    <Compile Include="Exceptions\ArticleNotFoundException.cs" />
-    <Compile Include="Exceptions\VisitorNotFoundException.cs" />
+    <Compile Include="Exceptions\NotFound\ArticleNotFoundException.cs" />
+    <Compile Include="Exceptions\NotFound\VisitorNotFoundException.cs" />
     <Compile Include="Exceptions\WrongPasswordException.cs" />
-    <Compile Include="Exceptions\UserNotFoundException.cs" />
+    <Compile Include="Exceptions\NotFound\UserNotFoundException.cs" />
     <Compile Include="Exceptions\InvalidFormat\InvalidEmailFormatException.cs" />
     <Compile Include="Exceptions\InvalidFormat\InvalidIpAddressFormatException.cs">
       <SubType>Code</SubType>

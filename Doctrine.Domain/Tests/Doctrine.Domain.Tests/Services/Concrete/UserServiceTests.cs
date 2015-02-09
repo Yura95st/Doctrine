@@ -9,6 +9,7 @@
     using Doctrine.Domain.Dal.Repositories.Abstract;
     using Doctrine.Domain.Exceptions;
     using Doctrine.Domain.Exceptions.InvalidFormat;
+    using Doctrine.Domain.Exceptions.NotFound;
     using Doctrine.Domain.Models;
     using Doctrine.Domain.Services.Abstract;
     using Doctrine.Domain.Services.Concrete;
