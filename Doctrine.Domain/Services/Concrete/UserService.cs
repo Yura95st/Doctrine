@@ -29,40 +29,7 @@
 
         public void AddArticleToFavorites(int userId, int articleId)
         {
-            Guard.IntMoreThanZero(userId, "userId");
-            Guard.IntMoreThanZero(articleId, "articleId");
-
-            User user = this._unitOfWork.UserRepository.Get(u => u.UserId == userId, selector: u => u.UserFavorites).FirstOrDefault();
-
-            if (user == null)
-            {
-                throw new UserNotFoundException(String.Format("User with ID '{0}' was not found.", userId));
-            }
-
-            UserFavorite userFavorite = user.UserFavorites.FirstOrDefault(f => f.ArticleId == articleId);
-
-            if (userFavorite == null)
-            {
-                Article article = this._unitOfWork.ArticleRepository.GetById(articleId);
-
-                if (article == null)
-                {
-                    throw new ArticleNotFoundException(String.Format("Article with ID '{0}' was not found.", articleId));
-                }
-
-                userFavorite = new UserFavorite
-                {
-                    UserId = user.UserId,
-                    ArticleId = article.ArticleId
-                };
-
-                user.UserFavorites.Add(userFavorite);
-            }
-
-            userFavorite.AddDate = DateTime.Now;
-
-            this._unitOfWork.UserRepository.Update(user);
-            this._unitOfWork.Save();
+            this.AddOrRemoveArticleFromFavorites(userId, articleId, false);
         }
 
         public User Authenticate(int visitorId, string email, string password)
@@ -160,9 +127,61 @@
 
         public void RemoveArticleFromFavorites(int userId, int articleId)
         {
+            this.AddOrRemoveArticleFromFavorites(userId, articleId, true);
+        }
+
+        public void UnreadArticle(int userId, int articleId)
+        {
             throw new NotImplementedException();
         }
 
         #endregion
+
+        private void AddOrRemoveArticleFromFavorites(int userId, int articleId, bool removeFromFavorites)
+        {
+            Guard.IntMoreThanZero(userId, "userId");
+            Guard.IntMoreThanZero(articleId, "articleId");
+
+            User user = this._unitOfWork.UserRepository.Get(u => u.UserId == userId, selector: u => u.UserFavorites)
+            .FirstOrDefault();
+
+            if (user == null)
+            {
+                throw new UserNotFoundException(String.Format("User with ID '{0}' was not found.", userId));
+            }
+
+            UserFavorite userFavorite = user.UserFavorites.FirstOrDefault(f => f.ArticleId == articleId);
+
+            if (userFavorite == null)
+            {
+                if (removeFromFavorites)
+                {
+                    throw new ArticleNotFoundException(String.Format("Article with ID '{0}' was not found.", articleId));
+                }
+
+                Article article = this._unitOfWork.ArticleRepository.GetById(articleId);
+
+                if (article == null)
+                {
+                    throw new ArticleNotFoundException(String.Format("Article with ID '{0}' was not found.", articleId));
+                }
+
+                userFavorite = new UserFavorite { UserId = user.UserId, ArticleId = article.ArticleId };
+
+                user.UserFavorites.Add(userFavorite);
+            }
+
+            if (removeFromFavorites)
+            {
+                user.UserFavorites.Remove(userFavorite);
+            }
+            else
+            {
+                userFavorite.AddDate = DateTime.Now;
+            }
+
+            this._unitOfWork.UserRepository.Update(user);
+            this._unitOfWork.Save();
+        }
     }
 }

@@ -32,7 +32,7 @@
         /// <returns>User.</returns>
         User GetById(int userId);
 
-        /// <summary>Reads the article.</summary>
+        /// <summary>Marks the article as read by user.</summary>
         /// <param name="userId">The user identifier.</param>
         /// <param name="articleId">The article identifier.</param>
         void ReadArticle(int userId, int articleId);
@@ -41,5 +41,10 @@
         /// <param name="userId">The user identifier.</param>
         /// <param name="articleId">The article identifier.</param>
         void RemoveArticleFromFavorites(int userId, int articleId);
+
+        /// <summary>Removes the fact, that article was read by user.</summary>
+        /// <param name="userId">The user identifier.</param>
+        /// <param name="articleId">The article identifier.</param>
+        void UnreadArticle(int userId, int articleId);
     }
 }

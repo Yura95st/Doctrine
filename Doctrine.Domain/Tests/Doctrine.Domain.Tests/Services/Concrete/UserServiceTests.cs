@@ -659,6 +659,138 @@
             this.MockUserValidation();
         }
 
+        [Test]
+        public void RemoveArticleFromFavorites_AllCredentialsAreValid_RemovesArticleFromFavorites()
+        {
+            // Arrange
+            int userId = 1;
+            int articleId = 2;
+
+            UserFavorite userFavorite = new UserFavorite { UserId = userId, ArticleId = articleId, AddDate = DateTime.Now };
+
+            User user = new User { UserId = userId, UserFavorites = new List<UserFavorite> { userFavorite } };
+
+            // Arrange - mock userRepository
+            Mock<IUserRepository> userRepositoryMock = new Mock<IUserRepository>();
+            userRepositoryMock.Setup(
+            r => r.Get(It.IsAny<Expression<Func<User, bool>>>(), null, It.IsAny<Expression<Func<User, object>>[]>()))
+            .Returns(new[] { user });
+
+            IEnumerable<UserFavorite> newUserFavorites = null;
+            userRepositoryMock.Setup(r => r.Update(It.Is<User>(u => u.UserId == userId)))
+            .Callback((User u) => newUserFavorites = u.UserFavorites);
+
+            // Arrange - mock unitOfWork
+            Mock<IUnitOfWork> unitOfWorkMock = new Mock<IUnitOfWork>();
+            unitOfWorkMock.SetupGet(u => u.UserRepository)
+            .Returns(userRepositoryMock.Object);
+
+            IUserService target = new UserService(unitOfWorkMock.Object, this._userValidationMock.Object);
+
+            // Act
+            target.RemoveArticleFromFavorites(userId, articleId);
+
+            // Assert
+            Assert.AreEqual(0, newUserFavorites.Count(f => f.ArticleId == articleId && f.UserId == userId));
+
+            userRepositoryMock.Verify(
+            r => r.Get(It.IsAny<Expression<Func<User, bool>>>(), null, It.IsAny<Expression<Func<User, object>>[]>()),
+            Times.Once);
+            userRepositoryMock.Verify(r => r.Update(It.Is<User>(u => u.UserId == userId)), Times.Once);
+
+            unitOfWorkMock.Verify(u => u.Save(), Times.Once);
+        }
+
+        [Test]
+        public void RemoveArticleFromFavorites_ArticleHasNotBeenAddedToFavorites_ThrowsArticleNotFoundException()
+        {
+            // Arrange
+            int userId = 1;
+            int articleId = 2;
+
+            User user = new User { UserId = userId, UserFavorites = new List<UserFavorite>() };
+
+            // Arrange - mock userRepository
+            Mock<IUserRepository> userRepositoryMock = new Mock<IUserRepository>();
+            userRepositoryMock.Setup(
+            r => r.Get(It.IsAny<Expression<Func<User, bool>>>(), null, It.IsAny<Expression<Func<User, object>>[]>()))
+            .Returns(new[] { user });
+
+            // Arrange - mock unitOfWork
+            Mock<IUnitOfWork> unitOfWorkMock = new Mock<IUnitOfWork>();
+            unitOfWorkMock.SetupGet(u => u.UserRepository)
+            .Returns(userRepositoryMock.Object);
+
+            IUserService target = new UserService(unitOfWorkMock.Object, this._userValidationMock.Object);
+
+            // Act and Assert
+            Assert.Throws<ArticleNotFoundException>(() => target.RemoveArticleFromFavorites(userId, articleId));
+
+            userRepositoryMock.Verify(
+            r => r.Get(It.IsAny<Expression<Func<User, bool>>>(), null, It.IsAny<Expression<Func<User, object>>[]>()),
+            Times.Once);
+            userRepositoryMock.Verify(r => r.Update(It.Is<User>(u => u.UserId == userId)), Times.Never);
+
+            unitOfWorkMock.Verify(u => u.Save(), Times.Never);
+        }
+
+        [Test]
+        public void RemoveArticleFromFavorites_ArticleIdIsLessOrEqualToZero_ThrowsArgumentOutOfRangeException()
+        {
+            // Arrange
+            int userId = 1;
+
+            IUserService target = new UserService(new Mock<IUnitOfWork>().Object, this._userValidationMock.Object);
+
+            // Act and Assert
+            Assert.Throws<ArgumentOutOfRangeException>(() => target.RemoveArticleFromFavorites(userId, -1));
+            Assert.Throws<ArgumentOutOfRangeException>(() => target.RemoveArticleFromFavorites(userId, 0));
+        }
+
+        [Test]
+        public void RemoveArticleFromFavorites_NonexistentUserId_ThrowsUserNotFoundException()
+        {
+            // Arrange
+            int userId = 1;
+            int articleId = 2;
+
+            // Arrange - mock userRepository
+            Mock<IUserRepository> userRepositoryMock = new Mock<IUserRepository>();
+            userRepositoryMock.Setup(
+            r => r.Get(It.IsAny<Expression<Func<User, bool>>>(), null, It.IsAny<Expression<Func<User, object>>[]>()))
+            .Returns(new User[] { });
+
+            // Arrange - mock unitOfWork
+            Mock<IUnitOfWork> unitOfWorkMock = new Mock<IUnitOfWork>();
+            unitOfWorkMock.SetupGet(u => u.UserRepository)
+            .Returns(userRepositoryMock.Object);
+
+            IUserService target = new UserService(unitOfWorkMock.Object, this._userValidationMock.Object);
+
+            // Act and Assert
+            Assert.Throws<UserNotFoundException>(() => target.RemoveArticleFromFavorites(userId, articleId));
+
+            userRepositoryMock.Verify(
+            r => r.Get(It.IsAny<Expression<Func<User, bool>>>(), null, It.IsAny<Expression<Func<User, object>>[]>()),
+            Times.Once);
+            userRepositoryMock.Verify(r => r.Update(It.Is<User>(u => u.UserId == userId)), Times.Never);
+
+            unitOfWorkMock.Verify(u => u.Save(), Times.Never);
+        }
+
+        [Test]
+        public void RemoveArticleFromFavorites_UserIdIsLessOrEqualToZero_ThrowsArgumentOutOfRangeException()
+        {
+            // Arrange
+            int articleId = 1;
+
+            IUserService target = new UserService(new Mock<IUnitOfWork>().Object, this._userValidationMock.Object);
+
+            // Act and Assert
+            Assert.Throws<ArgumentOutOfRangeException>(() => target.RemoveArticleFromFavorites(-1, articleId));
+            Assert.Throws<ArgumentOutOfRangeException>(() => target.RemoveArticleFromFavorites(0, articleId));
+        }
+
         private void MockUserValidation()
         {
             this._userValidationMock = new Mock<IUserValidation>();
