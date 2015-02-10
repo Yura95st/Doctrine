@@ -41,6 +41,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Services\Concrete\CommentServiceTests.cs" />
     <Compile Include="Services\Concrete\TagServiceTests.cs" />
     <Compile Include="Services\Concrete\TopicServiceTests.cs" />
     <Compile Include="Services\Concrete\UserServiceTests.cs" />
