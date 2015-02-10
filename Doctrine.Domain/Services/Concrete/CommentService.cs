@@ -34,7 +34,7 @@
 
             TimeSpan timeSpan = DateTime.Now.AddSeconds(this._permittedPeriodForEditing).Subtract(comment.Date);
 
-            return timeSpan.Seconds >= 0;
+            return timeSpan.TotalMinutes >= 0;
         }
 
         public int PermittedPeriodForEditing
