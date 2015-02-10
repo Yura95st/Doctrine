@@ -26,7 +26,6 @@ namespace Doctrine.Domain.Models
             set;
         }
 
-        [DatabaseGenerated(DatabaseGeneratedOption.None)]
         public int TagId
         {
             get;

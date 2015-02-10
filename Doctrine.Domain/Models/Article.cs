@@ -16,7 +16,6 @@ namespace Doctrine.Domain.Models
             this.Tags = new HashSet<Tag>();
         }
 
-        [DatabaseGenerated(DatabaseGeneratedOption.None)]
         public int ArticleId
         {
             get;

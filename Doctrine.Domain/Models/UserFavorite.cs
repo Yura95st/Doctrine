@@ -7,6 +7,7 @@ namespace Doctrine.Domain.Models
     [Table("UserFavorite")]
     public class UserFavorite
     {
+        [Column(TypeName = "datetime2")]
         public DateTime AddDate
         {
             get;

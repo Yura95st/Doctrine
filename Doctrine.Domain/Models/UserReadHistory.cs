@@ -22,6 +22,7 @@ namespace Doctrine.Domain.Models
             set;
         }
 
+        [Column(TypeName = "datetime2")]
         public DateTime ReadDate
         {
             get;

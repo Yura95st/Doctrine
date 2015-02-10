@@ -33,7 +33,6 @@ namespace Doctrine.Domain.Models
             set;
         }
 
-        [DatabaseGenerated(DatabaseGeneratedOption.None)]
         public int CommentId
         {
             get;
@@ -52,6 +51,7 @@ namespace Doctrine.Domain.Models
             set;
         }
 
+        [Column(TypeName = "datetime2")]
         public DateTime Date
         {
             get;

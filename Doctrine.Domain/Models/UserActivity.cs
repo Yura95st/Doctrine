@@ -8,13 +8,13 @@ namespace Doctrine.Domain.Models
     public class UserActivity
     {
         [Key]
-        [DatabaseGenerated(DatabaseGeneratedOption.None)]
         public int ActivityId
         {
             get;
             set;
         }
 
+        [Column(TypeName = "datetime2")]
         public DateTime LogOnDate
         {
             get;

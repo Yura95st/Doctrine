@@ -53,6 +53,7 @@ namespace Doctrine.Domain.Models
             set;
         }
 
+        [Column(TypeName = "datetime2")]
         public DateTime RegistrationDate
         {
             get;
@@ -71,7 +72,6 @@ namespace Doctrine.Domain.Models
             set;
         }
 
-        [DatabaseGenerated(DatabaseGeneratedOption.None)]
         public int UserId
         {
             get;
