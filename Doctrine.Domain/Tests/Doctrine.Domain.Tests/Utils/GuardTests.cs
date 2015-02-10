@@ -47,6 +47,42 @@
         }
 
         [Test]
+        public void IntMoreOrEqualToZero_ValueIsEqualToZero_DoNothing()
+        {
+            // Arrange
+            int someValue = 0;
+            string someValueName = "someValue";
+
+            // Act
+            Domain.Utils.Guard.IntMoreOrEqualToZero(someValue, someValueName);
+        }
+
+        [Test]
+        public void IntMoreOrEqualToZero_ValueIsGreaterThanZero_DoNothing()
+        {
+            // Arrange
+            int someValue = 1;
+            string someValueName = "someValue";
+
+            // Act
+            Domain.Utils.Guard.IntMoreOrEqualToZero(someValue, someValueName);
+        }
+
+        [Test]
+        public void IntMoreOrEqualToZero_ValueIsLessThanZero_ThrowsArgumentOutOfRangeExceptionWithInfo()
+        {
+            // Arrange
+            int someValue = -1;
+            string someValueName = "someValue";
+
+            // Act and Assert
+            ArgumentOutOfRangeException exception =
+            Assert.Throws<ArgumentOutOfRangeException>(() => Domain.Utils.Guard.IntMoreOrEqualToZero(someValue, someValueName));
+
+            Assert.AreEqual(someValueName, exception.ParamName);
+        }
+
+        [Test]
         public void NotNull_ArgumentIsNotNull_DoNothing()
         {
             // Arrange

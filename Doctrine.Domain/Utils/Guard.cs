@@ -24,6 +24,20 @@
         }
 
         /// <summary>
+        ///     Throws <see cref="ArgumentOutOfRangeException" /> if the given argument is less than 0.
+        /// </summary>
+        /// <param name="argumentIntValue">The argument value to test.</param>
+        /// <param name="argumentName">The name of the argument to test.</param>
+        public static void IntMoreOrEqualToZero(int argumentIntValue, string argumentName)
+        {
+            if (argumentIntValue < 0)
+            {
+                throw new ArgumentOutOfRangeException(argumentName,
+                String.Format("Argument '{0}' must be greater or equal to 0.", argumentName));
+            }
+        }
+
+        /// <summary>
         ///     Throws <see cref="ArgumentNullException" /> if the given argument is null.
         /// </summary>
         /// <exception cref="ArgumentNullException">The value is null.</exception>
