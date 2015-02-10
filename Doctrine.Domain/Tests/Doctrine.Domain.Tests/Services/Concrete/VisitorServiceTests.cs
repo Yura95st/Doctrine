@@ -162,6 +162,9 @@
             unitOfWorkMock.SetupGet(u => u.ArticleRepository)
             .Returns(articleRepositoryMock.Object);
 
+            unitOfWorkMock.Setup(u => u.Save())
+            .Callback(() => newArticleVisitor.VisitorId = visitor.VisitorId);
+
             IVisitorService target = new VisitorService(unitOfWorkMock.Object, this._visitorValidationMock.Object);
 
             // Act

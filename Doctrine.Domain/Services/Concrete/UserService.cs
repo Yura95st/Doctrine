@@ -64,7 +64,7 @@
 
             // Save user LogOn activity
             user.UserActivities.Add(new UserActivity
-            { UserId = user.UserId, VisitorId = visitor.VisitorId, LogOnDate = DateTime.Now });
+            { VisitorId = visitor.VisitorId, LogOnDate = DateTime.Now });
 
             this._unitOfWork.UserRepository.Update(user);
             this._unitOfWork.Save();
@@ -166,7 +166,7 @@
                     throw new ArticleNotFoundException(String.Format("Article with ID '{0}' was not found.", articleId));
                 }
 
-                userFavorite = new UserFavorite { UserId = user.UserId, ArticleId = article.ArticleId };
+                userFavorite = new UserFavorite { ArticleId = article.ArticleId };
 
                 user.UserFavorites.Add(userFavorite);
             }

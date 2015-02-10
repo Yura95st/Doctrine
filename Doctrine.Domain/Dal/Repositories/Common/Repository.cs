@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.Data.Entity;
+    using System.Data.Entity.Infrastructure;
     using System.Linq;
     using System.Linq.Expressions;
 
@@ -74,8 +75,21 @@
         public virtual void Update(TEntity entityToUpdate)
         {
             this._dbSet.Attach(entityToUpdate);
-            this._context.Entry(entityToUpdate)
-            .State = EntityState.Modified;
+
+            DbEntityEntry dbEntityEntry = this._context.Entry(entityToUpdate);
+
+            //Ensure only modified fields are updated.
+            foreach (string property in dbEntityEntry.OriginalValues.PropertyNames)
+            {
+                object original = dbEntityEntry.OriginalValues.GetValue<object>(property);
+                object current = dbEntityEntry.CurrentValues.GetValue<object>(property);
+
+                if (original != null && !original.Equals(current))
+                {
+                    dbEntityEntry.Property(property)
+                    .IsModified = true;
+                }
+            }
         }
 
         #endregion

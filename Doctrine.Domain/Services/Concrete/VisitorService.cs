@@ -74,7 +74,7 @@
                     throw new ArticleNotFoundException(String.Format("Article with ID '{0}' was not found.", articleId));
                 }
 
-                articleVisitor = new ArticleVisitor { VisitorId = visitor.VisitorId, ArticleId = article.ArticleId };
+                articleVisitor = new ArticleVisitor { ArticleId = article.ArticleId };
 
                 visitor.ArticleVisitors.Add(articleVisitor);
             }

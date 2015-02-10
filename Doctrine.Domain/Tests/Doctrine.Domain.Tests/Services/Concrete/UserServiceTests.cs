@@ -55,6 +55,9 @@
             unitOfWorkMock.SetupGet(u => u.ArticleRepository)
             .Returns(articleRepositoryMock.Object);
 
+            unitOfWorkMock.Setup(u => u.Save())
+            .Callback(() => newUserFavorite.UserId = user.UserId);
+
             IUserService target = new UserService(unitOfWorkMock.Object, this._userValidationMock.Object);
 
             // Act
@@ -253,7 +256,11 @@
             .Returns(visitorRepositoryMock.Object);
 
             unitOfWorkMock.Setup(u => u.Save())
-            .Callback(() => newUserActivity.ActivityId = userActivityId);
+            .Callback(() =>
+                      {
+                          newUserActivity.ActivityId = userActivityId;
+                          newUserActivity.UserId = user.UserId;
+                      });
 
             IUserService target = new UserService(unitOfWorkMock.Object, this._userValidationMock.Object);
 
@@ -269,6 +276,7 @@
 
             Assert.IsNotNull(lastUserActivity);
             Assert.AreEqual(userActivityId, lastUserActivity.ActivityId);
+            Assert.AreEqual(user.UserId, lastUserActivity.UserId);
             Assert.AreEqual(visitor.VisitorId, lastUserActivity.VisitorId);
             Assert.IsTrue(new DateTime() != lastUserActivity.LogOnDate);
 
