@@ -9,7 +9,7 @@
         /// <returns>The topic.</returns>
         Topic Create(string topicName);
 
-        /// <summary>Gets the topic with specified name.</summary>
+        /// <summary>Gets the topic by specified name.</summary>
         /// <param name="topicName">The topic's name.</param>
         /// <returns>The topic.</returns>
         Topic GetByName(string topicName);

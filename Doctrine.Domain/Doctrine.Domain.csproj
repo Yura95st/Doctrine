@@ -61,6 +61,7 @@
     <Compile Include="Exceptions\EmailAlreadyExistsException.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Exceptions\InvalidFormat\InvalidTagNameFormatException.cs" />
     <Compile Include="Exceptions\InvalidFormat\InvalidTopicNameFormatException.cs" />
     <Compile Include="Exceptions\InvalidFormat\InvalidPasswordFormatException.cs" />
     <Compile Include="Exceptions\InvalidFormat\InvalidFullNameFormatException.cs" />
@@ -91,13 +92,14 @@
     <Compile Include="Services\Abstract\IUserService.cs" />
     <Compile Include="Services\Abstract\IVisitorService.cs" />
     <Compile Include="Services\Common\ServiceBase.cs" />
+    <Compile Include="Services\Concrete\TagService.cs" />
     <Compile Include="Services\Concrete\VisitorService.cs" />
     <Compile Include="Services\Concrete\UserService.cs" />
     <Compile Include="Services\Concrete\TopicService.cs" />
-    <Compile Include="Services\Concrete\TagService.cs" />
     <Compile Include="Services\Concrete\CommentService.cs" />
     <Compile Include="Services\Concrete\ArticleService.cs" />
     <Compile Include="Utils\Guard.cs" />
+    <Compile Include="Validation\Abstract\ITagValidation.cs" />
     <Compile Include="Validation\Abstract\ITopicValidation.cs" />
     <Compile Include="Validation\Abstract\IVisitorValidation.cs" />
     <Compile Include="Validation\Abstract\IUserValidation.cs" />

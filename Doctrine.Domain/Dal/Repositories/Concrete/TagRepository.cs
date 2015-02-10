@@ -10,5 +10,10 @@
         : base(context)
         {
         }
+
+        public Tag GetByName(string tagName)
+        {
+            throw new System.NotImplementedException();
+        }
     }
 }
