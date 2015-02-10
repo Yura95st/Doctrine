@@ -89,7 +89,7 @@
             UserFavorite userFavorite = new UserFavorite
             { UserId = userId, ArticleId = articleId, AddDate = userFavoriteAddDate };
 
-            User user = new User { UserId = userId, UserFavorites = new List<UserFavorite> { userFavorite } };
+            User user = new User { UserId = userId, UserFavorites = new[] { userFavorite } };
 
             // Arrange - mock userRepository
             Mock<IUserRepository> userRepositoryMock = new Mock<IUserRepository>();
@@ -668,15 +668,219 @@
         }
 
         [Test]
+        public void ReadArticle_AllCredentialsAreValid_ReadsArticle()
+        {
+            // Arrange
+            User user = new User { UserId = 1 };
+
+            Article article = new Article { ArticleId = 2 };
+
+            // Arrange - mock userRepository
+            Mock<IUserRepository> userRepositoryMock = new Mock<IUserRepository>();
+            userRepositoryMock.Setup(
+            r => r.Get(It.IsAny<Expression<Func<User, bool>>>(), null, It.IsAny<Expression<Func<User, object>>[]>()))
+            .Returns(new[] { user });
+
+            UserReadHistory userReadHistory = null;
+            userRepositoryMock.Setup(r => r.Update(It.Is<User>(u => u.UserId == user.UserId)))
+            .Callback((User u) => userReadHistory = u.UserReadHistories.FirstOrDefault());
+
+            // Arrange - mock articleRepository
+            Mock<IArticleRepository> articleRepositoryMock = new Mock<IArticleRepository>();
+            articleRepositoryMock.Setup(r => r.GetById(article.ArticleId))
+            .Returns(article);
+
+            // Arrange - mock unitOfWork
+            Mock<IUnitOfWork> unitOfWorkMock = new Mock<IUnitOfWork>();
+            unitOfWorkMock.SetupGet(u => u.UserRepository)
+            .Returns(userRepositoryMock.Object);
+
+            unitOfWorkMock.SetupGet(u => u.ArticleRepository)
+            .Returns(articleRepositoryMock.Object);
+
+            unitOfWorkMock.Setup(u => u.Save())
+            .Callback(() => userReadHistory.UserId = user.UserId);
+
+            IUserService target = new UserService(unitOfWorkMock.Object, this._userValidationMock.Object);
+
+            // Act
+            target.ReadArticle(user.UserId, article.ArticleId);
+
+            // Assert
+            Assert.AreEqual(user.UserId, userReadHistory.UserId);
+            Assert.AreEqual(article.ArticleId, userReadHistory.ArticleId);
+            Assert.IsTrue(new DateTime() != userReadHistory.ReadDate);
+
+            userRepositoryMock.Verify(
+            r => r.Get(It.IsAny<Expression<Func<User, bool>>>(), null, It.IsAny<Expression<Func<User, object>>[]>()),
+            Times.Once);
+            userRepositoryMock.Verify(r => r.Update(It.Is<User>(u => u.UserId == user.UserId)), Times.Once);
+
+            articleRepositoryMock.Verify(r => r.GetById(article.ArticleId), Times.Once);
+
+            unitOfWorkMock.Verify(u => u.Save(), Times.Once);
+        }
+
+        [Test]
+        public void ReadArticle_ArticleAlreadyRead_UpdatesReadDate()
+        {
+            // Arrange
+            int userId = 1;
+            int articleId = 2;
+            DateTime readDate = new DateTime();
+
+            UserReadHistory userReadHistory = new UserReadHistory
+            { UserId = userId, ArticleId = articleId, ReadDate = readDate };
+
+            User user = new User { UserId = userId, UserReadHistories = new[] { userReadHistory } };
+
+            // Arrange - mock userRepository
+            Mock<IUserRepository> userRepositoryMock = new Mock<IUserRepository>();
+            userRepositoryMock.Setup(
+            r => r.Get(It.IsAny<Expression<Func<User, bool>>>(), null, It.IsAny<Expression<Func<User, object>>[]>()))
+            .Returns(new[] { user });
+
+            UserReadHistory newUserReadHistory = null;
+            userRepositoryMock.Setup(r => r.Update(It.Is<User>(u => u.UserId == userId)))
+            .Callback((User u) => newUserReadHistory = u.UserReadHistories.FirstOrDefault());
+
+            // Arrange - mock unitOfWork
+            Mock<IUnitOfWork> unitOfWorkMock = new Mock<IUnitOfWork>();
+            unitOfWorkMock.SetupGet(u => u.UserRepository)
+            .Returns(userRepositoryMock.Object);
+
+            IUserService target = new UserService(unitOfWorkMock.Object, this._userValidationMock.Object);
+
+            // Act
+            target.ReadArticle(userId, articleId);
+
+            // Assert
+            Assert.AreEqual(userId, newUserReadHistory.UserId);
+            Assert.AreEqual(articleId, newUserReadHistory.ArticleId);
+            Assert.IsTrue(readDate != newUserReadHistory.ReadDate);
+
+            userRepositoryMock.Verify(
+            r => r.Get(It.IsAny<Expression<Func<User, bool>>>(), null, It.IsAny<Expression<Func<User, object>>[]>()),
+            Times.Once);
+            userRepositoryMock.Verify(r => r.Update(It.Is<User>(u => u.UserId == userId)), Times.Once);
+
+            unitOfWorkMock.Verify(u => u.Save(), Times.Once);
+        }
+
+        [Test]
+        public void ReadArticle_ArticleIdIsLessOrEqualToZero_ThrowsArgumentOutOfRangeException()
+        {
+            // Arrange
+            int userId = 1;
+
+            IUserService target = new UserService(new Mock<IUnitOfWork>().Object, this._userValidationMock.Object);
+
+            // Act and Assert
+            Assert.Throws<ArgumentOutOfRangeException>(() => target.ReadArticle(userId, -1));
+            Assert.Throws<ArgumentOutOfRangeException>(() => target.ReadArticle(userId, 0));
+        }
+
+        [Test]
+        public void ReadArticle_NonexistentArticleId_ThrowsArticleNotFoundException()
+        {
+            // Arrange
+            User user = new User { UserId = 1 };
+
+            int articleId = 2;
+
+            // Arrange - mock userRepository
+            Mock<IUserRepository> userRepositoryMock = new Mock<IUserRepository>();
+            userRepositoryMock.Setup(
+            r => r.Get(It.IsAny<Expression<Func<User, bool>>>(), null, It.IsAny<Expression<Func<User, object>>[]>()))
+            .Returns(new[] { user });
+
+            // Arrange - mock articleRepository
+            Mock<IArticleRepository> articleRepositoryMock = new Mock<IArticleRepository>();
+            articleRepositoryMock.Setup(r => r.GetById(articleId))
+            .Returns((Article)null);
+
+            // Arrange - mock unitOfWork
+            Mock<IUnitOfWork> unitOfWorkMock = new Mock<IUnitOfWork>();
+            unitOfWorkMock.SetupGet(u => u.UserRepository)
+            .Returns(userRepositoryMock.Object);
+
+            unitOfWorkMock.SetupGet(u => u.ArticleRepository)
+            .Returns(articleRepositoryMock.Object);
+
+            IUserService target = new UserService(unitOfWorkMock.Object, this._userValidationMock.Object);
+
+            // Act and Assert
+            Assert.Throws<ArticleNotFoundException>(() => target.ReadArticle(user.UserId, articleId));
+
+            userRepositoryMock.Verify(
+            r => r.Get(It.IsAny<Expression<Func<User, bool>>>(), null, It.IsAny<Expression<Func<User, object>>[]>()),
+            Times.Once);
+            userRepositoryMock.Verify(r => r.Update(It.Is<User>(u => u.UserId == user.UserId)), Times.Never);
+
+            articleRepositoryMock.Verify(r => r.GetById(articleId), Times.Once);
+
+            unitOfWorkMock.Verify(u => u.Save(), Times.Never);
+        }
+
+        [Test]
+        public void ReadArticle_NonexistentUserId_ThrowsUserNotFoundException()
+        {
+            // Arrange
+            int userId = 1;
+            int articleId = 2;
+
+            // Arrange - mock userRepository
+            Mock<IUserRepository> userRepositoryMock = new Mock<IUserRepository>();
+            userRepositoryMock.Setup(
+            r => r.Get(It.IsAny<Expression<Func<User, bool>>>(), null, It.IsAny<Expression<Func<User, object>>[]>()))
+            .Returns(new User[] { });
+
+            // Arrange - mock unitOfWork
+            Mock<IUnitOfWork> unitOfWorkMock = new Mock<IUnitOfWork>();
+            unitOfWorkMock.SetupGet(u => u.UserRepository)
+            .Returns(userRepositoryMock.Object);
+
+            IUserService target = new UserService(unitOfWorkMock.Object, this._userValidationMock.Object);
+
+            // Act and Assert
+            Assert.Throws<UserNotFoundException>(() => target.ReadArticle(userId, articleId));
+
+            userRepositoryMock.Verify(
+            r => r.Get(It.IsAny<Expression<Func<User, bool>>>(), null, It.IsAny<Expression<Func<User, object>>[]>()),
+            Times.Once);
+            userRepositoryMock.Verify(r => r.Update(It.Is<User>(u => u.UserId == userId)), Times.Never);
+
+            unitOfWorkMock.Verify(u => u.Save(), Times.Never);
+        }
+
+        [Test]
+        public void ReadArticle_UserIdIsLessOrEqualToZero_ThrowsArgumentOutOfRangeException()
+        {
+            // Arrange
+            int articleId = 1;
+
+            IUserService target = new UserService(new Mock<IUnitOfWork>().Object, this._userValidationMock.Object);
+
+            // Act and Assert
+            Assert.Throws<ArgumentOutOfRangeException>(() => target.ReadArticle(-1, articleId));
+            Assert.Throws<ArgumentOutOfRangeException>(() => target.ReadArticle(0, articleId));
+        }
+
+        [Test]
         public void RemoveArticleFromFavorites_AllCredentialsAreValid_RemovesArticleFromFavorites()
         {
             // Arrange
             int userId = 1;
             int articleId = 2;
 
-            UserFavorite userFavorite = new UserFavorite { UserId = userId, ArticleId = articleId, AddDate = DateTime.Now };
+            UserFavorite[] userFavorites =
+            {
+                new UserFavorite { UserId = userId, ArticleId = articleId, AddDate = DateTime.Now },
+                new UserFavorite { UserId = userId, ArticleId = articleId + 1, AddDate = DateTime.Now },
+                new UserFavorite { UserId = userId, ArticleId = articleId + 2, AddDate = DateTime.Now }
+            };
 
-            User user = new User { UserId = userId, UserFavorites = new List<UserFavorite> { userFavorite } };
+            User user = new User { UserId = userId, UserFavorites = userFavorites.ToList() };
 
             // Arrange - mock userRepository
             Mock<IUserRepository> userRepositoryMock = new Mock<IUserRepository>();
@@ -699,7 +903,8 @@
             target.RemoveArticleFromFavorites(userId, articleId);
 
             // Assert
-            Assert.AreEqual(0, newUserFavorites.Count(f => f.ArticleId == articleId && f.UserId == userId));
+            Assert.AreEqual(0, newUserFavorites.Count(f => f.ArticleId == articleId));
+            Assert.AreEqual(userFavorites.Count() - 1, newUserFavorites.Count());
 
             userRepositoryMock.Verify(
             r => r.Get(It.IsAny<Expression<Func<User, bool>>>(), null, It.IsAny<Expression<Func<User, object>>[]>()),
@@ -716,7 +921,7 @@
             int userId = 1;
             int articleId = 2;
 
-            User user = new User { UserId = userId, UserFavorites = new List<UserFavorite>() };
+            User user = new User { UserId = userId, UserFavorites = new UserFavorite[] { } };
 
             // Arrange - mock userRepository
             Mock<IUserRepository> userRepositoryMock = new Mock<IUserRepository>();
@@ -797,6 +1002,145 @@
             // Act and Assert
             Assert.Throws<ArgumentOutOfRangeException>(() => target.RemoveArticleFromFavorites(-1, articleId));
             Assert.Throws<ArgumentOutOfRangeException>(() => target.RemoveArticleFromFavorites(0, articleId));
+        }
+
+        [Test]
+        public void UnreadArticle_AllCredentialsAreValid_RemovesArticleFromFavorites()
+        {
+            // Arrange
+            int userId = 1;
+            int articleId = 2;
+
+            UserReadHistory[] userReadHistories =
+            {
+                new UserReadHistory { UserId = userId, ArticleId = articleId, ReadDate = DateTime.Now },
+                new UserReadHistory { UserId = userId, ArticleId = articleId + 1, ReadDate = DateTime.Now },
+                new UserReadHistory { UserId = userId, ArticleId = articleId + 2, ReadDate = DateTime.Now }
+            };
+
+            User user = new User { UserId = userId, UserReadHistories = userReadHistories.ToList() };
+
+            // Arrange - mock userRepository
+            Mock<IUserRepository> userRepositoryMock = new Mock<IUserRepository>();
+            userRepositoryMock.Setup(
+            r => r.Get(It.IsAny<Expression<Func<User, bool>>>(), null, It.IsAny<Expression<Func<User, object>>[]>()))
+            .Returns(new[] { user });
+
+            IEnumerable<UserReadHistory> newUserReadHistories = null;
+            userRepositoryMock.Setup(r => r.Update(It.Is<User>(u => u.UserId == userId)))
+            .Callback((User u) => newUserReadHistories = u.UserReadHistories);
+
+            // Arrange - mock unitOfWork
+            Mock<IUnitOfWork> unitOfWorkMock = new Mock<IUnitOfWork>();
+            unitOfWorkMock.SetupGet(u => u.UserRepository)
+            .Returns(userRepositoryMock.Object);
+
+            IUserService target = new UserService(unitOfWorkMock.Object, this._userValidationMock.Object);
+
+            // Act
+            target.UnreadArticle(userId, articleId);
+
+            // Assert
+            Assert.IsNotNull(newUserReadHistories);
+            Assert.AreEqual(0, newUserReadHistories.Count(f => f.ArticleId == articleId));
+            Assert.AreEqual(userReadHistories.Count() - 1, newUserReadHistories.Count());
+
+            userRepositoryMock.Verify(
+            r => r.Get(It.IsAny<Expression<Func<User, bool>>>(), null, It.IsAny<Expression<Func<User, object>>[]>()),
+            Times.Once);
+            userRepositoryMock.Verify(r => r.Update(It.Is<User>(u => u.UserId == userId)), Times.Once);
+
+            unitOfWorkMock.Verify(u => u.Save(), Times.Once);
+        }
+
+        [Test]
+        public void UnreadArticle_ArticleHasNotBeenRead_ThrowsArticleNotFoundException()
+        {
+            // Arrange
+            int userId = 1;
+            int articleId = 2;
+
+            User user = new User { UserId = userId, UserReadHistories = new UserReadHistory[] { } };
+
+            // Arrange - mock userRepository
+            Mock<IUserRepository> userRepositoryMock = new Mock<IUserRepository>();
+            userRepositoryMock.Setup(
+            r => r.Get(It.IsAny<Expression<Func<User, bool>>>(), null, It.IsAny<Expression<Func<User, object>>[]>()))
+            .Returns(new[] { user });
+
+            // Arrange - mock unitOfWork
+            Mock<IUnitOfWork> unitOfWorkMock = new Mock<IUnitOfWork>();
+            unitOfWorkMock.SetupGet(u => u.UserRepository)
+            .Returns(userRepositoryMock.Object);
+
+            IUserService target = new UserService(unitOfWorkMock.Object, this._userValidationMock.Object);
+
+            // Act and Assert
+            Assert.Throws<ArticleNotFoundException>(() => target.UnreadArticle(userId, articleId));
+
+            userRepositoryMock.Verify(
+            r => r.Get(It.IsAny<Expression<Func<User, bool>>>(), null, It.IsAny<Expression<Func<User, object>>[]>()),
+            Times.Once);
+            userRepositoryMock.Verify(r => r.Update(It.Is<User>(u => u.UserId == userId)), Times.Never);
+
+            unitOfWorkMock.Verify(u => u.Save(), Times.Never);
+        }
+
+        [Test]
+        public void UnreadArticle_ArticleIdIsLessOrEqualToZero_ThrowsArgumentOutOfRangeException()
+        {
+            // Arrange
+            int userId = 1;
+
+            IUserService target = new UserService(new Mock<IUnitOfWork>().Object, this._userValidationMock.Object);
+
+            // Act and Assert
+            Assert.Throws<ArgumentOutOfRangeException>(() => target.UnreadArticle(userId, -1));
+            Assert.Throws<ArgumentOutOfRangeException>(() => target.UnreadArticle(userId, 0));
+        }
+
+        [Test]
+        public void UnreadArticle_NonexistentUserId_ThrowsUserNotFoundException()
+        {
+            // Arrange
+            int userId = 1;
+            int articleId = 2;
+
+            // Arrange - mock userRepository
+            Mock<IUserRepository> userRepositoryMock = new Mock<IUserRepository>();
+            userRepositoryMock.Setup(
+            r => r.Get(It.IsAny<Expression<Func<User, bool>>>(), null, It.IsAny<Expression<Func<User, object>>[]>()))
+            .Returns(new User[] { });
+
+            // Arrange - mock unitOfWork
+            Mock<IUnitOfWork> unitOfWorkMock = new Mock<IUnitOfWork>();
+            unitOfWorkMock.SetupGet(u => u.UserRepository)
+            .Returns(userRepositoryMock.Object);
+
+            IUserService target = new UserService(unitOfWorkMock.Object, this._userValidationMock.Object);
+
+            // Act and Assert
+            Assert.Throws<UserNotFoundException>(() => target.UnreadArticle(userId, articleId));
+
+            userRepositoryMock.Verify(
+            r => r.Get(It.IsAny<Expression<Func<User, bool>>>(), null, It.IsAny<Expression<Func<User, object>>[]>()),
+            Times.Once);
+            userRepositoryMock.Verify(r => r.Update(It.Is<User>(u => u.UserId == userId)), Times.Never);
+
+            unitOfWorkMock.Verify(u => u.Save(), Times.Never);
+        }
+
+        [Test]
+        public void UnreadArticle_UserIdIsLessOrEqualToZero_ThrowsArgumentOutOfRangeException()
+        {
+            // Arrange
+            int articleId = 1;
+
+            IUserService target = new UserService(new Mock<IUnitOfWork>().Object, this._userValidationMock.Object);
+
+            // Act and Assert
+            Assert.Throws<ArgumentOutOfRangeException>(() => target.UnreadArticle(-1, articleId));
+            Assert.Throws<ArgumentOutOfRangeException>(() => target.UnreadArticle(0, articleId));
         }
 
         private void MockUserValidation()
