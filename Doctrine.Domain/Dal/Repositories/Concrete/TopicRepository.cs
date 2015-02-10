@@ -10,5 +10,10 @@
         : base(context)
         {
         }
+
+        public Topic GetByName(string topicName)
+        {
+            throw new System.NotImplementedException();
+        }
     }
 }

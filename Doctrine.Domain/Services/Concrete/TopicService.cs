@@ -22,6 +22,8 @@
             this._topicValidation = topicValidation;
         }
 
+        #region ITopicService Members
+
         public Topic Create(string topicName)
         {
             Guard.NotNullOrEmpty(topicName, "topicName");
@@ -31,7 +33,7 @@
                 throw new InvalidTopicNameFormatException(String.Format("Topic's name '{0}' has invalid format.", topicName));
             }
 
-            var topic = new Topic { Name = topicName };
+            Topic topic = new Topic { Name = topicName };
 
             this._unitOfWork.TopicRepository.Insert(topic);
 
@@ -39,5 +41,14 @@
 
             return topic;
         }
+
+        public Topic GetByName(string topicName)
+        {
+            Guard.NotNullOrEmpty(topicName, "topicName");
+
+            return this._unitOfWork.TopicRepository.GetByName(topicName);
+        }
+
+        #endregion
     }
 }
