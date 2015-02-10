@@ -18,7 +18,12 @@
             return regex.IsMatch(email);
         }
 
-        public bool IsValidFullName(string fullName)
+        public bool IsValidFirstName(string firstName)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public bool IsValidLastName(string lastName)
         {
             throw new System.NotImplementedException();
         }

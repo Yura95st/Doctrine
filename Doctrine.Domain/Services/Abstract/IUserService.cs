@@ -18,10 +18,11 @@
 
         /// <summary>Creates new user.</summary>
         /// <param name="email">The email.</param>
-        /// <param name="fullName">The full name.</param>
+        /// <param name="firstName">The first name.</param>
+        /// <param name="lastName">The last name.</param>
         /// <param name="password">The password.</param>
         /// <returns>Created user.</returns>
-        User Create(string email, string fullName, string password);
+        User Create(string email, string firstName, string lastName, string password);
 
         /// <summary>Deletes the user.</summary>
         /// <param name="userId">The user identifier.</param>

@@ -2,20 +2,20 @@
 {
     using System;
 
-    public class InvalidFullNameFormatException : Exception
+    public class InvalidFirstNameFormatException : Exception
     {
         #region Constructors
 
-        public InvalidFullNameFormatException()
+        public InvalidFirstNameFormatException()
         {
         }
 
-        public InvalidFullNameFormatException(string message)
+        public InvalidFirstNameFormatException(string message)
         : base(message)
         {
         }
 
-        public InvalidFullNameFormatException(string message, Exception inner)
+        public InvalidFirstNameFormatException(string message, Exception inner)
         : base(message, inner)
         {
         }

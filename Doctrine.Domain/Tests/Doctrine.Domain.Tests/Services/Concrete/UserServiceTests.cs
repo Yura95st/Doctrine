@@ -443,8 +443,9 @@
         public void Create_AllCredentialsAreValid_CreatesAndReturnsNewUser()
         {
             // Arrange
-            string fullName = "user_fullName";
             string email = "user@email.com";
+            string firstName = "user_firstName";
+            string lastName = "user_lastName";
             string password = "user_password";
 
             int userId = 1;
@@ -469,19 +470,23 @@
             IUserService target = new UserService(unitOfWorkMock.Object, this._userValidationMock.Object);
 
             // Act
-            User user = target.Create(email, fullName, password);
+            User user = target.Create(email, firstName, lastName, password);
 
             // Assert
             Assert.IsNotNull(user);
             Assert.AreEqual(userId, user.UserId);
             Assert.AreEqual(email, user.Email);
-            Assert.AreEqual(fullName, user.FullName);
+            Assert.AreEqual(firstName, user.FirstName);
+            Assert.AreEqual(lastName, user.LastName);
             Assert.AreEqual(password, user.Password);
             Assert.IsTrue(new DateTime() != user.RegistrationDate);
 
             userRepositoryMock.Verify(r => r.GetByEmail(email), Times.Once);
             userRepositoryMock.Verify(
-            r => r.Insert(It.Is<User>(u => u.Email == email && u.FullName == fullName && u.Password == password)), Times.Once);
+            r =>
+            r.Insert(
+            It.Is<User>(u => u.Email == email && u.FirstName == firstName && u.LastName == lastName && u.Password == password)),
+            Times.Once);
 
             unitOfWorkMock.Verify(u => u.Save(), Times.Once);
         }
@@ -490,8 +495,9 @@
         public void Create_EmailAlreadyExists_ThrowsEmailAlreadyExistsException()
         {
             // Arrange
-            string fullName = "user_fullName";
             string email = "user@email.com";
+            string firstName = "user_firstName";
+            string lastName = "user_lastName";
             string password = "user_password";
 
             User user = new User();
@@ -509,7 +515,7 @@
             IUserService target = new UserService(unitOfWorkMock.Object, this._userValidationMock.Object);
 
             // Act and Assert
-            Assert.Throws<EmailAlreadyExistsException>(() => target.Create(email, fullName, password));
+            Assert.Throws<EmailAlreadyExistsException>(() => target.Create(email, firstName, lastName, password));
 
             userRepositoryMock.Verify(r => r.GetByEmail(email), Times.Once);
             userRepositoryMock.Verify(r => r.Insert(It.Is<User>(u => u.Email == email)), Times.Never);
@@ -518,27 +524,29 @@
         }
 
         [Test]
-        public void Create_EmailOrFullNameOrPasswordIsEmpty_ThrowsArgumentException()
+        public void Create_EmailOrFirstNameOrLastNameOrPasswordIsEmpty_ThrowsArgumentException()
         {
             // Arrange
             IUserService target = new UserService(new Mock<IUnitOfWork>().Object, this._userValidationMock.Object);
 
             // Act and Assert
-            Assert.Throws<ArgumentException>(() => target.Create("", "fullName", "password"));
-            Assert.Throws<ArgumentException>(() => target.Create("user@email.com", "", "password"));
-            Assert.Throws<ArgumentException>(() => target.Create("user@email.com", "fullName", ""));
+            Assert.Throws<ArgumentException>(() => target.Create("", "firstName", "lastName", "password"));
+            Assert.Throws<ArgumentException>(() => target.Create("user@email.com", "", "lastName", "password"));
+            Assert.Throws<ArgumentException>(() => target.Create("user@email.com", "firstName", "", "password"));
+            Assert.Throws<ArgumentException>(() => target.Create("user@email.com", "firstName", "lastName", ""));
         }
 
         [Test]
-        public void Create_EmailOrFullNameOrPasswordIsNull_ThrowsArgumentNullException()
+        public void Create_EmailOrFirstNameOrLastNameOrPasswordIsNull_ThrowsArgumentNullException()
         {
             // Arrange
             IUserService target = new UserService(new Mock<IUnitOfWork>().Object, this._userValidationMock.Object);
 
             // Act and Assert
-            Assert.Throws<ArgumentNullException>(() => target.Create(null, "fullName", "password"));
-            Assert.Throws<ArgumentNullException>(() => target.Create("user@email.com", null, "password"));
-            Assert.Throws<ArgumentNullException>(() => target.Create("user@email.com", "fullName", null));
+            Assert.Throws<ArgumentNullException>(() => target.Create(null, "firstName", "lastName", "password"));
+            Assert.Throws<ArgumentNullException>(() => target.Create("user@email.com", null, "lastName", "password"));
+            Assert.Throws<ArgumentNullException>(() => target.Create("user@email.com", "firstName", null, "password"));
+            Assert.Throws<ArgumentNullException>(() => target.Create("user@email.com", "firstName", "lastName", null));
         }
 
         [Test]
@@ -546,7 +554,8 @@
         {
             // Arrange
             string invalidEmail = "invalid@email.com";
-            string fullName = "fullName";
+            string firstName = "firstName";
+            string lastName = "lastName";
             string password = "password";
 
             this._userValidationMock.Setup(v => v.IsValidEmail(invalidEmail))
@@ -555,24 +564,43 @@
             IUserService target = new UserService(new Mock<IUnitOfWork>().Object, this._userValidationMock.Object);
 
             // Act and Assert
-            Assert.Throws<InvalidEmailFormatException>(() => target.Create(invalidEmail, fullName, password));
+            Assert.Throws<InvalidEmailFormatException>(() => target.Create(invalidEmail, firstName, lastName, password));
         }
 
         [Test]
-        public void Create_InvalidEmailFormat_ThrowsInvalidFullNameFormatException()
+        public void Create_InvalidFirstNameFormat_ThrowsInvalidFirstNameFormatException()
         {
             // Arrange
             string email = "invalid@email.com";
-            string invalidFullName = "fullName";
+            string invalidFirstName = "invalid_firstName";
+            string lastName = "lastName";
             string password = "password";
 
-            this._userValidationMock.Setup(v => v.IsValidFullName(invalidFullName))
+            this._userValidationMock.Setup(v => v.IsValidFirstName(invalidFirstName))
             .Returns(false);
 
             IUserService target = new UserService(new Mock<IUnitOfWork>().Object, this._userValidationMock.Object);
 
             // Act and Assert
-            Assert.Throws<InvalidFullNameFormatException>(() => target.Create(email, invalidFullName, password));
+            Assert.Throws<InvalidFirstNameFormatException>(() => target.Create(email, invalidFirstName, lastName, password));
+        }
+
+        [Test]
+        public void Create_InvalidLastNameFormat_ThrowsInvalidLastNameFormatException()
+        {
+            // Arrange
+            string email = "invalid@email.com";
+            string firstName = "firstName";
+            string invalidLastName = "invalid_lastName";
+            string password = "password";
+
+            this._userValidationMock.Setup(v => v.IsValidLastName(invalidLastName))
+            .Returns(false);
+
+            IUserService target = new UserService(new Mock<IUnitOfWork>().Object, this._userValidationMock.Object);
+
+            // Act and Assert
+            Assert.Throws<InvalidLastNameFormatException>(() => target.Create(email, firstName, invalidLastName, password));
         }
 
         [Test]
@@ -580,7 +608,8 @@
         {
             // Arrange
             string email = "user@email.com";
-            string fullName = "fullName";
+            string firstName = "firstName";
+            string lastName = "lastName";
             string invalidPassword = "invalid_password";
 
             this._userValidationMock.Setup(v => v.IsValidPassword(invalidPassword))
@@ -589,7 +618,7 @@
             IUserService target = new UserService(new Mock<IUnitOfWork>().Object, this._userValidationMock.Object);
 
             // Act and Assert
-            Assert.Throws<InvalidPasswordFormatException>(() => target.Create(email, fullName, invalidPassword));
+            Assert.Throws<InvalidPasswordFormatException>(() => target.Create(email, firstName, lastName, invalidPassword));
         }
 
         [Test]
@@ -634,11 +663,7 @@
         public void GetById_UserIdIsValid_ReturnsUser()
         {
             // Arrange
-            User testUser = new User
-            {
-                UserId = 1, FullName = "user_fullName", Email = "user@email.com", Password = "user_password",
-                RegistrationDate = DateTime.Now
-            };
+            User testUser = new User { UserId = 1 };
 
             // Arrange - mock userRepository
             Mock<IUserRepository> userRepositoryMock = new Mock<IUserRepository>();
@@ -1150,7 +1175,10 @@
             this._userValidationMock.Setup(v => v.IsValidEmail(It.IsAny<string>()))
             .Returns(true);
 
-            this._userValidationMock.Setup(v => v.IsValidFullName(It.IsAny<string>()))
+            this._userValidationMock.Setup(v => v.IsValidFirstName(It.IsAny<string>()))
+            .Returns(true);
+
+            this._userValidationMock.Setup(v => v.IsValidLastName(It.IsAny<string>()))
             .Returns(true);
 
             this._userValidationMock.Setup(v => v.IsValidPassword(It.IsAny<string>()))

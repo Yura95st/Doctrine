@@ -71,10 +71,11 @@
             return user;
         }
 
-        public User Create(string email, string fullName, string password)
+        public User Create(string email, string firstName, string lastName, string password)
         {
             Guard.NotNullOrEmpty(email, "email");
-            Guard.NotNullOrEmpty(fullName, "fullName");
+            Guard.NotNullOrEmpty(firstName, "firstName");
+            Guard.NotNullOrEmpty(lastName, "lastName");
             Guard.NotNullOrEmpty(password, "password");
 
             if (!this._userValidation.IsValidEmail(email))
@@ -82,9 +83,14 @@
                 throw new InvalidEmailFormatException(String.Format("Email '{0}' has invalid format.", email));
             }
 
-            if (!this._userValidation.IsValidFullName(fullName))
+            if (!this._userValidation.IsValidFirstName(firstName))
             {
-                throw new InvalidFullNameFormatException(String.Format("Full name '{0}' has invalid format.", fullName));
+                throw new InvalidFirstNameFormatException(String.Format("First name '{0}' has invalid format.", firstName));
+            }
+
+            if (!this._userValidation.IsValidLastName(lastName))
+            {
+                throw new InvalidLastNameFormatException(String.Format("Last name '{0}' has invalid format.", lastName));
             }
 
             if (!this._userValidation.IsValidPassword(password))
@@ -99,7 +105,10 @@
                 throw new EmailAlreadyExistsException(String.Format("User with email '{0}' already exists.", email));
             }
 
-            user = new User { Email = email, FullName = fullName, Password = password, RegistrationDate = DateTime.Now };
+            user = new User
+            {
+                Email = email, FirstName = firstName, LastName = lastName, Password = password, RegistrationDate = DateTime.Now
+            };
 
             this._unitOfWork.UserRepository.Insert(user);
             this._unitOfWork.Save();

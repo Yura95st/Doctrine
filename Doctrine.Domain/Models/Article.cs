@@ -1,5 +1,6 @@
 namespace Doctrine.Domain.Models
 {
+    using System;
     using System.Collections.Generic;
     using System.ComponentModel.DataAnnotations;
     using System.ComponentModel.DataAnnotations.Schema;
@@ -29,6 +30,13 @@ namespace Doctrine.Domain.Models
         }
 
         public virtual ICollection<Comment> Comments
+        {
+            get;
+            set;
+        }
+
+        [Column(TypeName = "datetime2")]
+        public DateTime PublicationDate
         {
             get;
             set;

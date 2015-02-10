@@ -61,10 +61,11 @@
     <Compile Include="Exceptions\EmailAlreadyExistsException.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Exceptions\InvalidFormat\InvalidLastNameFormatException.cs" />
     <Compile Include="Exceptions\InvalidFormat\InvalidTagNameFormatException.cs" />
     <Compile Include="Exceptions\InvalidFormat\InvalidTopicNameFormatException.cs" />
     <Compile Include="Exceptions\InvalidFormat\InvalidPasswordFormatException.cs" />
-    <Compile Include="Exceptions\InvalidFormat\InvalidFullNameFormatException.cs" />
+    <Compile Include="Exceptions\InvalidFormat\InvalidFirstNameFormatException.cs" />
     <Compile Include="Exceptions\NotFound\ArticleNotFoundException.cs" />
     <Compile Include="Exceptions\NotFound\VisitorNotFoundException.cs" />
     <Compile Include="Exceptions\WrongPasswordException.cs" />

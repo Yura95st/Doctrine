@@ -39,7 +39,15 @@ namespace Doctrine.Domain.Models
 
         [Required]
         [StringLength(50)]
-        public string FullName
+        public string FirstName
+        {
+            get;
+            set;
+        }
+
+        [Required]
+        [StringLength(50)]
+        public string LastName
         {
             get;
             set;
