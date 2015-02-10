@@ -61,6 +61,7 @@
     <Compile Include="Exceptions\EmailAlreadyExistsException.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Exceptions\InvalidFormat\InvalidTopicNameFormatException.cs" />
     <Compile Include="Exceptions\InvalidFormat\InvalidPasswordFormatException.cs" />
     <Compile Include="Exceptions\InvalidFormat\InvalidFullNameFormatException.cs" />
     <Compile Include="Exceptions\NotFound\ArticleNotFoundException.cs" />
@@ -97,6 +98,7 @@
     <Compile Include="Services\Concrete\CommentService.cs" />
     <Compile Include="Services\Concrete\ArticleService.cs" />
     <Compile Include="Utils\Guard.cs" />
+    <Compile Include="Validation\Abstract\ITopicValidation.cs" />
     <Compile Include="Validation\Abstract\IVisitorValidation.cs" />
     <Compile Include="Validation\Abstract\IUserValidation.cs" />
     <Compile Include="Validation\Concrete\UserValidation.cs" />
