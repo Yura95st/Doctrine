@@ -47,6 +47,7 @@
     <Compile Include="Services\Concrete\UserServiceTests.cs" />
     <Compile Include="Services\Concrete\VisitorServiceTests.cs" />
     <Compile Include="Utils\GuardTests.cs" />
+    <Compile Include="Utils\SecuredPasswordHelper\SecuredPasswordHelperTests.cs" />
     <Compile Include="Validation\Concrete\UserValidationTests.cs" />
     <Compile Include="Validation\Concrete\VisitorValidationTests.cs" />
   </ItemGroup>
