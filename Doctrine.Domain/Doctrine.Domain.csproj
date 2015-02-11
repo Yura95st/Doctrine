@@ -66,6 +66,8 @@
     <Compile Include="Exceptions\InvalidFormat\InvalidTopicNameFormatException.cs" />
     <Compile Include="Exceptions\InvalidFormat\InvalidPasswordFormatException.cs" />
     <Compile Include="Exceptions\InvalidFormat\InvalidFirstNameFormatException.cs" />
+    <Compile Include="Exceptions\NotFound\CommentVoteNotFoundException.cs" />
+    <Compile Include="Exceptions\NotFound\CommentNotFoundException.cs" />
     <Compile Include="Exceptions\NotFound\ArticleNotFoundException.cs" />
     <Compile Include="Exceptions\NotFound\VisitorNotFoundException.cs" />
     <Compile Include="Exceptions\WrongPasswordException.cs" />
