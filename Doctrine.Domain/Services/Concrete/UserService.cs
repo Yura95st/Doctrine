@@ -11,18 +11,24 @@
     using Doctrine.Domain.Services.Abstract;
     using Doctrine.Domain.Services.Common;
     using Doctrine.Domain.Utils;
+    using Doctrine.Domain.Utils.SecuredPasswordHelper;
+    using Doctrine.Domain.Utils.SecuredPasswordHelper.Model;
     using Doctrine.Domain.Validation.Abstract;
 
     public class UserService : ServiceBase, IUserService
     {
         private readonly IUserValidation _userValidation;
 
-        public UserService(IUnitOfWork unitOfWork, IUserValidation userValidation)
+        private readonly ISecuredPasswordHelper _securedPasswordHelper;
+
+        public UserService(IUnitOfWork unitOfWork, IUserValidation userValidation, ISecuredPasswordHelper securedPasswordHelper)
         : base(unitOfWork)
         {
             Guard.NotNull(userValidation, "userValidation");
+            Guard.NotNull(securedPasswordHelper, "securedPasswordHelper");
 
             this._userValidation = userValidation;
+            this._securedPasswordHelper = securedPasswordHelper;
         }
 
         #region IUserService Members
@@ -50,7 +56,9 @@
                 throw new UserNotFoundException(String.Format("User with email '{0}' was not found.", email));
             }
 
-            if (user.Password != password)
+            SecuredPassword securedPassword = new SecuredPassword(user.Password, user.Salt);
+
+            if (!this._securedPasswordHelper.ArePasswordsEqual(password, securedPassword))
             {
                 throw new WrongPasswordException(String.Format("Password '{0}' is wrong.", password));
             }
@@ -105,9 +113,12 @@
                 throw new EmailAlreadyExistsException(String.Format("User with email '{0}' already exists.", email));
             }
 
+            SecuredPassword securedPassword = this._securedPasswordHelper.GetSecuredPassword(password);
+
             user = new User
             {
-                Email = email, FirstName = firstName, LastName = lastName, Password = password, RegistrationDate = DateTime.Now
+                Email = email, FirstName = firstName, LastName = lastName, Password = securedPassword.Hash,
+                Salt = securedPassword.Salt, RegistrationDate = DateTime.Now
             };
 
             this._unitOfWork.UserRepository.Insert(user);

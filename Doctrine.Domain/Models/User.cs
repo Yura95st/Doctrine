@@ -54,7 +54,7 @@ namespace Doctrine.Domain.Models
         }
 
         [Required]
-        [StringLength(50)]
+        [StringLength(44)]
         public string Password
         {
             get;
@@ -63,6 +63,14 @@ namespace Doctrine.Domain.Models
 
         [Column(TypeName = "datetime2")]
         public DateTime RegistrationDate
+        {
+            get;
+            set;
+        }
+
+        [Required]
+        [StringLength(44)]
+        public string Salt
         {
             get;
             set;

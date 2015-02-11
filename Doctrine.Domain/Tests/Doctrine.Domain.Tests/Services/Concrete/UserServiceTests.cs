@@ -13,6 +13,8 @@
     using Doctrine.Domain.Models;
     using Doctrine.Domain.Services.Abstract;
     using Doctrine.Domain.Services.Concrete;
+    using Doctrine.Domain.Utils.SecuredPasswordHelper;
+    using Doctrine.Domain.Utils.SecuredPasswordHelper.Model;
     using Doctrine.Domain.Validation.Abstract;
 
     using Moq;
@@ -22,6 +24,8 @@
     [TestFixture]
     public class UserServiceTests
     {
+        private Mock<ISecuredPasswordHelper> _securedPasswordHelperMock;
+
         private Mock<IUserValidation> _userValidationMock;
 
         [Test]
@@ -58,7 +62,8 @@
             unitOfWorkMock.Setup(u => u.Save())
             .Callback(() => newUserFavorite.UserId = user.UserId);
 
-            IUserService target = new UserService(unitOfWorkMock.Object, this._userValidationMock.Object);
+            IUserService target = new UserService(unitOfWorkMock.Object, this._userValidationMock.Object,
+            this._securedPasswordHelperMock.Object);
 
             // Act
             target.AddArticleToFavorites(user.UserId, article.ArticleId);
@@ -106,7 +111,8 @@
             unitOfWorkMock.SetupGet(u => u.UserRepository)
             .Returns(userRepositoryMock.Object);
 
-            IUserService target = new UserService(unitOfWorkMock.Object, this._userValidationMock.Object);
+            IUserService target = new UserService(unitOfWorkMock.Object, this._userValidationMock.Object,
+            this._securedPasswordHelperMock.Object);
 
             // Act
             target.AddArticleToFavorites(userId, articleId);
@@ -130,7 +136,8 @@
             // Arrange
             int userId = 1;
 
-            IUserService target = new UserService(new Mock<IUnitOfWork>().Object, this._userValidationMock.Object);
+            IUserService target = new UserService(new Mock<IUnitOfWork>().Object, this._userValidationMock.Object,
+            this._securedPasswordHelperMock.Object);
 
             // Act and Assert
             Assert.Throws<ArgumentOutOfRangeException>(() => target.AddArticleToFavorites(userId, -1));
@@ -164,7 +171,8 @@
             unitOfWorkMock.SetupGet(u => u.ArticleRepository)
             .Returns(articleRepositoryMock.Object);
 
-            IUserService target = new UserService(unitOfWorkMock.Object, this._userValidationMock.Object);
+            IUserService target = new UserService(unitOfWorkMock.Object, this._userValidationMock.Object,
+            this._securedPasswordHelperMock.Object);
 
             // Act and Assert
             Assert.Throws<ArticleNotFoundException>(() => target.AddArticleToFavorites(user.UserId, articleId));
@@ -197,7 +205,8 @@
             unitOfWorkMock.SetupGet(u => u.UserRepository)
             .Returns(userRepositoryMock.Object);
 
-            IUserService target = new UserService(unitOfWorkMock.Object, this._userValidationMock.Object);
+            IUserService target = new UserService(unitOfWorkMock.Object, this._userValidationMock.Object,
+            this._securedPasswordHelperMock.Object);
 
             // Act and Assert
             Assert.Throws<UserNotFoundException>(() => target.AddArticleToFavorites(userId, articleId));
@@ -216,7 +225,8 @@
             // Arrange
             int articleId = 1;
 
-            IUserService target = new UserService(new Mock<IUnitOfWork>().Object, this._userValidationMock.Object);
+            IUserService target = new UserService(new Mock<IUnitOfWork>().Object, this._userValidationMock.Object,
+            this._securedPasswordHelperMock.Object);
 
             // Act and Assert
             Assert.Throws<ArgumentOutOfRangeException>(() => target.AddArticleToFavorites(-1, articleId));
@@ -229,7 +239,7 @@
             // Arrange
             Visitor visitor = new Visitor { VisitorId = 1, IpAddress = "127.0.0.1" };
 
-            User user = new User { UserId = 2, Email = "user@email.com", Password = "user_password" };
+            User user = new User { UserId = 2, Email = "user@email.com", Password = "user_password", Salt = "password_salt" };
 
             int userActivityId = 1;
 
@@ -262,7 +272,8 @@
                           newUserActivity.UserId = user.UserId;
                       });
 
-            IUserService target = new UserService(unitOfWorkMock.Object, this._userValidationMock.Object);
+            IUserService target = new UserService(unitOfWorkMock.Object, this._userValidationMock.Object,
+            this._securedPasswordHelperMock.Object);
 
             // Act
             User authenticatedUser = target.Authenticate(visitor.VisitorId, user.Email, user.Password);
@@ -294,7 +305,8 @@
             // Arrange
             int visitorId = 1;
 
-            IUserService target = new UserService(new Mock<IUnitOfWork>().Object, this._userValidationMock.Object);
+            IUserService target = new UserService(new Mock<IUnitOfWork>().Object, this._userValidationMock.Object,
+            this._securedPasswordHelperMock.Object);
 
             // Act and Assert
             Assert.Throws<ArgumentException>(() => target.Authenticate(visitorId, "", "password"));
@@ -307,7 +319,8 @@
             // Arrange
             int visitorId = 1;
 
-            IUserService target = new UserService(new Mock<IUnitOfWork>().Object, this._userValidationMock.Object);
+            IUserService target = new UserService(new Mock<IUnitOfWork>().Object, this._userValidationMock.Object,
+            this._securedPasswordHelperMock.Object);
 
             // Act and Assert
             Assert.Throws<ArgumentNullException>(() => target.Authenticate(visitorId, null, null));
@@ -326,7 +339,8 @@
             this._userValidationMock.Setup(v => v.IsValidEmail(email))
             .Returns(false);
 
-            IUserService target = new UserService(new Mock<IUnitOfWork>().Object, this._userValidationMock.Object);
+            IUserService target = new UserService(new Mock<IUnitOfWork>().Object, this._userValidationMock.Object,
+            this._securedPasswordHelperMock.Object);
 
             // Act and Assert
             Assert.Throws<InvalidEmailFormatException>(() => target.Authenticate(visitorId, email, password));
@@ -350,7 +364,8 @@
             unitOfWorkMock.SetupGet(u => u.UserRepository)
             .Returns(userRepositoryMock.Object);
 
-            IUserService target = new UserService(unitOfWorkMock.Object, this._userValidationMock.Object);
+            IUserService target = new UserService(unitOfWorkMock.Object, this._userValidationMock.Object,
+            this._securedPasswordHelperMock.Object);
 
             // Act and Assert
             Assert.Throws<UserNotFoundException>(() => target.Authenticate(visitorId, email, password));
@@ -364,7 +379,7 @@
             // Arrange
             int visitorId = 1;
 
-            User user = new User { UserId = 1, Email = "user@email.com", Password = "user_password" };
+            User user = new User { UserId = 1, Email = "user@email.com", Password = "user_password", Salt = "password_salt" };
 
             // Arrange - mock userRepository
             Mock<IUserRepository> userRepositoryMock = new Mock<IUserRepository>();
@@ -384,7 +399,8 @@
             unitOfWorkMock.SetupGet(u => u.VisitorRepository)
             .Returns(visitorRepositoryMock.Object);
 
-            IUserService target = new UserService(unitOfWorkMock.Object, this._userValidationMock.Object);
+            IUserService target = new UserService(unitOfWorkMock.Object, this._userValidationMock.Object,
+            this._securedPasswordHelperMock.Object);
 
             // Act and Assert
             Assert.Throws<VisitorNotFoundException>(() => target.Authenticate(visitorId, user.Email, user.Password));
@@ -404,7 +420,8 @@
             string email = "user@email.com";
             string password = "password";
 
-            IUserService target = new UserService(new Mock<IUnitOfWork>().Object, this._userValidationMock.Object);
+            IUserService target = new UserService(new Mock<IUnitOfWork>().Object, this._userValidationMock.Object,
+            this._securedPasswordHelperMock.Object);
 
             // Act and Assert
             Assert.Throws<ArgumentOutOfRangeException>(() => target.Authenticate(-1, email, password));
@@ -418,7 +435,7 @@
             int visitorId = 1;
             string password = "wrong_password";
 
-            User user = new User { UserId = 1, Email = "user@email.com", Password = "user_password" };
+            User user = new User { UserId = 1, Email = "user@email.com", Password = "user_password", Salt = "password_salt" };
 
             // Arrange - mock userRepository
             Mock<IUserRepository> userRepositoryMock = new Mock<IUserRepository>();
@@ -430,7 +447,13 @@
             unitOfWorkMock.SetupGet(u => u.UserRepository)
             .Returns(userRepositoryMock.Object);
 
-            IUserService target = new UserService(unitOfWorkMock.Object, this._userValidationMock.Object);
+            // Arrange - mock securedPasswordHelper
+            this._securedPasswordHelperMock.Setup(
+            h => h.ArePasswordsEqual(password, It.Is<SecuredPassword>(p => p.Hash == user.Password && p.Salt == user.Salt)))
+            .Returns(false);
+
+            IUserService target = new UserService(unitOfWorkMock.Object, this._userValidationMock.Object,
+            this._securedPasswordHelperMock.Object);
 
             // Act
             Assert.Throws<WrongPasswordException>(() => target.Authenticate(visitorId, user.Email, password));
@@ -447,6 +470,8 @@
             string firstName = "user_firstName";
             string lastName = "user_lastName";
             string password = "user_password";
+
+            SecuredPassword securedPassword = new SecuredPassword("secured_password", "password_salt");
 
             int userId = 1;
 
@@ -467,7 +492,12 @@
             unitOfWorkMock.Setup(u => u.Save())
             .Callback(() => newUser.UserId = userId);
 
-            IUserService target = new UserService(unitOfWorkMock.Object, this._userValidationMock.Object);
+            // Arrange - mock securedPasswordHelper
+            this._securedPasswordHelperMock.Setup(h => h.GetSecuredPassword(password))
+            .Returns(securedPassword);
+
+            IUserService target = new UserService(unitOfWorkMock.Object, this._userValidationMock.Object,
+            this._securedPasswordHelperMock.Object);
 
             // Act
             User user = target.Create(email, firstName, lastName, password);
@@ -478,15 +508,12 @@
             Assert.AreEqual(email, user.Email);
             Assert.AreEqual(firstName, user.FirstName);
             Assert.AreEqual(lastName, user.LastName);
-            Assert.AreEqual(password, user.Password);
+            Assert.AreEqual(securedPassword.Hash, user.Password);
+            Assert.AreEqual(securedPassword.Salt, user.Salt);
             Assert.IsTrue(new DateTime() != user.RegistrationDate);
 
             userRepositoryMock.Verify(r => r.GetByEmail(email), Times.Once);
-            userRepositoryMock.Verify(
-            r =>
-            r.Insert(
-            It.Is<User>(u => u.Email == email && u.FirstName == firstName && u.LastName == lastName && u.Password == password)),
-            Times.Once);
+            userRepositoryMock.Verify(r => r.Insert(It.Is<User>(u => u.Email == email)), Times.Once);
 
             unitOfWorkMock.Verify(u => u.Save(), Times.Once);
         }
@@ -512,7 +539,8 @@
             unitOfWorkMock.SetupGet(u => u.UserRepository)
             .Returns(userRepositoryMock.Object);
 
-            IUserService target = new UserService(unitOfWorkMock.Object, this._userValidationMock.Object);
+            IUserService target = new UserService(unitOfWorkMock.Object, this._userValidationMock.Object,
+            this._securedPasswordHelperMock.Object);
 
             // Act and Assert
             Assert.Throws<EmailAlreadyExistsException>(() => target.Create(email, firstName, lastName, password));
@@ -527,7 +555,8 @@
         public void Create_EmailOrFirstNameOrLastNameOrPasswordIsEmpty_ThrowsArgumentException()
         {
             // Arrange
-            IUserService target = new UserService(new Mock<IUnitOfWork>().Object, this._userValidationMock.Object);
+            IUserService target = new UserService(new Mock<IUnitOfWork>().Object, this._userValidationMock.Object,
+            this._securedPasswordHelperMock.Object);
 
             // Act and Assert
             Assert.Throws<ArgumentException>(() => target.Create("", "firstName", "lastName", "password"));
@@ -540,7 +569,8 @@
         public void Create_EmailOrFirstNameOrLastNameOrPasswordIsNull_ThrowsArgumentNullException()
         {
             // Arrange
-            IUserService target = new UserService(new Mock<IUnitOfWork>().Object, this._userValidationMock.Object);
+            IUserService target = new UserService(new Mock<IUnitOfWork>().Object, this._userValidationMock.Object,
+            this._securedPasswordHelperMock.Object);
 
             // Act and Assert
             Assert.Throws<ArgumentNullException>(() => target.Create(null, "firstName", "lastName", "password"));
@@ -561,7 +591,8 @@
             this._userValidationMock.Setup(v => v.IsValidEmail(invalidEmail))
             .Returns(false);
 
-            IUserService target = new UserService(new Mock<IUnitOfWork>().Object, this._userValidationMock.Object);
+            IUserService target = new UserService(new Mock<IUnitOfWork>().Object, this._userValidationMock.Object,
+            this._securedPasswordHelperMock.Object);
 
             // Act and Assert
             Assert.Throws<InvalidEmailFormatException>(() => target.Create(invalidEmail, firstName, lastName, password));
@@ -579,7 +610,8 @@
             this._userValidationMock.Setup(v => v.IsValidFirstName(invalidFirstName))
             .Returns(false);
 
-            IUserService target = new UserService(new Mock<IUnitOfWork>().Object, this._userValidationMock.Object);
+            IUserService target = new UserService(new Mock<IUnitOfWork>().Object, this._userValidationMock.Object,
+            this._securedPasswordHelperMock.Object);
 
             // Act and Assert
             Assert.Throws<InvalidFirstNameFormatException>(() => target.Create(email, invalidFirstName, lastName, password));
@@ -597,7 +629,8 @@
             this._userValidationMock.Setup(v => v.IsValidLastName(invalidLastName))
             .Returns(false);
 
-            IUserService target = new UserService(new Mock<IUnitOfWork>().Object, this._userValidationMock.Object);
+            IUserService target = new UserService(new Mock<IUnitOfWork>().Object, this._userValidationMock.Object,
+            this._securedPasswordHelperMock.Object);
 
             // Act and Assert
             Assert.Throws<InvalidLastNameFormatException>(() => target.Create(email, firstName, invalidLastName, password));
@@ -615,7 +648,8 @@
             this._userValidationMock.Setup(v => v.IsValidPassword(invalidPassword))
             .Returns(false);
 
-            IUserService target = new UserService(new Mock<IUnitOfWork>().Object, this._userValidationMock.Object);
+            IUserService target = new UserService(new Mock<IUnitOfWork>().Object, this._userValidationMock.Object,
+            this._securedPasswordHelperMock.Object);
 
             // Act and Assert
             Assert.Throws<InvalidPasswordFormatException>(() => target.Create(email, firstName, lastName, invalidPassword));
@@ -637,7 +671,8 @@
             unitOfWorkMock.SetupGet(u => u.UserRepository)
             .Returns(userRepositoryMock.Object);
 
-            IUserService target = new UserService(unitOfWorkMock.Object, this._userValidationMock.Object);
+            IUserService target = new UserService(unitOfWorkMock.Object, this._userValidationMock.Object,
+            this._securedPasswordHelperMock.Object);
 
             // Act
             User user = target.GetById(userId);
@@ -652,7 +687,8 @@
         public void GetById_UserIdIsLessOrEqualToZero_ThrowsArgumentOutOfRangeException()
         {
             // Arrange
-            IUserService target = new UserService(new Mock<IUnitOfWork>().Object, this._userValidationMock.Object);
+            IUserService target = new UserService(new Mock<IUnitOfWork>().Object, this._userValidationMock.Object,
+            this._securedPasswordHelperMock.Object);
 
             // Act and Assert
             Assert.Throws<ArgumentOutOfRangeException>(() => target.GetById(-1));
@@ -675,7 +711,8 @@
             unitOfWorkMock.SetupGet(u => u.UserRepository)
             .Returns(userRepositoryMock.Object);
 
-            IUserService target = new UserService(unitOfWorkMock.Object, this._userValidationMock.Object);
+            IUserService target = new UserService(unitOfWorkMock.Object, this._userValidationMock.Object,
+            this._securedPasswordHelperMock.Object);
 
             // Act
             User user = target.GetById(testUser.UserId);
@@ -690,6 +727,8 @@
         public void Init()
         {
             this.MockUserValidation();
+
+            this.MockSecuredPasswordHelper();
         }
 
         [Test]
@@ -726,7 +765,8 @@
             unitOfWorkMock.Setup(u => u.Save())
             .Callback(() => userReadHistory.UserId = user.UserId);
 
-            IUserService target = new UserService(unitOfWorkMock.Object, this._userValidationMock.Object);
+            IUserService target = new UserService(unitOfWorkMock.Object, this._userValidationMock.Object,
+            this._securedPasswordHelperMock.Object);
 
             // Act
             target.ReadArticle(user.UserId, article.ArticleId);
@@ -774,7 +814,8 @@
             unitOfWorkMock.SetupGet(u => u.UserRepository)
             .Returns(userRepositoryMock.Object);
 
-            IUserService target = new UserService(unitOfWorkMock.Object, this._userValidationMock.Object);
+            IUserService target = new UserService(unitOfWorkMock.Object, this._userValidationMock.Object,
+            this._securedPasswordHelperMock.Object);
 
             // Act
             target.ReadArticle(userId, articleId);
@@ -798,7 +839,8 @@
             // Arrange
             int userId = 1;
 
-            IUserService target = new UserService(new Mock<IUnitOfWork>().Object, this._userValidationMock.Object);
+            IUserService target = new UserService(new Mock<IUnitOfWork>().Object, this._userValidationMock.Object,
+            this._securedPasswordHelperMock.Object);
 
             // Act and Assert
             Assert.Throws<ArgumentOutOfRangeException>(() => target.ReadArticle(userId, -1));
@@ -832,7 +874,8 @@
             unitOfWorkMock.SetupGet(u => u.ArticleRepository)
             .Returns(articleRepositoryMock.Object);
 
-            IUserService target = new UserService(unitOfWorkMock.Object, this._userValidationMock.Object);
+            IUserService target = new UserService(unitOfWorkMock.Object, this._userValidationMock.Object,
+            this._securedPasswordHelperMock.Object);
 
             // Act and Assert
             Assert.Throws<ArticleNotFoundException>(() => target.ReadArticle(user.UserId, articleId));
@@ -865,7 +908,8 @@
             unitOfWorkMock.SetupGet(u => u.UserRepository)
             .Returns(userRepositoryMock.Object);
 
-            IUserService target = new UserService(unitOfWorkMock.Object, this._userValidationMock.Object);
+            IUserService target = new UserService(unitOfWorkMock.Object, this._userValidationMock.Object,
+            this._securedPasswordHelperMock.Object);
 
             // Act and Assert
             Assert.Throws<UserNotFoundException>(() => target.ReadArticle(userId, articleId));
@@ -884,7 +928,8 @@
             // Arrange
             int articleId = 1;
 
-            IUserService target = new UserService(new Mock<IUnitOfWork>().Object, this._userValidationMock.Object);
+            IUserService target = new UserService(new Mock<IUnitOfWork>().Object, this._userValidationMock.Object,
+            this._securedPasswordHelperMock.Object);
 
             // Act and Assert
             Assert.Throws<ArgumentOutOfRangeException>(() => target.ReadArticle(-1, articleId));
@@ -922,7 +967,8 @@
             unitOfWorkMock.SetupGet(u => u.UserRepository)
             .Returns(userRepositoryMock.Object);
 
-            IUserService target = new UserService(unitOfWorkMock.Object, this._userValidationMock.Object);
+            IUserService target = new UserService(unitOfWorkMock.Object, this._userValidationMock.Object,
+            this._securedPasswordHelperMock.Object);
 
             // Act
             target.RemoveArticleFromFavorites(userId, articleId);
@@ -959,7 +1005,8 @@
             unitOfWorkMock.SetupGet(u => u.UserRepository)
             .Returns(userRepositoryMock.Object);
 
-            IUserService target = new UserService(unitOfWorkMock.Object, this._userValidationMock.Object);
+            IUserService target = new UserService(unitOfWorkMock.Object, this._userValidationMock.Object,
+            this._securedPasswordHelperMock.Object);
 
             // Act and Assert
             Assert.Throws<ArticleNotFoundException>(() => target.RemoveArticleFromFavorites(userId, articleId));
@@ -978,7 +1025,8 @@
             // Arrange
             int userId = 1;
 
-            IUserService target = new UserService(new Mock<IUnitOfWork>().Object, this._userValidationMock.Object);
+            IUserService target = new UserService(new Mock<IUnitOfWork>().Object, this._userValidationMock.Object,
+            this._securedPasswordHelperMock.Object);
 
             // Act and Assert
             Assert.Throws<ArgumentOutOfRangeException>(() => target.RemoveArticleFromFavorites(userId, -1));
@@ -1003,7 +1051,8 @@
             unitOfWorkMock.SetupGet(u => u.UserRepository)
             .Returns(userRepositoryMock.Object);
 
-            IUserService target = new UserService(unitOfWorkMock.Object, this._userValidationMock.Object);
+            IUserService target = new UserService(unitOfWorkMock.Object, this._userValidationMock.Object,
+            this._securedPasswordHelperMock.Object);
 
             // Act and Assert
             Assert.Throws<UserNotFoundException>(() => target.RemoveArticleFromFavorites(userId, articleId));
@@ -1022,7 +1071,8 @@
             // Arrange
             int articleId = 1;
 
-            IUserService target = new UserService(new Mock<IUnitOfWork>().Object, this._userValidationMock.Object);
+            IUserService target = new UserService(new Mock<IUnitOfWork>().Object, this._userValidationMock.Object,
+            this._securedPasswordHelperMock.Object);
 
             // Act and Assert
             Assert.Throws<ArgumentOutOfRangeException>(() => target.RemoveArticleFromFavorites(-1, articleId));
@@ -1060,7 +1110,8 @@
             unitOfWorkMock.SetupGet(u => u.UserRepository)
             .Returns(userRepositoryMock.Object);
 
-            IUserService target = new UserService(unitOfWorkMock.Object, this._userValidationMock.Object);
+            IUserService target = new UserService(unitOfWorkMock.Object, this._userValidationMock.Object,
+            this._securedPasswordHelperMock.Object);
 
             // Act
             target.UnreadArticle(userId, articleId);
@@ -1098,7 +1149,8 @@
             unitOfWorkMock.SetupGet(u => u.UserRepository)
             .Returns(userRepositoryMock.Object);
 
-            IUserService target = new UserService(unitOfWorkMock.Object, this._userValidationMock.Object);
+            IUserService target = new UserService(unitOfWorkMock.Object, this._userValidationMock.Object,
+            this._securedPasswordHelperMock.Object);
 
             // Act and Assert
             Assert.Throws<ArticleNotFoundException>(() => target.UnreadArticle(userId, articleId));
@@ -1117,7 +1169,8 @@
             // Arrange
             int userId = 1;
 
-            IUserService target = new UserService(new Mock<IUnitOfWork>().Object, this._userValidationMock.Object);
+            IUserService target = new UserService(new Mock<IUnitOfWork>().Object, this._userValidationMock.Object,
+            this._securedPasswordHelperMock.Object);
 
             // Act and Assert
             Assert.Throws<ArgumentOutOfRangeException>(() => target.UnreadArticle(userId, -1));
@@ -1142,7 +1195,8 @@
             unitOfWorkMock.SetupGet(u => u.UserRepository)
             .Returns(userRepositoryMock.Object);
 
-            IUserService target = new UserService(unitOfWorkMock.Object, this._userValidationMock.Object);
+            IUserService target = new UserService(unitOfWorkMock.Object, this._userValidationMock.Object,
+            this._securedPasswordHelperMock.Object);
 
             // Act and Assert
             Assert.Throws<UserNotFoundException>(() => target.UnreadArticle(userId, articleId));
@@ -1161,11 +1215,23 @@
             // Arrange
             int articleId = 1;
 
-            IUserService target = new UserService(new Mock<IUnitOfWork>().Object, this._userValidationMock.Object);
+            IUserService target = new UserService(new Mock<IUnitOfWork>().Object, this._userValidationMock.Object,
+            this._securedPasswordHelperMock.Object);
 
             // Act and Assert
             Assert.Throws<ArgumentOutOfRangeException>(() => target.UnreadArticle(-1, articleId));
             Assert.Throws<ArgumentOutOfRangeException>(() => target.UnreadArticle(0, articleId));
+        }
+
+        private void MockSecuredPasswordHelper()
+        {
+            this._securedPasswordHelperMock = new Mock<ISecuredPasswordHelper>();
+
+            this._securedPasswordHelperMock.Setup(h => h.GetSecuredPassword(It.IsAny<string>()))
+            .Returns((string password) => new SecuredPassword(password, "password_salt"));
+
+            this._securedPasswordHelperMock.Setup(h => h.ArePasswordsEqual(It.IsAny<string>(), It.IsAny<SecuredPassword>()))
+            .Returns((string password, SecuredPassword securedPassword) => password == securedPassword.Hash);
         }
 
         private void MockUserValidation()
