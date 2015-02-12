@@ -25,6 +25,13 @@
         /// <returns>True if user can edit comment, false - otherwise</returns>
         bool CanEdit(int userId, Comment comment);
 
+        /// <summary>Creates the comment from user with specified identifier for article with specified identifier.</summary>
+        /// <param name="userId">The user identifier.</param>
+        /// <param name="articleId">The article identifier.</param>
+        /// <param name="commentText">The comment's text.</param>
+        /// <returns>Created comment.</returns>
+        Comment Create(int userId, int articleId, string commentText);
+
         /// <summary>Deletes the user's vote.</summary>
         /// <param name="commentId">The comment identifier.</param>
         /// <param name="userId">The user identifier.</param>

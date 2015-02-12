@@ -9,16 +9,21 @@
     using Doctrine.Domain.Services.Abstract;
     using Doctrine.Domain.Services.Common;
     using Doctrine.Domain.Utils;
+    using Doctrine.Domain.Validation.Abstract;
 
     public class CommentService : ServiceBase, ICommentService
     {
+        private readonly ICommentValidation _commentValidation;
+
         private readonly int _permittedPeriodForEditing;
 
-        public CommentService(IUnitOfWork unitOfWork, int permittedPeriodForEditing = 0)
+        public CommentService(IUnitOfWork unitOfWork, ICommentValidation commentValidation, int permittedPeriodForEditing = 0)
         : base(unitOfWork)
         {
+            Guard.NotNull(commentValidation, "commentValidation");
             Guard.IntMoreOrEqualToZero(permittedPeriodForEditing, "permittedPeriodForEditing");
 
+            this._commentValidation = commentValidation;
             this._permittedPeriodForEditing = permittedPeriodForEditing;
         }
 
@@ -73,6 +78,38 @@
             .Subtract(comment.Date);
 
             return timeSpan.TotalMinutes >= 0;
+        }
+
+        public Comment Create(int userId, int articleId, string commentText)
+        {
+            Guard.IntMoreThanZero(userId, "userId");
+            Guard.IntMoreThanZero(articleId, "articleId");
+            Guard.NotNullOrEmpty(commentText, "commentText");
+
+            User user = this._unitOfWork.UserRepository.GetById(userId);
+
+            if (user == null)
+            {
+                throw new UserNotFoundException(String.Format("User with ID '{0}' was not found.", userId));
+            }
+
+            Article article = this._unitOfWork.ArticleRepository.GetById(articleId);
+
+            if (article == null)
+            {
+                throw new ArticleNotFoundException(String.Format("Article with ID '{0}' was not found.", articleId));
+            }
+
+            // Validate comment's text
+            string validatedCommentText = this._commentValidation.ValidateCommentText(commentText);
+
+            Comment comment = new Comment
+            { ArticleId = article.ArticleId, UserId = user.UserId, Text = validatedCommentText, Date = DateTime.Now };
+
+            this._unitOfWork.CommentRepository.Insert(comment);
+            this._unitOfWork.Save();
+
+            return comment;
         }
 
         public void DeleteVote(int commentId, int userId)
