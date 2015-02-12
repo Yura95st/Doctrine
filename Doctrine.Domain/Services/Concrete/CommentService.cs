@@ -53,7 +53,14 @@
 
             if (vote == null)
             {
-                vote = new CommentVote { UserId = userId };
+                User user = this._unitOfWork.UserRepository.GetById(userId);
+
+                if (user == null)
+                {
+                    throw new UserNotFoundException(String.Format("User with ID '{0}' was not found.", userId));
+                }
+
+                vote = new CommentVote { UserId = user.UserId };
 
                 comment.CommentVotes.Add(vote);
             }
