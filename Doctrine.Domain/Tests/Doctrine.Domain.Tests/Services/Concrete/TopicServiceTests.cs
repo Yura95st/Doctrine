@@ -32,6 +32,8 @@
 
             // Act and Assert
             Assert.Throws<InvalidTopicNameFormatException>(() => target.Create(topicName));
+
+            this._topicValidationMock.Verify(v => v.IsValidName(topicName), Times.Once);
         }
 
         [Test]
@@ -59,24 +61,17 @@
         {
             // Arrange
             string topicName = "topicName";
-            int newTopicId = 1;
 
             // Arrange - mock topicRepository
             Mock<ITopicRepository> topicRepositoryMock = new Mock<ITopicRepository>();
 
-            Topic newTopic = null;
-
-            topicRepositoryMock.Setup(r => r.Insert(It.Is<Topic>(t => t.Name == topicName)))
-            .Callback((Topic t) => newTopic = t);
-
             // Arrange - mock unitOfWork
             Mock<IUnitOfWork> unitOfWorkMock = new Mock<IUnitOfWork>();
+
             unitOfWorkMock.SetupGet(u => u.TopicRepository)
             .Returns(topicRepositoryMock.Object);
 
-            unitOfWorkMock.Setup(u => u.Save())
-            .Callback(() => newTopic.TopicId = newTopicId);
-
+            // Arrange - create target
             ITopicService target = new TopicService(unitOfWorkMock.Object, this._topicValidationMock.Object);
 
             // Act
@@ -85,7 +80,6 @@
             // Assert
             Assert.IsNotNull(createdTopic);
             Assert.AreEqual(topicName, createdTopic.Name);
-            Assert.AreEqual(newTopicId, createdTopic.TopicId);
 
             topicRepositoryMock.Verify(r => r.Insert(It.Is<Topic>(t => t.Name == topicName)), Times.Once);
 
@@ -100,14 +94,17 @@
 
             // Arrange - mock topicRepository
             Mock<ITopicRepository> topicRepositoryMock = new Mock<ITopicRepository>();
+
             topicRepositoryMock.Setup(r => r.GetByName(topicName))
             .Returns((Topic)null);
 
             // Arrange - mock unitOfWork
             Mock<IUnitOfWork> unitOfWorkMock = new Mock<IUnitOfWork>();
+
             unitOfWorkMock.SetupGet(u => u.TopicRepository)
             .Returns(topicRepositoryMock.Object);
 
+            // Arrange - create target
             ITopicService target = new TopicService(unitOfWorkMock.Object, this._topicValidationMock.Object);
 
             // Act
@@ -145,14 +142,17 @@
 
             // Arrange - mock topicRepository
             Mock<ITopicRepository> topicRepositoryMock = new Mock<ITopicRepository>();
+
             topicRepositoryMock.Setup(r => r.GetByName(testTopic.Name))
             .Returns(testTopic);
 
             // Arrange - mock unitOfWork
             Mock<IUnitOfWork> unitOfWorkMock = new Mock<IUnitOfWork>();
+
             unitOfWorkMock.SetupGet(u => u.TopicRepository)
             .Returns(topicRepositoryMock.Object);
 
+            // Arrange - create target
             ITopicService target = new TopicService(unitOfWorkMock.Object, this._topicValidationMock.Object);
 
             // Act

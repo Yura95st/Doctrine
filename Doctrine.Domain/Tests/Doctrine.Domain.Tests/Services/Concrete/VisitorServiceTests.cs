@@ -47,6 +47,8 @@
 
             // Act and Assert
             Assert.Throws<InvalidIpAddressFormatException>(() => target.RegisterIpAddress(ipAddress));
+
+            this._visitorValidationMock.Verify(v => v.IsValidIpAddress(ipAddress), Times.Once);
         }
 
         [Test]
@@ -57,14 +59,17 @@
 
             // Arrange - mock visitorRepository
             Mock<IVisitorRepository> visitorRepositoryMock = new Mock<IVisitorRepository>();
+
             visitorRepositoryMock.Setup(r => r.GetByIpAddress(visitor.IpAddress))
             .Returns(visitor);
 
             // Arrange - mock unitOfWork
             Mock<IUnitOfWork> unitOfWorkMock = new Mock<IUnitOfWork>();
+
             unitOfWorkMock.SetupGet(unitOfWork => unitOfWork.VisitorRepository)
             .Returns(visitorRepositoryMock.Object);
 
+            // Arrange - create target
             IVisitorService target = new VisitorService(unitOfWorkMock.Object, this._visitorValidationMock.Object);
 
             // Act
@@ -84,26 +89,20 @@
         {
             // Arrange
             string ipAddress = "127.0.0.1";
-            int newVisitorId = 1;
 
             // Arrange - mock visitorRepository
             Mock<IVisitorRepository> visitorRepositoryMock = new Mock<IVisitorRepository>();
+
             visitorRepositoryMock.Setup(r => r.GetByIpAddress(ipAddress))
             .Returns((Visitor)null);
 
-            Visitor newVisitor = null;
-
-            visitorRepositoryMock.Setup(r => r.Insert(It.Is<Visitor>(v => v.IpAddress == ipAddress)))
-            .Callback((Visitor v) => newVisitor = v);
-
             // Arrange - mock unitOfWork
             Mock<IUnitOfWork> unitOfWorkMock = new Mock<IUnitOfWork>();
+
             unitOfWorkMock.SetupGet(u => u.VisitorRepository)
             .Returns(visitorRepositoryMock.Object);
 
-            unitOfWorkMock.Setup(u => u.Save())
-            .Callback(() => newVisitor.VisitorId = newVisitorId);
-
+            // Arrange - create target
             IVisitorService target = new VisitorService(unitOfWorkMock.Object, this._visitorValidationMock.Object);
 
             // Act
@@ -112,7 +111,6 @@
             // Assert
             Assert.IsNotNull(registeredVisitor);
             Assert.AreEqual(ipAddress, registeredVisitor.IpAddress);
-            Assert.AreEqual(newVisitorId, registeredVisitor.VisitorId);
 
             visitorRepositoryMock.Verify(r => r.GetByIpAddress(ipAddress), Times.Once);
             visitorRepositoryMock.Verify(r => r.Insert(It.Is<Visitor>(v => v.IpAddress == ipAddress)), Times.Once);
@@ -134,9 +132,16 @@
         public void ViewArticle_AllCredentialsAreValid_MarksArticleAsViewedByVisitor()
         {
             // Arrange
-            Visitor visitor = new Visitor { VisitorId = 1 };
+            int visitorId = 1;
+            int articleId = 2;
+            ArticleVisitor[] articleVisitors =
+            {
+                new ArticleVisitor { VisitorId = visitorId, ArticleId = articleId + 1 },
+                new ArticleVisitor { VisitorId = visitorId, ArticleId = articleId + 2 }
+            };
 
-            Article article = new Article { ArticleId = 2 };
+            Visitor visitor = new Visitor { VisitorId = visitorId, ArticleVisitors = articleVisitors.ToList() };
+            Article article = new Article { ArticleId = articleId };
 
             // Arrange - mock visitorRepository
             Mock<IVisitorRepository> visitorRepositoryMock = new Mock<IVisitorRepository>();
@@ -145,42 +150,47 @@
             r => r.Get(It.IsAny<Expression<Func<Visitor, bool>>>(), null, It.IsAny<Expression<Func<Visitor, object>>[]>()))
             .Returns(new[] { visitor });
 
-            ArticleVisitor newArticleVisitor = null;
-            visitorRepositoryMock.Setup(r => r.Update(It.Is<Visitor>(v => v.VisitorId == visitor.VisitorId)))
-            .Callback((Visitor v) => newArticleVisitor = v.ArticleVisitors.FirstOrDefault());
+            IEnumerable<ArticleVisitor> newArticleVisitors = null;
+
+            visitorRepositoryMock.Setup(r => r.Update(It.Is<Visitor>(v => v.VisitorId == visitorId)))
+            .Callback((Visitor v) => newArticleVisitors = v.ArticleVisitors);
 
             // Arrange - mock articleRepository
             Mock<IArticleRepository> articleRepositoryMock = new Mock<IArticleRepository>();
-            articleRepositoryMock.Setup(r => r.GetById(article.ArticleId))
+
+            articleRepositoryMock.Setup(r => r.GetById(articleId))
             .Returns(article);
 
             // Arrange - mock unitOfWork
             Mock<IUnitOfWork> unitOfWorkMock = new Mock<IUnitOfWork>();
+
             unitOfWorkMock.SetupGet(u => u.VisitorRepository)
             .Returns(visitorRepositoryMock.Object);
 
             unitOfWorkMock.SetupGet(u => u.ArticleRepository)
             .Returns(articleRepositoryMock.Object);
 
-            unitOfWorkMock.Setup(u => u.Save())
-            .Callback(() => newArticleVisitor.VisitorId = visitor.VisitorId);
-
+            // Arrange - create target
             IVisitorService target = new VisitorService(unitOfWorkMock.Object, this._visitorValidationMock.Object);
 
             // Act
-            target.ViewArticle(visitor.VisitorId, article.ArticleId);
+            target.ViewArticle(visitorId, articleId);
 
             // Assert
-            Assert.AreEqual(visitor.VisitorId, newArticleVisitor.VisitorId);
-            Assert.AreEqual(article.ArticleId, newArticleVisitor.ArticleId);
-            Assert.IsTrue(new DateTime() != newArticleVisitor.LastViewDate);
+            Assert.IsNotNull(newArticleVisitors);
+            Assert.AreEqual(articleVisitors.Count() + 1, newArticleVisitors.Count());
+
+            ArticleVisitor articleVisitor = newArticleVisitors.FirstOrDefault(v => v.ArticleId == articleId);
+
+            Assert.IsNotNull(articleVisitor);
+            Assert.IsTrue(new DateTime() != articleVisitor.LastViewDate);
 
             visitorRepositoryMock.Verify(
             r => r.Get(It.IsAny<Expression<Func<Visitor, bool>>>(), null, It.IsAny<Expression<Func<Visitor, object>>[]>()),
             Times.Once);
-            visitorRepositoryMock.Verify(r => r.Update(It.Is<Visitor>(v => v.VisitorId == visitor.VisitorId)), Times.Once);
+            visitorRepositoryMock.Verify(r => r.Update(It.Is<Visitor>(v => v.VisitorId == visitorId)), Times.Once);
 
-            articleRepositoryMock.Verify(r => r.GetById(article.ArticleId), Times.Once);
+            articleRepositoryMock.Verify(r => r.GetById(articleId), Times.Once);
 
             unitOfWorkMock.Verify(u => u.Save(), Times.Once);
         }
@@ -191,13 +201,15 @@
             // Arrange
             int visitorId = 1;
             int articleId = 2;
-            DateTime lastViewDate = new DateTime();
+            DateTime lastViewDate = DateTime.Now;
+            ArticleVisitor[] articleVisitors =
+            {
+                new ArticleVisitor { ArticleId = articleId, VisitorId = visitorId, LastViewDate = lastViewDate },
+                new ArticleVisitor { VisitorId = visitorId, ArticleId = articleId + 1 },
+                new ArticleVisitor { VisitorId = visitorId, ArticleId = articleId + 2 }
+            };
 
-            ArticleVisitor articleVisitor = new ArticleVisitor
-            { ArticleId = articleId, VisitorId = visitorId, LastViewDate = lastViewDate };
-
-            Visitor visitor = new Visitor
-            { VisitorId = visitorId, ArticleVisitors = new List<ArticleVisitor> { articleVisitor } };
+            Visitor visitor = new Visitor { VisitorId = visitorId, ArticleVisitors = articleVisitors.ToList() };
 
             // Arrange - mock visitorRepository
             Mock<IVisitorRepository> visitorRepositoryMock = new Mock<IVisitorRepository>();
@@ -206,29 +218,37 @@
             r => r.Get(It.IsAny<Expression<Func<Visitor, bool>>>(), null, It.IsAny<Expression<Func<Visitor, object>>[]>()))
             .Returns(new[] { visitor });
 
-            ArticleVisitor newArticleVisitor = null;
+            IEnumerable<ArticleVisitor> newArticleVisitors = null;
+
             visitorRepositoryMock.Setup(r => r.Update(It.Is<Visitor>(v => v.VisitorId == visitorId)))
-            .Callback((Visitor v) => newArticleVisitor = v.ArticleVisitors.FirstOrDefault());
+            .Callback((Visitor v) => newArticleVisitors = v.ArticleVisitors);
 
             // Arrange - mock unitOfWork
             Mock<IUnitOfWork> unitOfWorkMock = new Mock<IUnitOfWork>();
+
             unitOfWorkMock.SetupGet(u => u.VisitorRepository)
             .Returns(visitorRepositoryMock.Object);
 
+            // Arrange - create target
             IVisitorService target = new VisitorService(unitOfWorkMock.Object, this._visitorValidationMock.Object);
 
             // Act
             target.ViewArticle(visitorId, articleId);
 
             // Assert
-            Assert.AreEqual(visitorId, newArticleVisitor.VisitorId);
-            Assert.AreEqual(articleId, newArticleVisitor.ArticleId);
-            Assert.IsTrue(lastViewDate != newArticleVisitor.LastViewDate);
+            Assert.IsNotNull(newArticleVisitors);
+            Assert.AreEqual(articleVisitors.Count(), newArticleVisitors.Count());
+
+            ArticleVisitor articleVisitor = newArticleVisitors.FirstOrDefault(v => v.ArticleId == articleId);
+
+            Assert.IsNotNull(articleVisitor);
+            Assert.IsTrue(articleVisitor.LastViewDate.Subtract(lastViewDate)
+            .TotalMilliseconds > 0);
 
             visitorRepositoryMock.Verify(
             r => r.Get(It.IsAny<Expression<Func<Visitor, bool>>>(), null, It.IsAny<Expression<Func<Visitor, object>>[]>()),
             Times.Once);
-            visitorRepositoryMock.Verify(r => r.Update(It.Is<Visitor>(v => v.VisitorId == visitor.VisitorId)), Times.Once);
+            visitorRepositoryMock.Verify(r => r.Update(It.Is<Visitor>(v => v.VisitorId == visitorId)), Times.Once);
 
             unitOfWorkMock.Verify(u => u.Save(), Times.Once);
         }
@@ -263,17 +283,20 @@
 
             // Arrange - mock articleRepository
             Mock<IArticleRepository> articleRepositoryMock = new Mock<IArticleRepository>();
+
             articleRepositoryMock.Setup(r => r.GetById(articleId))
             .Returns((Article)null);
 
             // Arrange - mock unitOfWork
             Mock<IUnitOfWork> unitOfWorkMock = new Mock<IUnitOfWork>();
+
             unitOfWorkMock.SetupGet(u => u.VisitorRepository)
             .Returns(visitorRepositoryMock.Object);
 
             unitOfWorkMock.SetupGet(u => u.ArticleRepository)
             .Returns(articleRepositoryMock.Object);
 
+            // Arrange - create target
             IVisitorService target = new VisitorService(unitOfWorkMock.Object, this._visitorValidationMock.Object);
 
             // Act and Assert
@@ -298,15 +321,18 @@
 
             // Arrange - mock visitorRepository
             Mock<IVisitorRepository> visitorRepositoryMock = new Mock<IVisitorRepository>();
+
             visitorRepositoryMock.Setup(
             r => r.Get(It.IsAny<Expression<Func<Visitor, bool>>>(), null, It.IsAny<Expression<Func<Visitor, object>>[]>()))
             .Returns(new Visitor[] { });
 
             // Arrange - mock unitOfWork
             Mock<IUnitOfWork> unitOfWorkMock = new Mock<IUnitOfWork>();
+
             unitOfWorkMock.SetupGet(u => u.VisitorRepository)
             .Returns(visitorRepositoryMock.Object);
 
+            // Arrange - create target
             IVisitorService target = new VisitorService(unitOfWorkMock.Object, this._visitorValidationMock.Object);
 
             // Act and Assert

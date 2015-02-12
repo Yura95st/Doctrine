@@ -32,23 +32,32 @@
         public void AddArticleToFavorites_AllCredentialsAreValid_AddsArticleToFavorites()
         {
             // Arrange
-            User user = new User { UserId = 1 };
+            int userId = 1;
+            int articleId = 2;
+            UserFavorite[] userFavorites =
+            {
+                new UserFavorite { UserId = userId, ArticleId = articleId + 1 },
+                new UserFavorite { UserId = userId, ArticleId = articleId + 1 }
+            };
 
-            Article article = new Article { ArticleId = 2 };
+            User user = new User { UserId = userId, UserFavorites = userFavorites.ToList() };
+            Article article = new Article { ArticleId = articleId };
 
             // Arrange - mock userRepository
             Mock<IUserRepository> userRepositoryMock = new Mock<IUserRepository>();
+
             userRepositoryMock.Setup(
             r => r.Get(It.IsAny<Expression<Func<User, bool>>>(), null, It.IsAny<Expression<Func<User, object>>[]>()))
             .Returns(new[] { user });
 
-            UserFavorite newUserFavorite = null;
-            userRepositoryMock.Setup(r => r.Update(It.Is<User>(u => u.UserId == user.UserId)))
-            .Callback((User u) => newUserFavorite = u.UserFavorites.FirstOrDefault());
+            IEnumerable<UserFavorite> newUserFavorites = null;
+
+            userRepositoryMock.Setup(r => r.Update(It.Is<User>(u => u.UserId == userId)))
+            .Callback((User u) => newUserFavorites = u.UserFavorites);
 
             // Arrange - mock articleRepository
             Mock<IArticleRepository> articleRepositoryMock = new Mock<IArticleRepository>();
-            articleRepositoryMock.Setup(r => r.GetById(article.ArticleId))
+            articleRepositoryMock.Setup(r => r.GetById(articleId))
             .Returns(article);
 
             // Arrange - mock unitOfWork
@@ -59,26 +68,28 @@
             unitOfWorkMock.SetupGet(u => u.ArticleRepository)
             .Returns(articleRepositoryMock.Object);
 
-            unitOfWorkMock.Setup(u => u.Save())
-            .Callback(() => newUserFavorite.UserId = user.UserId);
-
+            // Arrange - create target
             IUserService target = new UserService(unitOfWorkMock.Object, this._userValidationMock.Object,
             this._securedPasswordHelperMock.Object);
 
             // Act
-            target.AddArticleToFavorites(user.UserId, article.ArticleId);
+            target.AddArticleToFavorites(userId, articleId);
 
             // Assert
-            Assert.AreEqual(user.UserId, newUserFavorite.UserId);
-            Assert.AreEqual(article.ArticleId, newUserFavorite.ArticleId);
-            Assert.IsTrue(new DateTime() != newUserFavorite.AddDate);
+            Assert.IsNotNull(newUserFavorites);
+            Assert.AreEqual(userFavorites.Count() + 1, newUserFavorites.Count());
+
+            UserFavorite userFavorite = newUserFavorites.FirstOrDefault(v => v.ArticleId == articleId);
+
+            Assert.IsNotNull(userFavorite);
+            Assert.IsTrue(new DateTime() != userFavorite.AddDate);
 
             userRepositoryMock.Verify(
             r => r.Get(It.IsAny<Expression<Func<User, bool>>>(), null, It.IsAny<Expression<Func<User, object>>[]>()),
             Times.Once);
-            userRepositoryMock.Verify(r => r.Update(It.Is<User>(u => u.UserId == user.UserId)), Times.Once);
+            userRepositoryMock.Verify(r => r.Update(It.Is<User>(u => u.UserId == userId)), Times.Once);
 
-            articleRepositoryMock.Verify(r => r.GetById(article.ArticleId), Times.Once);
+            articleRepositoryMock.Verify(r => r.GetById(articleId), Times.Once);
 
             unitOfWorkMock.Verify(u => u.Save(), Times.Once);
         }
@@ -89,28 +100,35 @@
             // Arrange
             int userId = 1;
             int articleId = 2;
-            DateTime userFavoriteAddDate = new DateTime();
+            DateTime addDate = new DateTime();
+            UserFavorite[] userFavorites =
+            {
+                new UserFavorite { UserId = userId, ArticleId = articleId, AddDate = addDate },
+                new UserFavorite { UserId = userId, ArticleId = articleId + 1 },
+                new UserFavorite { UserId = userId, ArticleId = articleId + 1 }
+            };
 
-            UserFavorite userFavorite = new UserFavorite
-            { UserId = userId, ArticleId = articleId, AddDate = userFavoriteAddDate };
-
-            User user = new User { UserId = userId, UserFavorites = new[] { userFavorite } };
+            User user = new User { UserId = userId, UserFavorites = userFavorites.ToList() };
 
             // Arrange - mock userRepository
             Mock<IUserRepository> userRepositoryMock = new Mock<IUserRepository>();
+
             userRepositoryMock.Setup(
             r => r.Get(It.IsAny<Expression<Func<User, bool>>>(), null, It.IsAny<Expression<Func<User, object>>[]>()))
             .Returns(new[] { user });
 
-            UserFavorite newUserFavorite = null;
+            IEnumerable<UserFavorite> newUserFavorites = null;
+
             userRepositoryMock.Setup(r => r.Update(It.Is<User>(u => u.UserId == userId)))
-            .Callback((User u) => newUserFavorite = u.UserFavorites.FirstOrDefault());
+            .Callback((User u) => newUserFavorites = u.UserFavorites);
 
             // Arrange - mock unitOfWork
             Mock<IUnitOfWork> unitOfWorkMock = new Mock<IUnitOfWork>();
+
             unitOfWorkMock.SetupGet(u => u.UserRepository)
             .Returns(userRepositoryMock.Object);
 
+            // Arrange - create target
             IUserService target = new UserService(unitOfWorkMock.Object, this._userValidationMock.Object,
             this._securedPasswordHelperMock.Object);
 
@@ -118,9 +136,14 @@
             target.AddArticleToFavorites(userId, articleId);
 
             // Assert
-            Assert.AreEqual(userId, newUserFavorite.UserId);
-            Assert.AreEqual(articleId, newUserFavorite.ArticleId);
-            Assert.IsTrue(userFavoriteAddDate != newUserFavorite.AddDate);
+            Assert.IsNotNull(newUserFavorites);
+            Assert.AreEqual(userFavorites.Count(), newUserFavorites.Count());
+
+            UserFavorite userFavorite = newUserFavorites.FirstOrDefault(v => v.UserId == userId && v.ArticleId == articleId);
+
+            Assert.IsNotNull(userFavorite);
+            Assert.IsTrue(userFavorite.AddDate.Subtract(addDate)
+            .TotalMilliseconds > 0);
 
             userRepositoryMock.Verify(
             r => r.Get(It.IsAny<Expression<Func<User, bool>>>(), null, It.IsAny<Expression<Func<User, object>>[]>()),
@@ -154,23 +177,27 @@
 
             // Arrange - mock userRepository
             Mock<IUserRepository> userRepositoryMock = new Mock<IUserRepository>();
+
             userRepositoryMock.Setup(
             r => r.Get(It.IsAny<Expression<Func<User, bool>>>(), null, It.IsAny<Expression<Func<User, object>>[]>()))
             .Returns(new[] { user });
 
             // Arrange - mock articleRepository
             Mock<IArticleRepository> articleRepositoryMock = new Mock<IArticleRepository>();
+
             articleRepositoryMock.Setup(r => r.GetById(articleId))
             .Returns((Article)null);
 
             // Arrange - mock unitOfWork
             Mock<IUnitOfWork> unitOfWorkMock = new Mock<IUnitOfWork>();
+
             unitOfWorkMock.SetupGet(u => u.UserRepository)
             .Returns(userRepositoryMock.Object);
 
             unitOfWorkMock.SetupGet(u => u.ArticleRepository)
             .Returns(articleRepositoryMock.Object);
 
+            // Arrange - create target
             IUserService target = new UserService(unitOfWorkMock.Object, this._userValidationMock.Object,
             this._securedPasswordHelperMock.Object);
 
@@ -202,9 +229,11 @@
 
             // Arrange - mock unitOfWork
             Mock<IUnitOfWork> unitOfWorkMock = new Mock<IUnitOfWork>();
+
             unitOfWorkMock.SetupGet(u => u.UserRepository)
             .Returns(userRepositoryMock.Object);
 
+            // Arrange - create target
             IUserService target = new UserService(unitOfWorkMock.Object, this._userValidationMock.Object,
             this._securedPasswordHelperMock.Object);
 
@@ -237,62 +266,60 @@
         public void Authenticate_CredentialsAreValid_AuthenticatesVisitorAndReturnsUser()
         {
             // Arrange
-            Visitor visitor = new Visitor { VisitorId = 1, IpAddress = "127.0.0.1" };
+            int visitorId = 1;
+            int userId = 2;
+            UserActivity[] userActivities =
+            {
+                new UserActivity { ActivityId = 1, UserId = userId, VisitorId = visitorId + 1 },
+                new UserActivity { ActivityId = 2, UserId = userId, VisitorId = visitorId + 2 }
+            };
 
-            User user = new User { UserId = 2, Email = "user@email.com", Password = "user_password", Salt = "password_salt" };
-
-            int userActivityId = 1;
+            Visitor visitor = new Visitor { VisitorId = visitorId, IpAddress = "127.0.0.1" };
+            User user = new User
+            {
+                UserId = userId, Email = "email", Password = "password", Salt = "password_salt",
+                UserActivities = userActivities.ToList()
+            };
 
             // Arrange - mock userRepository
             Mock<IUserRepository> userRepositoryMock = new Mock<IUserRepository>();
+
             userRepositoryMock.Setup(r => r.GetByEmail(user.Email))
             .Returns(user);
 
-            UserActivity newUserActivity = null;
-            userRepositoryMock.Setup(r => r.Update(It.Is<User>(u => u.UserId == user.UserId)))
-            .Callback((User u) => newUserActivity = u.UserActivities.FirstOrDefault());
-
             // Arrange - mock visitorRepository
             Mock<IVisitorRepository> visitorRepositoryMock = new Mock<IVisitorRepository>();
-            visitorRepositoryMock.Setup(r => r.GetById(visitor.VisitorId))
+
+            visitorRepositoryMock.Setup(r => r.GetById(visitorId))
             .Returns(visitor);
 
             // Arrange - mock unitOfWork
             Mock<IUnitOfWork> unitOfWorkMock = new Mock<IUnitOfWork>();
+
             unitOfWorkMock.SetupGet(u => u.UserRepository)
             .Returns(userRepositoryMock.Object);
 
             unitOfWorkMock.SetupGet(u => u.VisitorRepository)
             .Returns(visitorRepositoryMock.Object);
 
-            unitOfWorkMock.Setup(u => u.Save())
-            .Callback(() =>
-                      {
-                          newUserActivity.ActivityId = userActivityId;
-                          newUserActivity.UserId = user.UserId;
-                      });
-
+            // Arrange - create target
             IUserService target = new UserService(unitOfWorkMock.Object, this._userValidationMock.Object,
             this._securedPasswordHelperMock.Object);
 
             // Act
-            User authenticatedUser = target.Authenticate(visitor.VisitorId, user.Email, user.Password);
+            User authenticatedUser = target.Authenticate(visitorId, user.Email, user.Password);
 
             // Assert
-            Assert.AreEqual(user.UserId, authenticatedUser.UserId);
-            Assert.AreEqual(user.Email, authenticatedUser.Email);
-            Assert.AreEqual(user.Password, authenticatedUser.Password);
+            Assert.AreSame(user, authenticatedUser);
+            Assert.AreEqual(userActivities.Count() + 1, authenticatedUser.UserActivities.Count());
 
-            UserActivity lastUserActivity = authenticatedUser.UserActivities.FirstOrDefault();
+            UserActivity userActivity = authenticatedUser.UserActivities.FirstOrDefault(u => u.VisitorId == visitorId);
 
-            Assert.IsNotNull(lastUserActivity);
-            Assert.AreEqual(userActivityId, lastUserActivity.ActivityId);
-            Assert.AreEqual(user.UserId, lastUserActivity.UserId);
-            Assert.AreEqual(visitor.VisitorId, lastUserActivity.VisitorId);
-            Assert.IsTrue(new DateTime() != lastUserActivity.LogOnDate);
+            Assert.IsNotNull(userActivity);
+            Assert.IsTrue(new DateTime() != userActivity.LogOnDate);
 
             userRepositoryMock.Verify(r => r.GetByEmail(user.Email), Times.Once);
-            userRepositoryMock.Verify(r => r.Update(It.Is<User>(u => u.UserId == user.UserId)), Times.Once);
+            userRepositoryMock.Verify(r => r.Update(It.Is<User>(u => u.UserId == userId)), Times.Once);
 
             visitorRepositoryMock.Verify(r => r.GetById(visitor.VisitorId), Times.Once);
 
@@ -310,7 +337,7 @@
 
             // Act and Assert
             Assert.Throws<ArgumentException>(() => target.Authenticate(visitorId, "", "password"));
-            Assert.Throws<ArgumentException>(() => target.Authenticate(visitorId, "user@email.com", ""));
+            Assert.Throws<ArgumentException>(() => target.Authenticate(visitorId, "email", ""));
         }
 
         [Test]
@@ -323,8 +350,7 @@
             this._securedPasswordHelperMock.Object);
 
             // Act and Assert
-            Assert.Throws<ArgumentNullException>(() => target.Authenticate(visitorId, null, null));
-            Assert.Throws<ArgumentNullException>(() => target.Authenticate(visitorId, "user@email.com", null));
+            Assert.Throws<ArgumentNullException>(() => target.Authenticate(visitorId, "email", null));
             Assert.Throws<ArgumentNullException>(() => target.Authenticate(visitorId, null, "password"));
         }
 
@@ -333,17 +359,20 @@
         {
             // Arrange
             int visitorId = 1;
-            string email = "invalid@email.com";
+            string email = "invalid_email";
             string password = "password";
 
             this._userValidationMock.Setup(v => v.IsValidEmail(email))
             .Returns(false);
 
+            // Arrange - create target
             IUserService target = new UserService(new Mock<IUnitOfWork>().Object, this._userValidationMock.Object,
             this._securedPasswordHelperMock.Object);
 
             // Act and Assert
             Assert.Throws<InvalidEmailFormatException>(() => target.Authenticate(visitorId, email, password));
+
+            this._userValidationMock.Verify(v => v.IsValidEmail(email), Times.Once);
         }
 
         [Test]
@@ -351,19 +380,22 @@
         {
             // Arrange
             int visitorId = 1;
-            string email = "nonexistent@email.com";
+            string email = "nonexistent_email";
             string password = "password";
 
             // Arrange - mock userRepository
             Mock<IUserRepository> userRepositoryMock = new Mock<IUserRepository>();
+
             userRepositoryMock.Setup(r => r.GetByEmail(email))
             .Returns((User)null);
 
             // Arrange - mock unitOfWork
             Mock<IUnitOfWork> unitOfWorkMock = new Mock<IUnitOfWork>();
+
             unitOfWorkMock.SetupGet(u => u.UserRepository)
             .Returns(userRepositoryMock.Object);
 
+            // Arrange - create target
             IUserService target = new UserService(unitOfWorkMock.Object, this._userValidationMock.Object,
             this._securedPasswordHelperMock.Object);
 
@@ -371,6 +403,9 @@
             Assert.Throws<UserNotFoundException>(() => target.Authenticate(visitorId, email, password));
 
             userRepositoryMock.Verify(r => r.GetByEmail(email), Times.Once);
+            userRepositoryMock.Verify(r => r.Update(It.Is<User>(u => u.Email == email)), Times.Never);
+
+            unitOfWorkMock.Verify(u => u.Save(), Times.Never);
         }
 
         [Test]
@@ -379,26 +414,30 @@
             // Arrange
             int visitorId = 1;
 
-            User user = new User { UserId = 1, Email = "user@email.com", Password = "user_password", Salt = "password_salt" };
+            User user = new User { UserId = 1, Email = "email", Password = "password", Salt = "password_salt" };
 
             // Arrange - mock userRepository
             Mock<IUserRepository> userRepositoryMock = new Mock<IUserRepository>();
+
             userRepositoryMock.Setup(r => r.GetByEmail(user.Email))
             .Returns(user);
 
             // Arrange - mock visitorRepository
             Mock<IVisitorRepository> visitorRepositoryMock = new Mock<IVisitorRepository>();
+
             visitorRepositoryMock.Setup(r => r.GetById(visitorId))
             .Returns((Visitor)null);
 
             // Arrange - mock unitOfWork
             Mock<IUnitOfWork> unitOfWorkMock = new Mock<IUnitOfWork>();
+
             unitOfWorkMock.SetupGet(u => u.UserRepository)
             .Returns(userRepositoryMock.Object);
 
             unitOfWorkMock.SetupGet(u => u.VisitorRepository)
             .Returns(visitorRepositoryMock.Object);
 
+            // Arrange - create target
             IUserService target = new UserService(unitOfWorkMock.Object, this._userValidationMock.Object,
             this._securedPasswordHelperMock.Object);
 
@@ -417,7 +456,7 @@
         public void Authenticate_VisitorIdIsLessOrEqualToZero_ThrowsArgumentOutOfRangeException()
         {
             // Arrange
-            string email = "user@email.com";
+            string email = "email";
             string password = "password";
 
             IUserService target = new UserService(new Mock<IUnitOfWork>().Object, this._userValidationMock.Object,
@@ -433,69 +472,74 @@
         {
             // Arrange
             int visitorId = 1;
-            string password = "wrong_password";
 
-            User user = new User { UserId = 1, Email = "user@email.com", Password = "user_password", Salt = "password_salt" };
+            User user = new User { UserId = 1, Email = "email", Password = "wrong_password", Salt = "password_salt" };
 
             // Arrange - mock userRepository
             Mock<IUserRepository> userRepositoryMock = new Mock<IUserRepository>();
+
             userRepositoryMock.Setup(r => r.GetByEmail(user.Email))
             .Returns(user);
 
             // Arrange - mock unitOfWork
             Mock<IUnitOfWork> unitOfWorkMock = new Mock<IUnitOfWork>();
+
             unitOfWorkMock.SetupGet(u => u.UserRepository)
             .Returns(userRepositoryMock.Object);
 
             // Arrange - mock securedPasswordHelper
             this._securedPasswordHelperMock.Setup(
-            h => h.ArePasswordsEqual(password, It.Is<SecuredPassword>(p => p.Hash == user.Password && p.Salt == user.Salt)))
+            h =>
+            h.ArePasswordsEqual(user.Password, It.Is<SecuredPassword>(p => p.Hash == user.Password && p.Salt == user.Salt)))
             .Returns(false);
 
+            // Arrange - create target
             IUserService target = new UserService(unitOfWorkMock.Object, this._userValidationMock.Object,
             this._securedPasswordHelperMock.Object);
 
             // Act
-            Assert.Throws<WrongPasswordException>(() => target.Authenticate(visitorId, user.Email, password));
+            Assert.Throws<WrongPasswordException>(() => target.Authenticate(visitorId, user.Email, user.Password));
 
             // Assert
             userRepositoryMock.Verify(r => r.GetByEmail(user.Email), Times.Once);
+            userRepositoryMock.Verify(r => r.Update(It.Is<User>(u => u.UserId == user.UserId)), Times.Never);
+
+            unitOfWorkMock.Verify(u => u.Save(), Times.Never);
+
+            this._securedPasswordHelperMock.Verify(
+            h =>
+            h.ArePasswordsEqual(user.Password, It.Is<SecuredPassword>(p => p.Hash == user.Password && p.Salt == user.Salt)),
+            Times.Once);
         }
 
         [Test]
         public void Create_AllCredentialsAreValid_CreatesAndReturnsNewUser()
         {
             // Arrange
-            string email = "user@email.com";
-            string firstName = "user_firstName";
-            string lastName = "user_lastName";
-            string password = "user_password";
+            string email = "email";
+            string firstName = "firstName";
+            string lastName = "lastName";
+            string password = "password";
 
             SecuredPassword securedPassword = new SecuredPassword("secured_password", "password_salt");
 
-            int userId = 1;
-
             // Arrange - mock userRepository
             Mock<IUserRepository> userRepositoryMock = new Mock<IUserRepository>();
+
             userRepositoryMock.Setup(r => r.GetByEmail(email))
             .Returns((User)null);
 
-            User newUser = null;
-            userRepositoryMock.Setup(r => r.Insert(It.Is<User>(u => u.Email == email)))
-            .Callback((User u) => newUser = u);
-
             // Arrange - mock unitOfWork
             Mock<IUnitOfWork> unitOfWorkMock = new Mock<IUnitOfWork>();
+
             unitOfWorkMock.SetupGet(u => u.UserRepository)
             .Returns(userRepositoryMock.Object);
-
-            unitOfWorkMock.Setup(u => u.Save())
-            .Callback(() => newUser.UserId = userId);
 
             // Arrange - mock securedPasswordHelper
             this._securedPasswordHelperMock.Setup(h => h.GetSecuredPassword(password))
             .Returns(securedPassword);
 
+            // Arrange - create target
             IUserService target = new UserService(unitOfWorkMock.Object, this._userValidationMock.Object,
             this._securedPasswordHelperMock.Object);
 
@@ -504,7 +548,6 @@
 
             // Assert
             Assert.IsNotNull(user);
-            Assert.AreEqual(userId, user.UserId);
             Assert.AreEqual(email, user.Email);
             Assert.AreEqual(firstName, user.FirstName);
             Assert.AreEqual(lastName, user.LastName);
@@ -516,6 +559,8 @@
             userRepositoryMock.Verify(r => r.Insert(It.Is<User>(u => u.Email == email)), Times.Once);
 
             unitOfWorkMock.Verify(u => u.Save(), Times.Once);
+
+            this._securedPasswordHelperMock.Verify(h => h.GetSecuredPassword(password), Times.Once);
         }
 
         [Test]
@@ -531,14 +576,17 @@
 
             // Arrange - mock userRepository
             Mock<IUserRepository> userRepositoryMock = new Mock<IUserRepository>();
+
             userRepositoryMock.Setup(r => r.GetByEmail(email))
             .Returns(user);
 
             // Arrange - mock unitOfWork
             Mock<IUnitOfWork> unitOfWorkMock = new Mock<IUnitOfWork>();
+
             unitOfWorkMock.SetupGet(u => u.UserRepository)
             .Returns(userRepositoryMock.Object);
 
+            // Arrange - create target
             IUserService target = new UserService(unitOfWorkMock.Object, this._userValidationMock.Object,
             this._securedPasswordHelperMock.Object);
 
@@ -555,104 +603,130 @@
         public void Create_EmailOrFirstNameOrLastNameOrPasswordIsEmpty_ThrowsArgumentException()
         {
             // Arrange
+            string email = "email";
+            string firstName = "firstName";
+            string lastName = "lastName";
+            string password = "password";
+
             IUserService target = new UserService(new Mock<IUnitOfWork>().Object, this._userValidationMock.Object,
             this._securedPasswordHelperMock.Object);
 
             // Act and Assert
-            Assert.Throws<ArgumentException>(() => target.Create("", "firstName", "lastName", "password"));
-            Assert.Throws<ArgumentException>(() => target.Create("user@email.com", "", "lastName", "password"));
-            Assert.Throws<ArgumentException>(() => target.Create("user@email.com", "firstName", "", "password"));
-            Assert.Throws<ArgumentException>(() => target.Create("user@email.com", "firstName", "lastName", ""));
+            Assert.Throws<ArgumentException>(() => target.Create("", firstName, lastName, password));
+            Assert.Throws<ArgumentException>(() => target.Create(email, "", lastName, password));
+            Assert.Throws<ArgumentException>(() => target.Create(email, firstName, "", password));
+            Assert.Throws<ArgumentException>(() => target.Create(email, firstName, lastName, ""));
         }
 
         [Test]
         public void Create_EmailOrFirstNameOrLastNameOrPasswordIsNull_ThrowsArgumentNullException()
         {
             // Arrange
+            string email = "email";
+            string firstName = "firstName";
+            string lastName = "lastName";
+            string password = "password";
+
             IUserService target = new UserService(new Mock<IUnitOfWork>().Object, this._userValidationMock.Object,
             this._securedPasswordHelperMock.Object);
 
             // Act and Assert
-            Assert.Throws<ArgumentNullException>(() => target.Create(null, "firstName", "lastName", "password"));
-            Assert.Throws<ArgumentNullException>(() => target.Create("user@email.com", null, "lastName", "password"));
-            Assert.Throws<ArgumentNullException>(() => target.Create("user@email.com", "firstName", null, "password"));
-            Assert.Throws<ArgumentNullException>(() => target.Create("user@email.com", "firstName", "lastName", null));
+            Assert.Throws<ArgumentNullException>(() => target.Create(null, firstName, lastName, password));
+            Assert.Throws<ArgumentNullException>(() => target.Create(email, null, lastName, password));
+            Assert.Throws<ArgumentNullException>(() => target.Create(email, firstName, null, password));
+            Assert.Throws<ArgumentNullException>(() => target.Create(email, firstName, lastName, null));
         }
 
         [Test]
         public void Create_InvalidEmailFormat_ThrowsInvalidEmailFormatException()
         {
             // Arrange
-            string invalidEmail = "invalid@email.com";
+            string email = "invalid_email";
             string firstName = "firstName";
             string lastName = "lastName";
             string password = "password";
 
-            this._userValidationMock.Setup(v => v.IsValidEmail(invalidEmail))
+            // Arrange - mock userValidation
+            this._userValidationMock.Setup(v => v.IsValidEmail(email))
             .Returns(false);
 
+            // Arrange - create target
             IUserService target = new UserService(new Mock<IUnitOfWork>().Object, this._userValidationMock.Object,
             this._securedPasswordHelperMock.Object);
 
             // Act and Assert
-            Assert.Throws<InvalidEmailFormatException>(() => target.Create(invalidEmail, firstName, lastName, password));
+            Assert.Throws<InvalidEmailFormatException>(() => target.Create(email, firstName, lastName, password));
+
+            this._userValidationMock.Verify(v => v.IsValidEmail(email), Times.Once);
         }
 
         [Test]
         public void Create_InvalidFirstNameFormat_ThrowsInvalidFirstNameFormatException()
         {
             // Arrange
-            string email = "invalid@email.com";
-            string invalidFirstName = "invalid_firstName";
+            string email = "email";
+            string firstName = "invalid_firstName";
             string lastName = "lastName";
             string password = "password";
 
-            this._userValidationMock.Setup(v => v.IsValidFirstName(invalidFirstName))
+            // Arrange - mock userValidation
+            this._userValidationMock.Setup(v => v.IsValidFirstName(firstName))
             .Returns(false);
 
+            // Arrange - create target
             IUserService target = new UserService(new Mock<IUnitOfWork>().Object, this._userValidationMock.Object,
             this._securedPasswordHelperMock.Object);
 
             // Act and Assert
-            Assert.Throws<InvalidFirstNameFormatException>(() => target.Create(email, invalidFirstName, lastName, password));
+            Assert.Throws<InvalidFirstNameFormatException>(() => target.Create(email, firstName, lastName, password));
+
+            this._userValidationMock.Verify(v => v.IsValidFirstName(firstName), Times.Once);
         }
 
         [Test]
         public void Create_InvalidLastNameFormat_ThrowsInvalidLastNameFormatException()
         {
             // Arrange
-            string email = "invalid@email.com";
+            string email = "email";
             string firstName = "firstName";
-            string invalidLastName = "invalid_lastName";
+            string lastName = "invalid_lastName";
             string password = "password";
 
-            this._userValidationMock.Setup(v => v.IsValidLastName(invalidLastName))
+            // Arrange - mock userValidation
+            this._userValidationMock.Setup(v => v.IsValidLastName(lastName))
             .Returns(false);
 
+            // Arrange - create target
             IUserService target = new UserService(new Mock<IUnitOfWork>().Object, this._userValidationMock.Object,
             this._securedPasswordHelperMock.Object);
 
             // Act and Assert
-            Assert.Throws<InvalidLastNameFormatException>(() => target.Create(email, firstName, invalidLastName, password));
+            Assert.Throws<InvalidLastNameFormatException>(() => target.Create(email, firstName, lastName, password));
+
+            this._userValidationMock.Verify(v => v.IsValidLastName(lastName), Times.Once);
         }
 
         [Test]
         public void Create_InvalidPasswordFormat_ThrowsInvalidPasswordFormatException()
         {
             // Arrange
-            string email = "user@email.com";
+            string email = "email";
             string firstName = "firstName";
             string lastName = "lastName";
-            string invalidPassword = "invalid_password";
+            string password = "invalid_password";
 
-            this._userValidationMock.Setup(v => v.IsValidPassword(invalidPassword))
+            // Arrange - mock userValidation
+            this._userValidationMock.Setup(v => v.IsValidPassword(password))
             .Returns(false);
 
+            // Arrange - create target
             IUserService target = new UserService(new Mock<IUnitOfWork>().Object, this._userValidationMock.Object,
             this._securedPasswordHelperMock.Object);
 
             // Act and Assert
-            Assert.Throws<InvalidPasswordFormatException>(() => target.Create(email, firstName, lastName, invalidPassword));
+            Assert.Throws<InvalidPasswordFormatException>(() => target.Create(email, firstName, lastName, password));
+
+            this._userValidationMock.Verify(v => v.IsValidPassword(password), Times.Once);
         }
 
         [Test]
@@ -663,14 +737,17 @@
 
             // Arrange - mock userRepository
             Mock<IUserRepository> userRepositoryMock = new Mock<IUserRepository>();
+
             userRepositoryMock.Setup(r => r.GetById(userId))
             .Returns((User)null);
 
             // Arrange - mock unitOfWork
             Mock<IUnitOfWork> unitOfWorkMock = new Mock<IUnitOfWork>();
+
             unitOfWorkMock.SetupGet(u => u.UserRepository)
             .Returns(userRepositoryMock.Object);
 
+            // Arrange - create target
             IUserService target = new UserService(unitOfWorkMock.Object, this._userValidationMock.Object,
             this._securedPasswordHelperMock.Object);
 
@@ -703,14 +780,17 @@
 
             // Arrange - mock userRepository
             Mock<IUserRepository> userRepositoryMock = new Mock<IUserRepository>();
+
             userRepositoryMock.Setup(r => r.GetById(testUser.UserId))
             .Returns(testUser);
 
             // Arrange - mock unitOfWork
             Mock<IUnitOfWork> unitOfWorkMock = new Mock<IUnitOfWork>();
+
             unitOfWorkMock.SetupGet(u => u.UserRepository)
             .Returns(userRepositoryMock.Object);
 
+            // Arrange - create target
             IUserService target = new UserService(unitOfWorkMock.Object, this._userValidationMock.Object,
             this._securedPasswordHelperMock.Object);
 
@@ -735,53 +815,66 @@
         public void ReadArticle_AllCredentialsAreValid_ReadsArticle()
         {
             // Arrange
-            User user = new User { UserId = 1 };
+            int userId = 1;
+            int articleId = 2;
+            UserReadHistory[] userReadHistories =
+            {
+                new UserReadHistory { UserId = userId, ArticleId = articleId + 1 },
+                new UserReadHistory { UserId = userId, ArticleId = articleId + 2 }
+            };
 
-            Article article = new Article { ArticleId = 2 };
+            User user = new User { UserId = userId, UserReadHistories = userReadHistories.ToList() };
+            Article article = new Article { ArticleId = articleId };
 
             // Arrange - mock userRepository
             Mock<IUserRepository> userRepositoryMock = new Mock<IUserRepository>();
+
             userRepositoryMock.Setup(
             r => r.Get(It.IsAny<Expression<Func<User, bool>>>(), null, It.IsAny<Expression<Func<User, object>>[]>()))
             .Returns(new[] { user });
 
-            UserReadHistory userReadHistory = null;
-            userRepositoryMock.Setup(r => r.Update(It.Is<User>(u => u.UserId == user.UserId)))
-            .Callback((User u) => userReadHistory = u.UserReadHistories.FirstOrDefault());
+            IEnumerable<UserReadHistory> newUserReadHistories = null;
+
+            userRepositoryMock.Setup(r => r.Update(It.Is<User>(u => u.UserId == userId)))
+            .Callback((User u) => newUserReadHistories = u.UserReadHistories);
 
             // Arrange - mock articleRepository
             Mock<IArticleRepository> articleRepositoryMock = new Mock<IArticleRepository>();
-            articleRepositoryMock.Setup(r => r.GetById(article.ArticleId))
+
+            articleRepositoryMock.Setup(r => r.GetById(articleId))
             .Returns(article);
 
             // Arrange - mock unitOfWork
             Mock<IUnitOfWork> unitOfWorkMock = new Mock<IUnitOfWork>();
+
             unitOfWorkMock.SetupGet(u => u.UserRepository)
             .Returns(userRepositoryMock.Object);
 
             unitOfWorkMock.SetupGet(u => u.ArticleRepository)
             .Returns(articleRepositoryMock.Object);
 
-            unitOfWorkMock.Setup(u => u.Save())
-            .Callback(() => userReadHistory.UserId = user.UserId);
-
+            // Arrange - create target
             IUserService target = new UserService(unitOfWorkMock.Object, this._userValidationMock.Object,
             this._securedPasswordHelperMock.Object);
 
             // Act
-            target.ReadArticle(user.UserId, article.ArticleId);
+            target.ReadArticle(userId, articleId);
 
             // Assert
-            Assert.AreEqual(user.UserId, userReadHistory.UserId);
-            Assert.AreEqual(article.ArticleId, userReadHistory.ArticleId);
+            Assert.IsNotNull(newUserReadHistories);
+            Assert.AreEqual(userReadHistories.Count() + 1, newUserReadHistories.Count());
+
+            UserReadHistory userReadHistory = newUserReadHistories.FirstOrDefault(v => v.ArticleId == articleId);
+
+            Assert.IsNotNull(userReadHistory);
             Assert.IsTrue(new DateTime() != userReadHistory.ReadDate);
 
             userRepositoryMock.Verify(
             r => r.Get(It.IsAny<Expression<Func<User, bool>>>(), null, It.IsAny<Expression<Func<User, object>>[]>()),
             Times.Once);
-            userRepositoryMock.Verify(r => r.Update(It.Is<User>(u => u.UserId == user.UserId)), Times.Once);
+            userRepositoryMock.Verify(r => r.Update(It.Is<User>(u => u.UserId == userId)), Times.Once);
 
-            articleRepositoryMock.Verify(r => r.GetById(article.ArticleId), Times.Once);
+            articleRepositoryMock.Verify(r => r.GetById(articleId), Times.Once);
 
             unitOfWorkMock.Verify(u => u.Save(), Times.Once);
         }
@@ -792,28 +885,35 @@
             // Arrange
             int userId = 1;
             int articleId = 2;
-            DateTime readDate = new DateTime();
+            DateTime readDate = DateTime.Now;
+            UserReadHistory[] userReadHistories =
+            {
+                new UserReadHistory { UserId = userId, ArticleId = articleId, ReadDate = readDate },
+                new UserReadHistory { UserId = userId, ArticleId = articleId + 1 },
+                new UserReadHistory { UserId = userId, ArticleId = articleId + 2 }
+            };
 
-            UserReadHistory userReadHistory = new UserReadHistory
-            { UserId = userId, ArticleId = articleId, ReadDate = readDate };
-
-            User user = new User { UserId = userId, UserReadHistories = new[] { userReadHistory } };
+            User user = new User { UserId = userId, UserReadHistories = userReadHistories.ToList() };
 
             // Arrange - mock userRepository
             Mock<IUserRepository> userRepositoryMock = new Mock<IUserRepository>();
+
             userRepositoryMock.Setup(
             r => r.Get(It.IsAny<Expression<Func<User, bool>>>(), null, It.IsAny<Expression<Func<User, object>>[]>()))
             .Returns(new[] { user });
 
-            UserReadHistory newUserReadHistory = null;
+            IEnumerable<UserReadHistory> newUserReadHistories = null;
+
             userRepositoryMock.Setup(r => r.Update(It.Is<User>(u => u.UserId == userId)))
-            .Callback((User u) => newUserReadHistory = u.UserReadHistories.FirstOrDefault());
+            .Callback((User u) => newUserReadHistories = u.UserReadHistories);
 
             // Arrange - mock unitOfWork
             Mock<IUnitOfWork> unitOfWorkMock = new Mock<IUnitOfWork>();
+
             unitOfWorkMock.SetupGet(u => u.UserRepository)
             .Returns(userRepositoryMock.Object);
 
+            // Arrange - create target
             IUserService target = new UserService(unitOfWorkMock.Object, this._userValidationMock.Object,
             this._securedPasswordHelperMock.Object);
 
@@ -821,9 +921,14 @@
             target.ReadArticle(userId, articleId);
 
             // Assert
-            Assert.AreEqual(userId, newUserReadHistory.UserId);
-            Assert.AreEqual(articleId, newUserReadHistory.ArticleId);
-            Assert.IsTrue(readDate != newUserReadHistory.ReadDate);
+            Assert.IsNotNull(newUserReadHistories);
+            Assert.AreEqual(userReadHistories.Count(), newUserReadHistories.Count());
+
+            UserReadHistory userReadHistory = newUserReadHistories.FirstOrDefault(v => v.ArticleId == articleId);
+
+            Assert.IsNotNull(userReadHistory);
+            Assert.IsTrue(userReadHistory.ReadDate.Subtract(readDate)
+            .TotalMilliseconds > 0);
 
             userRepositoryMock.Verify(
             r => r.Get(It.IsAny<Expression<Func<User, bool>>>(), null, It.IsAny<Expression<Func<User, object>>[]>()),
@@ -857,23 +962,27 @@
 
             // Arrange - mock userRepository
             Mock<IUserRepository> userRepositoryMock = new Mock<IUserRepository>();
+
             userRepositoryMock.Setup(
             r => r.Get(It.IsAny<Expression<Func<User, bool>>>(), null, It.IsAny<Expression<Func<User, object>>[]>()))
             .Returns(new[] { user });
 
             // Arrange - mock articleRepository
             Mock<IArticleRepository> articleRepositoryMock = new Mock<IArticleRepository>();
+
             articleRepositoryMock.Setup(r => r.GetById(articleId))
             .Returns((Article)null);
 
             // Arrange - mock unitOfWork
             Mock<IUnitOfWork> unitOfWorkMock = new Mock<IUnitOfWork>();
+
             unitOfWorkMock.SetupGet(u => u.UserRepository)
             .Returns(userRepositoryMock.Object);
 
             unitOfWorkMock.SetupGet(u => u.ArticleRepository)
             .Returns(articleRepositoryMock.Object);
 
+            // Arrange - create target
             IUserService target = new UserService(unitOfWorkMock.Object, this._userValidationMock.Object,
             this._securedPasswordHelperMock.Object);
 
@@ -899,15 +1008,18 @@
 
             // Arrange - mock userRepository
             Mock<IUserRepository> userRepositoryMock = new Mock<IUserRepository>();
+
             userRepositoryMock.Setup(
             r => r.Get(It.IsAny<Expression<Func<User, bool>>>(), null, It.IsAny<Expression<Func<User, object>>[]>()))
             .Returns(new User[] { });
 
             // Arrange - mock unitOfWork
             Mock<IUnitOfWork> unitOfWorkMock = new Mock<IUnitOfWork>();
+
             unitOfWorkMock.SetupGet(u => u.UserRepository)
             .Returns(userRepositoryMock.Object);
 
+            // Arrange - create target
             IUserService target = new UserService(unitOfWorkMock.Object, this._userValidationMock.Object,
             this._securedPasswordHelperMock.Object);
 
@@ -942,7 +1054,6 @@
             // Arrange
             int userId = 1;
             int articleId = 2;
-
             UserFavorite[] userFavorites =
             {
                 new UserFavorite { UserId = userId, ArticleId = articleId, AddDate = DateTime.Now },
@@ -954,19 +1065,23 @@
 
             // Arrange - mock userRepository
             Mock<IUserRepository> userRepositoryMock = new Mock<IUserRepository>();
+
             userRepositoryMock.Setup(
             r => r.Get(It.IsAny<Expression<Func<User, bool>>>(), null, It.IsAny<Expression<Func<User, object>>[]>()))
             .Returns(new[] { user });
 
             IEnumerable<UserFavorite> newUserFavorites = null;
+
             userRepositoryMock.Setup(r => r.Update(It.Is<User>(u => u.UserId == userId)))
             .Callback((User u) => newUserFavorites = u.UserFavorites);
 
             // Arrange - mock unitOfWork
             Mock<IUnitOfWork> unitOfWorkMock = new Mock<IUnitOfWork>();
+
             unitOfWorkMock.SetupGet(u => u.UserRepository)
             .Returns(userRepositoryMock.Object);
 
+            // Arrange - create target
             IUserService target = new UserService(unitOfWorkMock.Object, this._userValidationMock.Object,
             this._securedPasswordHelperMock.Object);
 
@@ -974,8 +1089,9 @@
             target.RemoveArticleFromFavorites(userId, articleId);
 
             // Assert
-            Assert.AreEqual(0, newUserFavorites.Count(f => f.ArticleId == articleId));
+            Assert.NotNull(newUserFavorites);
             Assert.AreEqual(userFavorites.Count() - 1, newUserFavorites.Count());
+            Assert.AreEqual(0, newUserFavorites.Count(f => f.ArticleId == articleId));
 
             userRepositoryMock.Verify(
             r => r.Get(It.IsAny<Expression<Func<User, bool>>>(), null, It.IsAny<Expression<Func<User, object>>[]>()),
@@ -992,19 +1108,22 @@
             int userId = 1;
             int articleId = 2;
 
-            User user = new User { UserId = userId, UserFavorites = new UserFavorite[] { } };
+            User user = new User { UserId = userId, UserFavorites = new List<UserFavorite>() };
 
             // Arrange - mock userRepository
             Mock<IUserRepository> userRepositoryMock = new Mock<IUserRepository>();
+
             userRepositoryMock.Setup(
             r => r.Get(It.IsAny<Expression<Func<User, bool>>>(), null, It.IsAny<Expression<Func<User, object>>[]>()))
             .Returns(new[] { user });
 
             // Arrange - mock unitOfWork
             Mock<IUnitOfWork> unitOfWorkMock = new Mock<IUnitOfWork>();
+
             unitOfWorkMock.SetupGet(u => u.UserRepository)
             .Returns(userRepositoryMock.Object);
 
+            // Arrange - create target
             IUserService target = new UserService(unitOfWorkMock.Object, this._userValidationMock.Object,
             this._securedPasswordHelperMock.Object);
 
@@ -1042,15 +1161,18 @@
 
             // Arrange - mock userRepository
             Mock<IUserRepository> userRepositoryMock = new Mock<IUserRepository>();
+
             userRepositoryMock.Setup(
             r => r.Get(It.IsAny<Expression<Func<User, bool>>>(), null, It.IsAny<Expression<Func<User, object>>[]>()))
             .Returns(new User[] { });
 
             // Arrange - mock unitOfWork
             Mock<IUnitOfWork> unitOfWorkMock = new Mock<IUnitOfWork>();
+
             unitOfWorkMock.SetupGet(u => u.UserRepository)
             .Returns(userRepositoryMock.Object);
 
+            // Arrange - create target
             IUserService target = new UserService(unitOfWorkMock.Object, this._userValidationMock.Object,
             this._securedPasswordHelperMock.Object);
 
@@ -1085,7 +1207,6 @@
             // Arrange
             int userId = 1;
             int articleId = 2;
-
             UserReadHistory[] userReadHistories =
             {
                 new UserReadHistory { UserId = userId, ArticleId = articleId, ReadDate = DateTime.Now },
@@ -1097,19 +1218,23 @@
 
             // Arrange - mock userRepository
             Mock<IUserRepository> userRepositoryMock = new Mock<IUserRepository>();
+
             userRepositoryMock.Setup(
             r => r.Get(It.IsAny<Expression<Func<User, bool>>>(), null, It.IsAny<Expression<Func<User, object>>[]>()))
             .Returns(new[] { user });
 
             IEnumerable<UserReadHistory> newUserReadHistories = null;
+
             userRepositoryMock.Setup(r => r.Update(It.Is<User>(u => u.UserId == userId)))
             .Callback((User u) => newUserReadHistories = u.UserReadHistories);
 
             // Arrange - mock unitOfWork
             Mock<IUnitOfWork> unitOfWorkMock = new Mock<IUnitOfWork>();
+
             unitOfWorkMock.SetupGet(u => u.UserRepository)
             .Returns(userRepositoryMock.Object);
 
+            // Arrange - create target
             IUserService target = new UserService(unitOfWorkMock.Object, this._userValidationMock.Object,
             this._securedPasswordHelperMock.Object);
 
@@ -1118,8 +1243,8 @@
 
             // Assert
             Assert.IsNotNull(newUserReadHistories);
-            Assert.AreEqual(0, newUserReadHistories.Count(f => f.ArticleId == articleId));
             Assert.AreEqual(userReadHistories.Count() - 1, newUserReadHistories.Count());
+            Assert.AreEqual(0, newUserReadHistories.Count(h => h.UserId == userId && h.ArticleId == articleId));
 
             userRepositoryMock.Verify(
             r => r.Get(It.IsAny<Expression<Func<User, bool>>>(), null, It.IsAny<Expression<Func<User, object>>[]>()),
@@ -1136,19 +1261,22 @@
             int userId = 1;
             int articleId = 2;
 
-            User user = new User { UserId = userId, UserReadHistories = new UserReadHistory[] { } };
+            User user = new User { UserId = userId, UserReadHistories = new List<UserReadHistory>() };
 
             // Arrange - mock userRepository
             Mock<IUserRepository> userRepositoryMock = new Mock<IUserRepository>();
+
             userRepositoryMock.Setup(
             r => r.Get(It.IsAny<Expression<Func<User, bool>>>(), null, It.IsAny<Expression<Func<User, object>>[]>()))
             .Returns(new[] { user });
 
             // Arrange - mock unitOfWork
             Mock<IUnitOfWork> unitOfWorkMock = new Mock<IUnitOfWork>();
+
             unitOfWorkMock.SetupGet(u => u.UserRepository)
             .Returns(userRepositoryMock.Object);
 
+            // Arrange - create target
             IUserService target = new UserService(unitOfWorkMock.Object, this._userValidationMock.Object,
             this._securedPasswordHelperMock.Object);
 
@@ -1186,15 +1314,18 @@
 
             // Arrange - mock userRepository
             Mock<IUserRepository> userRepositoryMock = new Mock<IUserRepository>();
+
             userRepositoryMock.Setup(
             r => r.Get(It.IsAny<Expression<Func<User, bool>>>(), null, It.IsAny<Expression<Func<User, object>>[]>()))
             .Returns(new User[] { });
 
             // Arrange - mock unitOfWork
             Mock<IUnitOfWork> unitOfWorkMock = new Mock<IUnitOfWork>();
+
             unitOfWorkMock.SetupGet(u => u.UserRepository)
             .Returns(userRepositoryMock.Object);
 
+            // Arrange - create target
             IUserService target = new UserService(unitOfWorkMock.Object, this._userValidationMock.Object,
             this._securedPasswordHelperMock.Object);
 

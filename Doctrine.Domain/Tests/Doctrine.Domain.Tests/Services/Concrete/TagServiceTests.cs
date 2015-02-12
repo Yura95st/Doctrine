@@ -32,6 +32,8 @@
 
             // Act and Assert
             Assert.Throws<InvalidTagNameFormatException>(() => target.Create(tagName));
+
+            this._tagValidationMock.Verify(v => v.IsValidName(tagName), Times.Once);
         }
 
         [Test]
@@ -59,24 +61,17 @@
         {
             // Arrange
             string tagName = "tag_name";
-            int newTagId = 1;
 
             // Arrange - mock tagRepository
             Mock<ITagRepository> tagRepositoryMock = new Mock<ITagRepository>();
 
-            Tag newTag = null;
-
-            tagRepositoryMock.Setup(r => r.Insert(It.Is<Tag>(t => t.Name == tagName)))
-            .Callback((Tag t) => newTag = t);
-
             // Arrange - mock unitOfWork
             Mock<IUnitOfWork> unitOfWorkMock = new Mock<IUnitOfWork>();
+
             unitOfWorkMock.SetupGet(u => u.TagRepository)
             .Returns(tagRepositoryMock.Object);
 
-            unitOfWorkMock.Setup(u => u.Save())
-            .Callback(() => newTag.TagId = newTagId);
-
+            // Arrange - create target
             ITagService target = new TagService(unitOfWorkMock.Object, this._tagValidationMock.Object);
 
             // Act
@@ -85,7 +80,6 @@
             // Assert
             Assert.IsNotNull(createdTag);
             Assert.AreEqual(tagName, createdTag.Name);
-            Assert.AreEqual(newTagId, createdTag.TagId);
 
             tagRepositoryMock.Verify(r => r.Insert(It.Is<Tag>(t => t.Name == tagName)), Times.Once);
 
@@ -100,14 +94,17 @@
 
             // Arrange - mock tagRepository
             Mock<ITagRepository> tagRepositoryMock = new Mock<ITagRepository>();
+
             tagRepositoryMock.Setup(r => r.GetByName(tagName))
             .Returns((Tag)null);
 
             // Arrange - mock unitOfWork
             Mock<IUnitOfWork> unitOfWorkMock = new Mock<IUnitOfWork>();
+
             unitOfWorkMock.SetupGet(u => u.TagRepository)
             .Returns(tagRepositoryMock.Object);
 
+            // Arrange - create target
             ITagService target = new TagService(unitOfWorkMock.Object, this._tagValidationMock.Object);
 
             // Act
@@ -145,14 +142,17 @@
 
             // Arrange - mock tagRepository
             Mock<ITagRepository> tagRepositoryMock = new Mock<ITagRepository>();
+
             tagRepositoryMock.Setup(r => r.GetByName(testTag.Name))
             .Returns(testTag);
 
             // Arrange - mock unitOfWork
             Mock<IUnitOfWork> unitOfWorkMock = new Mock<IUnitOfWork>();
+
             unitOfWorkMock.SetupGet(u => u.TagRepository)
             .Returns(tagRepositoryMock.Object);
 
+            // Arrange - create target
             ITagService target = new TagService(unitOfWorkMock.Object, this._tagValidationMock.Object);
 
             // Act
