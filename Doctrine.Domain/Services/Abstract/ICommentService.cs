@@ -1,12 +1,13 @@
 ﻿namespace Doctrine.Domain.Services.Abstract
 {
     using Doctrine.Domain.Models;
+    using Doctrine.Domain.Services.Settings;
 
     public interface ICommentService
     {
-        /// <summary>Gets the permitted period for editing (in seconds).</summary>
-        /// <value>The permitted period for editing (in seconds).</value>
-        int PermittedPeriodForEditing
+        /// <summary>Gets the service settings.</summary>
+        /// <value>The service settings.</value>
+        CommentServiceSettings ServiceSettings
         {
             get;
         }
@@ -16,6 +17,14 @@
         /// <param name="userId">The user identifier.</param>
         /// <param name="voteIsPositive">Determines whether vote is positive or not.</param>
         void AddVote(int commentId, int userId, bool voteIsPositive);
+
+        /// <summary>
+        ///     Checks whether user with specified identifier can delete the specified comment.
+        /// </summary>
+        /// <param name="userId">The user identifier.</param>
+        /// <param name="comment">The comment.</param>
+        /// <returns>True if user can delete comment, false - otherwise</returns>
+        bool CanDelete(int userId, Comment comment);
 
         /// <summary>
         ///     Checks whether user with specified identifier can edit the specified comment.
@@ -31,6 +40,11 @@
         /// <param name="commentText">The comment's text.</param>
         /// <returns>Created comment.</returns>
         Comment Create(int userId, int articleId, string commentText);
+
+        /// <summary>Deletes the comment with specified identifier.</summary>
+        /// <param name="commentId">The comment identifier.</param>
+        /// <param name="userId">The user identifier.</param>
+        void DeleteComment(int commentId, int userId);
 
         /// <summary>Deletes the user's vote.</summary>
         /// <param name="commentId">The comment identifier.</param>

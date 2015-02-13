@@ -11,6 +11,7 @@
     using Doctrine.Domain.Models;
     using Doctrine.Domain.Services.Abstract;
     using Doctrine.Domain.Services.Concrete;
+    using Doctrine.Domain.Services.Settings;
     using Doctrine.Domain.Validation.Abstract;
 
     using Moq;
@@ -22,6 +23,8 @@
     {
         private Mock<ICommentValidation> _commentValidationMock;
 
+        private CommentServiceSettings _serviceSettings;
+
         [Test]
         public void AddVote_CommentIdIsLessOrEqualToZero_ThrowsArgumentOutOfRangeException()
         {
@@ -29,7 +32,8 @@
             int userId = 1;
             bool voteIsPositive = true;
 
-            ICommentService target = new CommentService(new Mock<IUnitOfWork>().Object, this._commentValidationMock.Object);
+            ICommentService target = new CommentService(new Mock<IUnitOfWork>().Object, this._commentValidationMock.Object,
+            this._serviceSettings);
 
             // Act and Assert
             Assert.Throws<ArgumentOutOfRangeException>(() => target.AddVote(-1, userId, voteIsPositive));
@@ -58,7 +62,8 @@
             .Returns(commentRepositoryMock.Object);
 
             // Arrange - create target
-            ICommentService target = new CommentService(unitOfWorkMock.Object, this._commentValidationMock.Object);
+            ICommentService target = new CommentService(unitOfWorkMock.Object, this._commentValidationMock.Object,
+            this._serviceSettings);
 
             // Act and Assert
             Assert.Throws<CommentNotFoundException>(() => target.AddVote(commentId, userId, voteIsPositive));
@@ -105,7 +110,8 @@
             .Returns(userRepositoryMock.Object);
 
             // Arrange - create target
-            ICommentService target = new CommentService(unitOfWorkMock.Object, this._commentValidationMock.Object);
+            ICommentService target = new CommentService(unitOfWorkMock.Object, this._commentValidationMock.Object,
+            this._serviceSettings);
 
             // Act and Assert
             Assert.Throws<UserNotFoundException>(() => target.AddVote(commentId, userId, voteIsPositive));
@@ -164,7 +170,8 @@
             .Returns(userRepositoryMock.Object);
 
             // Arrange - create target
-            ICommentService target = new CommentService(unitOfWorkMock.Object, this._commentValidationMock.Object);
+            ICommentService target = new CommentService(unitOfWorkMock.Object, this._commentValidationMock.Object,
+            this._serviceSettings);
 
             // Act
             target.AddVote(commentId, userId, voteIsPositive);
@@ -223,7 +230,8 @@
             .Returns(commentRepositoryMock.Object);
 
             // Arrange - create target
-            ICommentService target = new CommentService(unitOfWorkMock.Object, this._commentValidationMock.Object);
+            ICommentService target = new CommentService(unitOfWorkMock.Object, this._commentValidationMock.Object,
+            this._serviceSettings);
 
             // Act
             target.AddVote(commentId, userId, voteIsPositive);
@@ -274,7 +282,8 @@
             .Returns(commentRepositoryMock.Object);
 
             // Arrange - create target
-            ICommentService target = new CommentService(unitOfWorkMock.Object, this._commentValidationMock.Object);
+            ICommentService target = new CommentService(unitOfWorkMock.Object, this._commentValidationMock.Object,
+            this._serviceSettings);
 
             // Act
             target.AddVote(commentId, userId, voteIsPositive);
@@ -295,7 +304,8 @@
             int commentId = 1;
             bool voteIsPositive = true;
 
-            ICommentService target = new CommentService(new Mock<IUnitOfWork>().Object, this._commentValidationMock.Object);
+            ICommentService target = new CommentService(new Mock<IUnitOfWork>().Object, this._commentValidationMock.Object,
+            this._serviceSettings);
 
             // Act and Assert
             Assert.Throws<ArgumentOutOfRangeException>(() => target.AddVote(commentId, -1, voteIsPositive));
@@ -303,12 +313,143 @@
         }
 
         [Test]
+        public void CanDelete_CommentIsNull_ThrowsArgumentNullException()
+        {
+            // Arrange
+            int userId = 1;
+
+            ICommentService target = new CommentService(new Mock<IUnitOfWork>().Object, this._commentValidationMock.Object,
+            this._serviceSettings);
+
+            // Act and Assert
+            Assert.Throws<ArgumentNullException>(() => target.CanDelete(userId, null));
+        }
+
+        [Test]
+        public void CanDelete_PermittedPeriodForDeletingExpired_ReturnsFalse()
+        {
+            // Arrange
+            int permittedPeriodForDeleting = 300;
+
+            Comment comment = new Comment
+            { UserId = 1 , Date = DateTime.Now.AddSeconds(-(permittedPeriodForDeleting + 1)) };
+
+            this._serviceSettings = new CommentServiceSettings(permittedPeriodForDeleting, 0);
+
+            // Arrange - create target
+            ICommentService target = new CommentService(new Mock<IUnitOfWork>().Object, this._commentValidationMock.Object,
+            this._serviceSettings);
+
+            // Act
+            bool result = target.CanDelete(comment.UserId, comment);
+
+            //Assert
+            Assert.IsFalse(result);
+        }
+
+        [Test]
+        public void CanDelete_UserCanDeleteTheComment_ReturnsTrue()
+        {
+            // Arrange
+            int permittedPeriodForDeleting = 300;
+
+            Comment comment = new Comment { UserId = 1, Date = DateTime.Now };
+
+            this._serviceSettings = new CommentServiceSettings(permittedPeriodForDeleting, 0);
+
+            // Arrange - create target
+            ICommentService target = new CommentService(new Mock<IUnitOfWork>().Object, this._commentValidationMock.Object,
+            this._serviceSettings);
+
+            // Act
+            bool result = target.CanDelete(comment.UserId, comment);
+
+            //Assert
+            Assert.IsTrue(result);
+        }
+
+        [Test]
+        public void CanDelete_UserIdIsLessOrEqualToZero_ThrowsArgumentOutOfRangeException()
+        {
+            // Arrange
+            Comment comment = new Comment { CommentId = 1 };
+
+            ICommentService target = new CommentService(new Mock<IUnitOfWork>().Object, this._commentValidationMock.Object,
+            this._serviceSettings);
+
+            // Act and Assert
+            Assert.Throws<ArgumentOutOfRangeException>(() => target.CanDelete(-1, comment));
+            Assert.Throws<ArgumentOutOfRangeException>(() => target.CanDelete(0, comment));
+        }
+
+        [Test]
+        public void CanDelete_UserIsNotAuthorOfTheComment_ReturnsFalse()
+        {
+            // Arrange
+            int userId = 1;
+            Comment comment = new Comment { UserId = userId + 1 };
+
+            ICommentService target = new CommentService(new Mock<IUnitOfWork>().Object, this._commentValidationMock.Object,
+            this._serviceSettings);
+
+            // Act
+            bool result = target.CanDelete(userId, comment);
+
+            //Assert
+            Assert.IsFalse(result);
+        }
+
+        [Test]
+        public void CanDelete_CommentIsDeleted_ReturnsFalse()
+        {
+            // Arrange
+            int permittedPeriodForDeleting = 300;
+            Comment comment = new Comment { UserId = 1, Date = DateTime.Now, IsDeleted = true };
+
+            this._serviceSettings = new CommentServiceSettings(permittedPeriodForDeleting, 0);
+
+            // Arrange - create target
+            ICommentService target = new CommentService(new Mock<IUnitOfWork>().Object, this._commentValidationMock.Object,
+            this._serviceSettings);
+
+            // Act
+            bool result = target.CanDelete(comment.UserId, comment);
+
+            //Assert
+            Assert.IsFalse(result);
+        }
+
+        [Test]
+        public void CanEdit_CommentIsDeleted_ReturnsFalse()
+        {
+            // Arrange
+            int permittedPeriodForEditing = 300;
+            Comment comment = new Comment { UserId = 1, Date = DateTime.Now, IsDeleted = true };
+
+            this._serviceSettings = new CommentServiceSettings(0, permittedPeriodForEditing);
+
+            // Arrange - create target
+            ICommentService target = new CommentService(new Mock<IUnitOfWork>().Object, this._commentValidationMock.Object,
+            this._serviceSettings);
+
+            // Act
+            bool result = target.CanEdit(comment.UserId, comment);
+
+            //Assert
+            Assert.IsFalse(result);
+        }
+
+
+
+
+        [Test]
         public void CanEdit_CommentIsNull_ThrowsArgumentNullException()
         {
             // Arrange
             int userId = 1;
 
-            ICommentService target = new CommentService(new Mock<IUnitOfWork>().Object, this._commentValidationMock.Object);
+            ICommentService target = new CommentService(new Mock<IUnitOfWork>().Object, this._commentValidationMock.Object,
+            this._serviceSettings);
 
             // Act and Assert
             Assert.Throws<ArgumentNullException>(() => target.CanEdit(userId, null));
@@ -318,18 +459,19 @@
         public void CanEdit_PermittedPeriodForEditingExpired_ReturnsFalse()
         {
             // Arrange
-            int userId = 1;
             int permittedPeriodForEditing = 300;
 
             Comment comment = new Comment
-            { UserId = userId + 1, Date = DateTime.Now.AddSeconds(permittedPeriodForEditing + 1) };
+            { UserId = 1 , Date = DateTime.Now.AddSeconds(-(permittedPeriodForEditing + 1)) };
+
+            this._serviceSettings = new CommentServiceSettings(0, permittedPeriodForEditing);
 
             // Arrange - create target
             ICommentService target = new CommentService(new Mock<IUnitOfWork>().Object, this._commentValidationMock.Object,
-            permittedPeriodForEditing);
+            this._serviceSettings);
 
             // Act
-            bool result = target.CanEdit(userId, comment);
+            bool result = target.CanEdit(comment.UserId, comment);
 
             //Assert
             Assert.IsFalse(result);
@@ -343,8 +485,11 @@
 
             Comment comment = new Comment { UserId = 1, Date = DateTime.Now };
 
+            this._serviceSettings = new CommentServiceSettings(0, permittedPeriodForEditing);
+
+            // Arrange - create target
             ICommentService target = new CommentService(new Mock<IUnitOfWork>().Object, this._commentValidationMock.Object,
-            permittedPeriodForEditing);
+            this._serviceSettings);
 
             // Act
             bool result = target.CanEdit(comment.UserId, comment);
@@ -359,7 +504,8 @@
             // Arrange
             Comment comment = new Comment { CommentId = 1 };
 
-            ICommentService target = new CommentService(new Mock<IUnitOfWork>().Object, this._commentValidationMock.Object);
+            ICommentService target = new CommentService(new Mock<IUnitOfWork>().Object, this._commentValidationMock.Object,
+            this._serviceSettings);
 
             // Act and Assert
             Assert.Throws<ArgumentOutOfRangeException>(() => target.CanEdit(-1, comment));
@@ -373,7 +519,8 @@
             int userId = 1;
             Comment comment = new Comment { UserId = userId + 1 };
 
-            ICommentService target = new CommentService(new Mock<IUnitOfWork>().Object, this._commentValidationMock.Object);
+            ICommentService target = new CommentService(new Mock<IUnitOfWork>().Object, this._commentValidationMock.Object,
+            this._serviceSettings);
 
             // Act
             bool result = target.CanEdit(userId, comment);
@@ -423,7 +570,8 @@
             .Returns(validatedCommentText);
 
             // Arrange - create target
-            ICommentService target = new CommentService(unitOfWorkMock.Object, this._commentValidationMock.Object);
+            ICommentService target = new CommentService(unitOfWorkMock.Object, this._commentValidationMock.Object,
+            this._serviceSettings);
 
             // Act
             Comment comment = target.Create(user.UserId, article.ArticleId, commentText);
@@ -457,7 +605,8 @@
             int userId = 1;
             string commentText = "comment_text";
 
-            ICommentService target = new CommentService(new Mock<IUnitOfWork>().Object, this._commentValidationMock.Object);
+            ICommentService target = new CommentService(new Mock<IUnitOfWork>().Object, this._commentValidationMock.Object,
+            this._serviceSettings);
 
             // Act and Assert
             Assert.Throws<ArgumentOutOfRangeException>(() => target.Create(userId, -1, commentText));
@@ -471,7 +620,8 @@
             int userId = 1;
             int articleId = 2;
 
-            ICommentService target = new CommentService(new Mock<IUnitOfWork>().Object, this._commentValidationMock.Object);
+            ICommentService target = new CommentService(new Mock<IUnitOfWork>().Object, this._commentValidationMock.Object,
+            this._serviceSettings);
 
             // Act and Assert
             Assert.Throws<ArgumentException>(() => target.Create(userId, articleId, ""));
@@ -484,7 +634,8 @@
             int userId = 1;
             int articleId = 2;
 
-            ICommentService target = new CommentService(new Mock<IUnitOfWork>().Object, this._commentValidationMock.Object);
+            ICommentService target = new CommentService(new Mock<IUnitOfWork>().Object, this._commentValidationMock.Object,
+            this._serviceSettings);
 
             // Act and Assert
             Assert.Throws<ArgumentNullException>(() => target.Create(userId, articleId, null));
@@ -520,7 +671,8 @@
             .Returns(articleRepositoryMock.Object);
 
             // Arrange - create target
-            ICommentService target = new CommentService(unitOfWorkMock.Object, this._commentValidationMock.Object);
+            ICommentService target = new CommentService(unitOfWorkMock.Object, this._commentValidationMock.Object,
+            this._serviceSettings);
 
             // Act and Assert
             Assert.Throws<ArticleNotFoundException>(() => target.Create(user.UserId, articleId, commentText));
@@ -551,7 +703,8 @@
             .Returns(userRepositoryMock.Object);
 
             // Arrange - create target
-            ICommentService target = new CommentService(unitOfWorkMock.Object, this._commentValidationMock.Object);
+            ICommentService target = new CommentService(unitOfWorkMock.Object, this._commentValidationMock.Object,
+            this._serviceSettings);
 
             // Act and Assert
             Assert.Throws<UserNotFoundException>(() => target.Create(userId, articleId, commentText));
@@ -566,7 +719,8 @@
             int articleId = 1;
             string commentText = "comment_text";
 
-            ICommentService target = new CommentService(new Mock<IUnitOfWork>().Object, this._commentValidationMock.Object);
+            ICommentService target = new CommentService(new Mock<IUnitOfWork>().Object, this._commentValidationMock.Object,
+            this._serviceSettings);
 
             // Act and Assert
             Assert.Throws<ArgumentOutOfRangeException>(() => target.Create(-1, articleId, commentText));
@@ -607,7 +761,8 @@
             .Returns(commentRepositoryMock.Object);
 
             // Arrange - create target
-            ICommentService target = new CommentService(unitOfWorkMock.Object, this._commentValidationMock.Object);
+            ICommentService target = new CommentService(unitOfWorkMock.Object, this._commentValidationMock.Object,
+            this._serviceSettings);
 
             // Act
             target.DeleteVote(comment.CommentId, userId);
@@ -630,7 +785,8 @@
             // Arrange
             int userId = 1;
 
-            ICommentService target = new CommentService(new Mock<IUnitOfWork>().Object, this._commentValidationMock.Object);
+            ICommentService target = new CommentService(new Mock<IUnitOfWork>().Object, this._commentValidationMock.Object,
+            this._serviceSettings);
 
             // Act and Assert
             Assert.Throws<ArgumentOutOfRangeException>(() => target.DeleteVote(-1, userId));
@@ -658,7 +814,8 @@
             .Returns(commentRepositoryMock.Object);
 
             // Arrange - create target
-            ICommentService target = new CommentService(unitOfWorkMock.Object, this._commentValidationMock.Object);
+            ICommentService target = new CommentService(unitOfWorkMock.Object, this._commentValidationMock.Object,
+            this._serviceSettings);
 
             // Act and Assert
             Assert.Throws<CommentNotFoundException>(() => target.DeleteVote(commentId, userId));
@@ -702,7 +859,8 @@
             .Returns(commentRepositoryMock.Object);
 
             // Arrange - create target
-            ICommentService target = new CommentService(unitOfWorkMock.Object, this._commentValidationMock.Object);
+            ICommentService target = new CommentService(unitOfWorkMock.Object, this._commentValidationMock.Object,
+            this._serviceSettings);
 
             // Act and Assert
             Assert.Throws<CommentVoteNotFoundException>(() => target.DeleteVote(commentId, userId));
@@ -721,7 +879,8 @@
             // Arrange
             int commentId = 1;
 
-            ICommentService target = new CommentService(new Mock<IUnitOfWork>().Object, this._commentValidationMock.Object);
+            ICommentService target = new CommentService(new Mock<IUnitOfWork>().Object, this._commentValidationMock.Object,
+            this._serviceSettings);
 
             // Act and Assert
             Assert.Throws<ArgumentOutOfRangeException>(() => target.DeleteVote(commentId, -1));
@@ -731,6 +890,8 @@
         [SetUp]
         public void Init()
         {
+            this._serviceSettings = new CommentServiceSettings(0, 0);
+
             this.MockCommentValidation();
         }
 

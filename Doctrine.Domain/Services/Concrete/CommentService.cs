@@ -8,6 +8,7 @@
     using Doctrine.Domain.Models;
     using Doctrine.Domain.Services.Abstract;
     using Doctrine.Domain.Services.Common;
+    using Doctrine.Domain.Services.Settings;
     using Doctrine.Domain.Utils;
     using Doctrine.Domain.Validation.Abstract;
 
@@ -15,19 +16,27 @@
     {
         private readonly ICommentValidation _commentValidation;
 
-        private readonly int _permittedPeriodForEditing;
+        private readonly CommentServiceSettings _serviceSettings;
 
-        public CommentService(IUnitOfWork unitOfWork, ICommentValidation commentValidation, int permittedPeriodForEditing = 0)
+        public CommentService(IUnitOfWork unitOfWork, ICommentValidation commentValidation, CommentServiceSettings serviceSettings)
         : base(unitOfWork)
         {
             Guard.NotNull(commentValidation, "commentValidation");
-            Guard.IntMoreOrEqualToZero(permittedPeriodForEditing, "permittedPeriodForEditing");
+            Guard.NotNull(serviceSettings, "serviceSettings");
 
             this._commentValidation = commentValidation;
-            this._permittedPeriodForEditing = permittedPeriodForEditing;
+            this._serviceSettings = serviceSettings;
         }
 
         #region ICommentService Members
+
+        public CommentServiceSettings ServiceSettings
+        {
+            get
+            {
+                return this._serviceSettings;
+            }
+        }
 
         public void AddVote(int commentId, int userId, bool voteIsPositive)
         {
@@ -71,20 +80,36 @@
             this._unitOfWork.Save();
         }
 
+        public bool CanDelete(int userId, Comment comment)
+        {
+            Guard.IntMoreThanZero(userId, "userId");
+            Guard.NotNull(comment, "comment");
+
+            if (comment.IsDeleted || userId != comment.UserId)
+            {
+                return false;
+            }
+
+            TimeSpan timeSpan = comment.Date.AddSeconds(this._serviceSettings.PermittedPeriodForDeleting)
+            .Subtract(DateTime.Now);
+
+            return timeSpan.TotalMilliseconds >= 0;
+        }
+
         public bool CanEdit(int userId, Comment comment)
         {
             Guard.IntMoreThanZero(userId, "userId");
             Guard.NotNull(comment, "comment");
 
-            if (userId != comment.UserId)
+            if (comment.IsDeleted || userId != comment.UserId)
             {
                 return false;
             }
 
-            TimeSpan timeSpan = DateTime.Now.AddSeconds(this._permittedPeriodForEditing)
-            .Subtract(comment.Date);
+            TimeSpan timeSpan = comment.Date.AddSeconds(this._serviceSettings.PermittedPeriodForEditing)
+            .Subtract(DateTime.Now);
 
-            return timeSpan.TotalMinutes >= 0;
+            return timeSpan.TotalMilliseconds >= 0;
         }
 
         public Comment Create(int userId, int articleId, string commentText)
@@ -119,6 +144,11 @@
             return comment;
         }
 
+        public void DeleteComment(int commentId, int userId)
+        {
+            throw new NotImplementedException();
+        }
+
         public void DeleteVote(int commentId, int userId)
         {
             Guard.IntMoreThanZero(commentId, "commentId");
@@ -145,14 +175,6 @@
 
             this._unitOfWork.CommentRepository.Update(comment);
             this._unitOfWork.Save();
-        }
-
-        public int PermittedPeriodForEditing
-        {
-            get
-            {
-                return this._permittedPeriodForEditing;
-            }
         }
 
         #endregion

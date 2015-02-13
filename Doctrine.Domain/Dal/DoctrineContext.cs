@@ -119,6 +119,16 @@ namespace Doctrine.Domain.Dal
             .MapRightKey("ReplyCommentId"));
 
             modelBuilder.Entity<User>()
+            .Property(e => e.Password)
+            .IsFixedLength()
+            .IsUnicode(false);
+
+            modelBuilder.Entity<User>()
+            .Property(e => e.Salt)
+            .IsFixedLength()
+            .IsUnicode(false);
+
+            modelBuilder.Entity<User>()
             .HasMany(e => e.Comments)
             .WithRequired(e => e.User)
             .WillCascadeOnDelete(false);

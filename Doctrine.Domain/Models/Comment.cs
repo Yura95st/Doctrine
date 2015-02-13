@@ -58,6 +58,12 @@ namespace Doctrine.Domain.Models
             set;
         }
 
+        public bool IsDeleted
+        {
+            get;
+            set;
+        }
+
         [Required]
         public string Text
         {
