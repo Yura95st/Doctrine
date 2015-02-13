@@ -4,6 +4,7 @@
     using System.Linq;
 
     using Doctrine.Domain.Dal;
+    using Doctrine.Domain.Exceptions;
     using Doctrine.Domain.Exceptions.NotFound;
     using Doctrine.Domain.Models;
     using Doctrine.Domain.Services.Abstract;
@@ -18,7 +19,8 @@
 
         private readonly CommentServiceSettings _serviceSettings;
 
-        public CommentService(IUnitOfWork unitOfWork, ICommentValidation commentValidation, CommentServiceSettings serviceSettings)
+        public CommentService(IUnitOfWork unitOfWork, ICommentValidation commentValidation,
+                              CommentServiceSettings serviceSettings)
         : base(unitOfWork)
         {
             Guard.NotNull(commentValidation, "commentValidation");
@@ -29,14 +31,6 @@
         }
 
         #region ICommentService Members
-
-        public CommentServiceSettings ServiceSettings
-        {
-            get
-            {
-                return this._serviceSettings;
-            }
-        }
 
         public void AddVote(int commentId, int userId, bool voteIsPositive)
         {
@@ -85,15 +79,9 @@
             Guard.IntMoreThanZero(userId, "userId");
             Guard.NotNull(comment, "comment");
 
-            if (comment.IsDeleted || userId != comment.UserId)
-            {
-                return false;
-            }
-
-            TimeSpan timeSpan = comment.Date.AddSeconds(this._serviceSettings.PermittedPeriodForDeleting)
-            .Subtract(DateTime.Now);
-
-            return timeSpan.TotalMilliseconds >= 0;
+            return (!comment.IsDeleted && comment.UserId == userId
+                    && !CommentService.IsPermittedPeriodExpired(comment.Date,
+                    this._serviceSettings.PermittedPeriodForDeleting));
         }
 
         public bool CanEdit(int userId, Comment comment)
@@ -101,15 +89,8 @@
             Guard.IntMoreThanZero(userId, "userId");
             Guard.NotNull(comment, "comment");
 
-            if (comment.IsDeleted || userId != comment.UserId)
-            {
-                return false;
-            }
-
-            TimeSpan timeSpan = comment.Date.AddSeconds(this._serviceSettings.PermittedPeriodForEditing)
-            .Subtract(DateTime.Now);
-
-            return timeSpan.TotalMilliseconds >= 0;
+            return (!comment.IsDeleted && comment.UserId == userId
+                    && !CommentService.IsPermittedPeriodExpired(comment.Date, this._serviceSettings.PermittedPeriodForEditing));
         }
 
         public Comment Create(int userId, int articleId, string commentText)
@@ -144,9 +125,43 @@
             return comment;
         }
 
-        public void DeleteComment(int commentId, int userId)
+        public void Delete(int commentId, int userId)
         {
-            throw new NotImplementedException();
+            Guard.IntMoreThanZero(commentId, "commentId");
+            Guard.IntMoreThanZero(userId, "userId");
+
+            Comment comment = this._unitOfWork.CommentRepository.GetById(commentId);
+
+            if (comment == null)
+            {
+                throw new CommentNotFoundException(String.Format("Comment with ID '{0}' was not found.", commentId));
+            }
+
+            if (comment.IsDeleted)
+            {
+                throw new DeletingCommentIsForbiddenException(String.Format(
+                "Comment with ID '{0}' has already been deleted.", commentId));
+            }
+
+            if (comment.UserId != userId)
+            {
+                throw new DeletingCommentIsForbiddenException(
+                String.Format(
+                "User with ID '{0}' is not the author of the comment with ID '{0}' and aren't allowed to delete it.",
+                commentId));
+            }
+
+            if (CommentService.IsPermittedPeriodExpired(comment.Date, this._serviceSettings.PermittedPeriodForDeleting))
+            {
+                throw new PermittedPeriodForDeletingExpiredException(
+                String.Format("Permitted period ('{0}' seconds) for deleting comment with dateTime '{1}' is expired.",
+                this._serviceSettings.PermittedPeriodForDeleting, comment.Date));
+            }
+
+            comment.IsDeleted = true;
+
+            this._unitOfWork.CommentRepository.Update(comment);
+            this._unitOfWork.Save();
         }
 
         public void DeleteVote(int commentId, int userId)
@@ -177,6 +192,22 @@
             this._unitOfWork.Save();
         }
 
+        public CommentServiceSettings ServiceSettings
+        {
+            get
+            {
+                return this._serviceSettings;
+            }
+        }
+
         #endregion
+
+        private static bool IsPermittedPeriodExpired(DateTime dateTime, int permittedPeriod)
+        {
+            TimeSpan timeSpan = dateTime.AddSeconds(permittedPeriod)
+            .Subtract(DateTime.Now);
+
+            return timeSpan.TotalMilliseconds < 0;
+        }
     }
 }

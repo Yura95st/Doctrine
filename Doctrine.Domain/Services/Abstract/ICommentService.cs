@@ -44,7 +44,7 @@
         /// <summary>Deletes the comment with specified identifier.</summary>
         /// <param name="commentId">The comment identifier.</param>
         /// <param name="userId">The user identifier.</param>
-        void DeleteComment(int commentId, int userId);
+        void Delete(int commentId, int userId);
 
         /// <summary>Deletes the user's vote.</summary>
         /// <param name="commentId">The comment identifier.</param>

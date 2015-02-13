@@ -7,6 +7,7 @@
 
     using Doctrine.Domain.Dal;
     using Doctrine.Domain.Dal.Repositories.Abstract;
+    using Doctrine.Domain.Exceptions;
     using Doctrine.Domain.Exceptions.NotFound;
     using Doctrine.Domain.Models;
     using Doctrine.Domain.Services.Abstract;
@@ -313,6 +314,26 @@
         }
 
         [Test]
+        public void CanDelete_CommentIsDeleted_ReturnsFalse()
+        {
+            // Arrange
+            int permittedPeriodForDeleting = 300;
+            Comment comment = new Comment { UserId = 1, Date = DateTime.Now, IsDeleted = true };
+
+            this._serviceSettings = new CommentServiceSettings(permittedPeriodForDeleting, 0);
+
+            // Arrange - create target
+            ICommentService target = new CommentService(new Mock<IUnitOfWork>().Object, this._commentValidationMock.Object,
+            this._serviceSettings);
+
+            // Act
+            bool result = target.CanDelete(comment.UserId, comment);
+
+            //Assert
+            Assert.IsFalse(result);
+        }
+
+        [Test]
         public void CanDelete_CommentIsNull_ThrowsArgumentNullException()
         {
             // Arrange
@@ -331,8 +352,7 @@
             // Arrange
             int permittedPeriodForDeleting = 300;
 
-            Comment comment = new Comment
-            { UserId = 1 , Date = DateTime.Now.AddSeconds(-(permittedPeriodForDeleting + 1)) };
+            Comment comment = new Comment { UserId = 1, Date = DateTime.Now.AddSeconds(-(permittedPeriodForDeleting + 1)) };
 
             this._serviceSettings = new CommentServiceSettings(permittedPeriodForDeleting, 0);
 
@@ -400,26 +420,6 @@
         }
 
         [Test]
-        public void CanDelete_CommentIsDeleted_ReturnsFalse()
-        {
-            // Arrange
-            int permittedPeriodForDeleting = 300;
-            Comment comment = new Comment { UserId = 1, Date = DateTime.Now, IsDeleted = true };
-
-            this._serviceSettings = new CommentServiceSettings(permittedPeriodForDeleting, 0);
-
-            // Arrange - create target
-            ICommentService target = new CommentService(new Mock<IUnitOfWork>().Object, this._commentValidationMock.Object,
-            this._serviceSettings);
-
-            // Act
-            bool result = target.CanDelete(comment.UserId, comment);
-
-            //Assert
-            Assert.IsFalse(result);
-        }
-
-        [Test]
         public void CanEdit_CommentIsDeleted_ReturnsFalse()
         {
             // Arrange
@@ -439,9 +439,6 @@
             Assert.IsFalse(result);
         }
 
-
-
-
         [Test]
         public void CanEdit_CommentIsNull_ThrowsArgumentNullException()
         {
@@ -460,9 +457,7 @@
         {
             // Arrange
             int permittedPeriodForEditing = 300;
-
-            Comment comment = new Comment
-            { UserId = 1 , Date = DateTime.Now.AddSeconds(-(permittedPeriodForEditing + 1)) };
+            Comment comment = new Comment { UserId = 1, Date = DateTime.Now.AddSeconds(-(permittedPeriodForEditing + 1)) };
 
             this._serviceSettings = new CommentServiceSettings(0, permittedPeriodForEditing);
 
@@ -725,6 +720,214 @@
             // Act and Assert
             Assert.Throws<ArgumentOutOfRangeException>(() => target.Create(-1, articleId, commentText));
             Assert.Throws<ArgumentOutOfRangeException>(() => target.Create(0, articleId, commentText));
+        }
+
+        [Test]
+        public void Delete_AllCredentialsAreValid_DeletesTheComment()
+        {
+            // Arrange
+            Comment comment = new Comment { CommentId = 1, UserId = 2, Date = DateTime.Now };
+            int permittedPeriodForDeleting = 300;
+
+            this._serviceSettings = new CommentServiceSettings(permittedPeriodForDeleting, 0);
+
+            // Arrange - mock commentRepository
+            Mock<ICommentRepository> commentRepositoryMock = new Mock<ICommentRepository>();
+
+            commentRepositoryMock.Setup(r => r.GetById(comment.CommentId))
+            .Returns(comment);
+
+            Comment deletedComment = null;
+
+            commentRepositoryMock.Setup(r => r.Update(It.IsAny<Comment>()))
+            .Callback((Comment c) => deletedComment = c);
+
+            // Arrange - mock unitOfWork
+            Mock<IUnitOfWork> unitOfWorkMock = new Mock<IUnitOfWork>();
+
+            unitOfWorkMock.SetupGet(u => u.CommentRepository)
+            .Returns(commentRepositoryMock.Object);
+
+            // Arrange - create target
+            ICommentService target = new CommentService(unitOfWorkMock.Object, this._commentValidationMock.Object,
+            this._serviceSettings);
+
+            // Act
+            target.Delete(comment.CommentId, comment.UserId);
+
+            // Assert
+            Assert.IsNotNull(deletedComment);
+            Assert.IsTrue(deletedComment.IsDeleted);
+
+            commentRepositoryMock.Verify(r => r.GetById(comment.CommentId), Times.Once);
+            commentRepositoryMock.Verify(
+            r => r.Update(It.Is<Comment>(c => c.CommentId == comment.CommentId && c.UserId == comment.UserId)), Times.Once);
+
+            unitOfWorkMock.Verify(r => r.Save(), Times.Once);
+        }
+
+        [Test]
+        public void Delete_CommentIdIsLessOrEqualToZero_ThrowsArgumentOutOfRangeException()
+        {
+            // Arrange
+            int userId = 1;
+
+            ICommentService target = new CommentService(new Mock<IUnitOfWork>().Object, this._commentValidationMock.Object,
+            this._serviceSettings);
+
+            // Act and Assert
+            Assert.Throws<ArgumentOutOfRangeException>(() => target.Delete(-1, userId));
+            Assert.Throws<ArgumentOutOfRangeException>(() => target.Delete(0, userId));
+        }
+
+        [Test]
+        public void Delete_CommentIsDeleted_ThrowsDeletingCommentIsForbiddenException()
+        {
+            // Arrange
+            Comment comment = new Comment { CommentId = 1, UserId = 2, Date = DateTime.Now, IsDeleted = true };
+            int permittedPeriodForDeleting = 300;
+
+            this._serviceSettings = new CommentServiceSettings(permittedPeriodForDeleting, 0);
+
+            // Arrange - mock commentRepository
+            Mock<ICommentRepository> commentRepositoryMock = new Mock<ICommentRepository>();
+
+            commentRepositoryMock.Setup(r => r.GetById(comment.CommentId))
+            .Returns(comment);
+
+            // Arrange - mock unitOfWork
+            Mock<IUnitOfWork> unitOfWorkMock = new Mock<IUnitOfWork>();
+
+            unitOfWorkMock.SetupGet(u => u.CommentRepository)
+            .Returns(commentRepositoryMock.Object);
+
+            // Arrange - create target
+            ICommentService target = new CommentService(unitOfWorkMock.Object, this._commentValidationMock.Object,
+            this._serviceSettings);
+
+            // Act and Assert
+            Assert.Throws<DeletingCommentIsForbiddenException>(() => target.Delete(comment.CommentId, comment.UserId));
+
+            commentRepositoryMock.Verify(r => r.GetById(comment.CommentId), Times.Once);
+            commentRepositoryMock.Verify(r => r.Update(It.Is<Comment>(c => c.CommentId == comment.CommentId)), Times.Never);
+
+            unitOfWorkMock.Verify(r => r.Save(), Times.Never);
+        }
+
+        [Test]
+        public void Delete_NonexistentCommentId_ThrowsCommentNotFoundException()
+        {
+            // Arrange
+            int commentId = 1;
+            int userId = 1;
+
+            // Arrange - mock commentRepository
+            Mock<ICommentRepository> commentRepositoryMock = new Mock<ICommentRepository>();
+
+            commentRepositoryMock.Setup(r => r.GetById(commentId))
+            .Returns((Comment)null);
+
+            // Arrange - mock unitOfWork
+            Mock<IUnitOfWork> unitOfWorkMock = new Mock<IUnitOfWork>();
+
+            unitOfWorkMock.SetupGet(u => u.CommentRepository)
+            .Returns(commentRepositoryMock.Object);
+
+            // Arrange - create target
+            ICommentService target = new CommentService(unitOfWorkMock.Object, this._commentValidationMock.Object,
+            this._serviceSettings);
+
+            // Act and Assert
+            Assert.Throws<CommentNotFoundException>(() => target.Delete(commentId, userId));
+
+            commentRepositoryMock.Verify(r => r.GetById(commentId), Times.Once);
+            commentRepositoryMock.Verify(r => r.Update(It.Is<Comment>(c => c.CommentId == commentId)), Times.Never);
+
+            unitOfWorkMock.Verify(r => r.Save(), Times.Never);
+        }
+
+        [Test]
+        public void Delete_PermittedPeriodForDeletingExpired_ThrowsPermittedPeriodForDeletingExpiredException()
+        {
+            // Arrange
+            int permittedPeriodForDeleting = 300;
+            Comment comment = new Comment
+            { CommentId = 1, UserId = 2, Date = DateTime.Now.AddSeconds(-(permittedPeriodForDeleting + 1)) };
+
+            this._serviceSettings = new CommentServiceSettings(permittedPeriodForDeleting, 0);
+
+            // Arrange - mock commentRepository
+            Mock<ICommentRepository> commentRepositoryMock = new Mock<ICommentRepository>();
+
+            commentRepositoryMock.Setup(r => r.GetById(comment.CommentId))
+            .Returns(comment);
+
+            // Arrange - mock unitOfWork
+            Mock<IUnitOfWork> unitOfWorkMock = new Mock<IUnitOfWork>();
+
+            unitOfWorkMock.SetupGet(u => u.CommentRepository)
+            .Returns(commentRepositoryMock.Object);
+
+            // Arrange - create target
+            ICommentService target = new CommentService(unitOfWorkMock.Object, this._commentValidationMock.Object,
+            this._serviceSettings);
+
+            // Act and Assert
+            Assert.Throws<PermittedPeriodForDeletingExpiredException>(() => target.Delete(comment.CommentId, comment.UserId));
+
+            commentRepositoryMock.Verify(r => r.GetById(comment.CommentId), Times.Once);
+            commentRepositoryMock.Verify(r => r.Update(It.Is<Comment>(c => c.CommentId == comment.CommentId)), Times.Never);
+
+            unitOfWorkMock.Verify(r => r.Save(), Times.Never);
+        }
+
+        [Test]
+        public void Delete_UserIdIsLessOrEqualToZero_ThrowsArgumentOutOfRangeException()
+        {
+            // Arrange
+            int commentId = 1;
+
+            ICommentService target = new CommentService(new Mock<IUnitOfWork>().Object, this._commentValidationMock.Object,
+            this._serviceSettings);
+
+            // Act and Assert
+            Assert.Throws<ArgumentOutOfRangeException>(() => target.Delete(commentId, -1));
+            Assert.Throws<ArgumentOutOfRangeException>(() => target.Delete(commentId, 0));
+        }
+
+        [Test]
+        public void Delete_UserIsNotAuthorOfTheComment_ThrowsDeletingCommentIsForbiddenException()
+        {
+            // Arrange
+            int userId = 1;
+            Comment comment = new Comment { CommentId = 2, UserId = userId + 1, Date = DateTime.Now };
+            int permittedPeriodForDeleting = 300;
+
+            this._serviceSettings = new CommentServiceSettings(permittedPeriodForDeleting, 0);
+
+            // Arrange - mock commentRepository
+            Mock<ICommentRepository> commentRepositoryMock = new Mock<ICommentRepository>();
+
+            commentRepositoryMock.Setup(r => r.GetById(comment.CommentId))
+            .Returns(comment);
+
+            // Arrange - mock unitOfWork
+            Mock<IUnitOfWork> unitOfWorkMock = new Mock<IUnitOfWork>();
+
+            unitOfWorkMock.SetupGet(u => u.CommentRepository)
+            .Returns(commentRepositoryMock.Object);
+
+            // Arrange - create target
+            ICommentService target = new CommentService(unitOfWorkMock.Object, this._commentValidationMock.Object,
+            this._serviceSettings);
+
+            // Act and Assert
+            Assert.Throws<DeletingCommentIsForbiddenException>(() => target.Delete(comment.CommentId, userId));
+
+            commentRepositoryMock.Verify(r => r.GetById(comment.CommentId), Times.Once);
+            commentRepositoryMock.Verify(r => r.Update(It.Is<Comment>(c => c.CommentId == comment.CommentId)), Times.Never);
+
+            unitOfWorkMock.Verify(r => r.Save(), Times.Never);
         }
 
         [Test]
