@@ -44,7 +44,7 @@
         {
             Guard.NotNullOrEmpty(password, "password");
 
-            int score = 0;
+            int score = (int)PasswordStrength.VeryWeak;
 
             if (password.Length >= 5)
             {
@@ -53,23 +53,24 @@
                     score++;
                 }
 
-                if (Regex.Match(password, @"\d+", RegexOptions.ECMAScript)
-                .Success && Regex.Match(password, @"[^\d]+", RegexOptions.ECMAScript)
+                if (Regex.Match(password, @"\d", RegexOptions.ECMAScript)
+                .Success && Regex.Match(password, @"[^\d]", RegexOptions.ECMAScript)
                 .Success)
                 {
+                    // Contains at least one digit and one non-digit character
                     score++;
                 }
 
-                if (Regex.Match(password, @"[a-z]", RegexOptions.ECMAScript)
-                .Success && Regex.Match(password, @"[A-Z]", RegexOptions.ECMAScript)
-                .Success)
+                if (password.Any(c => char.IsUpper(c)) && password.Any(c => char.IsLower(c)))
                 {
+                    // Contains at least one lowercase letter and one uppercase letter.
                     score++;
                 }
 
-                if (Regex.Match(password, @".[!,@,#,$,%,^,&,*,?,_,~,-,£,(,)]", RegexOptions.ECMAScript)
+                if (Regex.Match(password, @"[!,@,#,$,%,^,&,*,?,_,~,-,£,(,)]", RegexOptions.ECMAScript)
                 .Success)
                 {
+                    // Contains at least one of the special characters.
                     score++;
                 }
             }

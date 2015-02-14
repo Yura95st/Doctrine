@@ -27,7 +27,7 @@
             string[] mediumPasswords =
             {
                 "abcd1234", "abcd1234567", "aBcDeFgH", "aBcDeFgHiJk", "abcd!@#$", "abcd!@#$%^&",
-                "!@#$%^&*?_~"
+                "!@#$%^&*?_~", "фЫвАоЛдЖ"
             };
 
             foreach (string password in mediumPasswords)
@@ -48,30 +48,10 @@
         }
 
         [Test]
-        public void GetPasswordStrength_PasswordIsShort_ReturnsVeryWeak()
-        {
-            // Arrange
-            string[] passwords = { "a", "ab", "abc", "pass", "1234", "P@s#" };
-
-            foreach (string password in passwords)
-            {
-                // Act
-                PasswordStrength passwordStrength = this._target.GetPasswordStrength(password);
-
-                // Assert
-                Assert.IsTrue(PasswordStrength.VeryWeak == passwordStrength);
-            }
-        }
-
-        [Test]
         public void GetPasswordStrength_PasswordIsStrong_ReturnsStrong()
         {
             // Arrange
-            string[] strongPasswords =
-            {
-                "aBcD1234", "aBcD1234567", "aBcD!@#$", "aBcD!@#$%^&", "01234!@#", "01234!@#$%^",
-                "aBc1!", "aBc12!@"
-            };
+            string[] strongPasswords = { "aBcD1234", "aBcD!@#$", "01234!@#", "aBc1!", "aBc12!@", "фЫвА1234" };
 
             foreach (string password in strongPasswords)
             {
@@ -87,20 +67,39 @@
         public void GetPasswordStrength_PasswordIsVeryStrong_ReturnsVeryStrong()
         {
             // Arrange
-            string password = "aBc12!@#";
+            string[] veryStrongPasswords = { "aBc12!@#", "фЫв12!@#" };
 
-            // Act
-            PasswordStrength passwordStrength = this._target.GetPasswordStrength(password);
+            foreach (string password in veryStrongPasswords)
+            {
+                // Act
+                PasswordStrength passwordStrength = this._target.GetPasswordStrength(password);
 
-            // Assert
-            Assert.IsTrue(PasswordStrength.VeryStrong == passwordStrength);
+                // Assert
+                Assert.IsTrue(PasswordStrength.VeryStrong == passwordStrength);
+            }
+        }
+
+        [Test]
+        public void GetPasswordStrength_PasswordIsVeryWeak_ReturnsVeryWeak()
+        {
+            // Arrange
+            string[] veryWeakPasswords = { "abcdefg", "0123456", "aBcD", "aB12", "aB1!", "фЫвА" };
+
+            foreach (string password in veryWeakPasswords)
+            {
+                // Act
+                PasswordStrength passwordStrength = this._target.GetPasswordStrength(password);
+
+                // Assert
+                Assert.IsTrue(PasswordStrength.VeryWeak == passwordStrength);
+            }
         }
 
         [Test]
         public void GetPasswordStrength_PasswordIsWeak_ReturnsWeak()
         {
             // Arrange
-            string[] weakPasswords = { "password", "abcdefghijk", "01234567891", "abc1234", "aBcDeFg", "abc!@#$", "!@#$%^&" };
+            string[] weakPasswords = { "password", "abc1234", "aBcDeFg", "abc!@#$", "!@#$%^&", "фываолдж" };
 
             foreach (string password in weakPasswords)
             {
