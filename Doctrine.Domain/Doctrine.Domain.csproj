@@ -58,6 +58,7 @@
     <Compile Include="Dal\Repositories\Concrete\UserRepository.cs" />
     <Compile Include="Dal\Repositories\Concrete\VisitorRepository.cs" />
     <Compile Include="Dal\UnitOfWork.cs" />
+    <Compile Include="Enums\PasswordStrength.cs" />
     <Compile Include="Exceptions\PermittedPeriodForDeletingExpiredException.cs" />
     <Compile Include="Exceptions\DeletingCommentIsForbiddenException.cs">
       <SubType>Code</SubType>
@@ -68,7 +69,7 @@
     <Compile Include="Exceptions\InvalidFormat\InvalidLastNameFormatException.cs" />
     <Compile Include="Exceptions\InvalidFormat\InvalidTagNameFormatException.cs" />
     <Compile Include="Exceptions\InvalidFormat\InvalidTopicNameFormatException.cs" />
-    <Compile Include="Exceptions\InvalidFormat\InvalidPasswordFormatException.cs" />
+    <Compile Include="Exceptions\PasswordIsNotStrongEnoughException.cs" />
     <Compile Include="Exceptions\InvalidFormat\InvalidFirstNameFormatException.cs" />
     <Compile Include="Exceptions\NotFound\CommentVoteNotFoundException.cs" />
     <Compile Include="Exceptions\NotFound\CommentNotFoundException.cs" />

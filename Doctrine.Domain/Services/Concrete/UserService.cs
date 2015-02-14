@@ -4,6 +4,7 @@
     using System.Linq;
 
     using Doctrine.Domain.Dal;
+    using Doctrine.Domain.Enums;
     using Doctrine.Domain.Exceptions;
     using Doctrine.Domain.Exceptions.InvalidFormat;
     using Doctrine.Domain.Exceptions.NotFound;
@@ -17,11 +18,12 @@
 
     public class UserService : ServiceBase, IUserService
     {
-        private readonly IUserValidation _userValidation;
-
         private readonly ISecuredPasswordHelper _securedPasswordHelper;
 
-        public UserService(IUnitOfWork unitOfWork, IUserValidation userValidation, ISecuredPasswordHelper securedPasswordHelper)
+        private readonly IUserValidation _userValidation;
+
+        public UserService(IUnitOfWork unitOfWork, IUserValidation userValidation,
+                           ISecuredPasswordHelper securedPasswordHelper)
         : base(unitOfWork)
         {
             Guard.NotNull(userValidation, "userValidation");
@@ -101,9 +103,11 @@
                 throw new InvalidLastNameFormatException(String.Format("Last name '{0}' has invalid format.", lastName));
             }
 
-            if (!this._userValidation.IsValidPassword(password))
+            PasswordStrength passwordStrength = this._userValidation.GetPasswordStrength(password);
+
+            if (passwordStrength < PasswordStrength.Strong)
             {
-                throw new InvalidPasswordFormatException(String.Format("Password '{0}' has invalid format.", password));
+                throw new PasswordIsNotStrongEnoughException(String.Format("Password '{0}' is not strong enough.", password));
             }
 
             User user = this._unitOfWork.UserRepository.GetByEmail(email);

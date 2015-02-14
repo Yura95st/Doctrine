@@ -7,6 +7,7 @@
 
     using Doctrine.Domain.Dal;
     using Doctrine.Domain.Dal.Repositories.Abstract;
+    using Doctrine.Domain.Enums;
     using Doctrine.Domain.Exceptions;
     using Doctrine.Domain.Exceptions.InvalidFormat;
     using Doctrine.Domain.Exceptions.NotFound;
@@ -707,7 +708,7 @@
         }
 
         [Test]
-        public void Create_InvalidPasswordFormat_ThrowsInvalidPasswordFormatException()
+        public void Create_PasswordStrengthIsVeryWeakOrWeakOrMedium_ThrowsPasswordIsNotStrongEnoughException()
         {
             // Arrange
             string email = "email";
@@ -715,18 +716,29 @@
             string lastName = "lastName";
             string password = "invalid_password";
 
-            // Arrange - mock userValidation
-            this._userValidationMock.Setup(v => v.IsValidPassword(password))
-            .Returns(false);
+            PasswordStrength[] passwordStrengths =
+            {
+                PasswordStrength.VeryWeak, PasswordStrength.Weak,
+                PasswordStrength.Medium
+            };
 
-            // Arrange - create target
-            IUserService target = new UserService(new Mock<IUnitOfWork>().Object, this._userValidationMock.Object,
-            this._securedPasswordHelperMock.Object);
+            foreach (PasswordStrength passwordStrength in passwordStrengths)
+            {
+                // Arrange - mock userValidation
+                this._userValidationMock.ResetCalls();
 
-            // Act and Assert
-            Assert.Throws<InvalidPasswordFormatException>(() => target.Create(email, firstName, lastName, password));
+                this._userValidationMock.Setup(v => v.GetPasswordStrength(password))
+                .Returns(passwordStrength);
 
-            this._userValidationMock.Verify(v => v.IsValidPassword(password), Times.Once);
+                // Arrange - create target
+                IUserService target = new UserService(new Mock<IUnitOfWork>().Object, this._userValidationMock.Object,
+                this._securedPasswordHelperMock.Object);
+
+                // Act and Assert
+                Assert.Throws<PasswordIsNotStrongEnoughException>(() => target.Create(email, firstName, lastName, password));
+
+                this._userValidationMock.Verify(v => v.GetPasswordStrength(password), Times.Once);
+            }
         }
 
         [Test]
@@ -1375,8 +1387,8 @@
             this._userValidationMock.Setup(v => v.IsValidName(It.IsAny<string>()))
             .Returns(true);
 
-            this._userValidationMock.Setup(v => v.IsValidPassword(It.IsAny<string>()))
-            .Returns(true);
+            this._userValidationMock.Setup(v => v.GetPasswordStrength(It.IsAny<string>()))
+            .Returns(PasswordStrength.Strong);
         }
     }
 }

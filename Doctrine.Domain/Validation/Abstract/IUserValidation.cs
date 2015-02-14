@@ -1,7 +1,14 @@
 ﻿namespace Doctrine.Domain.Validation.Abstract
 {
+    using Doctrine.Domain.Enums;
+
     public interface IUserValidation
     {
+        /// <summary>Gets the password's strength.</summary>
+        /// <param name="password">The password.</param>
+        /// <returns>The password's strength.</returns>
+        PasswordStrength GetPasswordStrength(string password);
+
         /// <summary>
         ///     Checks whether string value represents valid email.
         /// </summary>
@@ -15,12 +22,5 @@
         /// <param name="name"></param>
         /// <returns>True if name is valid, false - otherwise</returns>
         bool IsValidName(string name);
-
-        /// <summary>
-        ///     Checks whether string value represents valid password.
-        /// </summary>
-        /// <param name="password">The password.</param>
-        /// <returns>True if password is valid, false - otherwise</returns>
-        bool IsValidPassword(string password);
     }
 }

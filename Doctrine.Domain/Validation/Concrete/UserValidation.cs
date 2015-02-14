@@ -3,6 +3,7 @@
     using System.Linq;
     using System.Text.RegularExpressions;
 
+    using Doctrine.Domain.Enums;
     using Doctrine.Domain.Utils;
     using Doctrine.Domain.Validation.Abstract;
 
@@ -39,9 +40,41 @@
             return true;
         }
 
-        public bool IsValidPassword(string password)
+        public PasswordStrength GetPasswordStrength(string password)
         {
-            throw new System.NotImplementedException();
+            Guard.NotNullOrEmpty(password, "password");
+
+            int score = 0;
+
+            if (password.Length >= 5)
+            {
+                if (password.Length >= 8)
+                {
+                    score++;
+                }
+
+                if (Regex.Match(password, @"\d+", RegexOptions.ECMAScript)
+                .Success && Regex.Match(password, @"[^\d]+", RegexOptions.ECMAScript)
+                .Success)
+                {
+                    score++;
+                }
+
+                if (Regex.Match(password, @"[a-z]", RegexOptions.ECMAScript)
+                .Success && Regex.Match(password, @"[A-Z]", RegexOptions.ECMAScript)
+                .Success)
+                {
+                    score++;
+                }
+
+                if (Regex.Match(password, @".[!,@,#,$,%,^,&,*,?,_,~,-,£,(,)]", RegexOptions.ECMAScript)
+                .Success)
+                {
+                    score++;
+                }
+            }
+
+            return (PasswordStrength)score;
         }
 
         #endregion
