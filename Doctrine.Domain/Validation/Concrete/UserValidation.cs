@@ -1,7 +1,9 @@
 ﻿namespace Doctrine.Domain.Validation.Concrete
 {
+    using System.Linq;
     using System.Text.RegularExpressions;
 
+    using Doctrine.Domain.Utils;
     using Doctrine.Domain.Validation.Abstract;
 
     public class UserValidation : IUserValidation
@@ -18,14 +20,23 @@
             return regex.IsMatch(email);
         }
 
-        public bool IsValidFirstName(string firstName)
+        public bool IsValidName(string name)
         {
-            throw new System.NotImplementedException();
-        }
+            Guard.NotNullOrEmpty(name, "firstName");
 
-        public bool IsValidLastName(string lastName)
-        {
-            throw new System.NotImplementedException();
+            char[] allowedChars = { '.', '-', '\'', ' ' };
+
+            string[] nameParts = name.Split(allowedChars);
+
+            foreach (string part in nameParts)
+            {
+                if (part.Length == 0 || part.Any(c => !char.IsLetter(c)))
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         public bool IsValidPassword(string password)

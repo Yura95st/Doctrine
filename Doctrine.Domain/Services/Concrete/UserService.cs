@@ -91,12 +91,12 @@
                 throw new InvalidEmailFormatException(String.Format("Email '{0}' has invalid format.", email));
             }
 
-            if (!this._userValidation.IsValidFirstName(firstName))
+            if (!this._userValidation.IsValidName(firstName))
             {
                 throw new InvalidFirstNameFormatException(String.Format("First name '{0}' has invalid format.", firstName));
             }
 
-            if (!this._userValidation.IsValidLastName(lastName))
+            if (!this._userValidation.IsValidName(lastName))
             {
                 throw new InvalidLastNameFormatException(String.Format("Last name '{0}' has invalid format.", lastName));
             }

@@ -670,7 +670,7 @@
             string password = "password";
 
             // Arrange - mock userValidation
-            this._userValidationMock.Setup(v => v.IsValidFirstName(firstName))
+            this._userValidationMock.Setup(v => v.IsValidName(firstName))
             .Returns(false);
 
             // Arrange - create target
@@ -680,7 +680,7 @@
             // Act and Assert
             Assert.Throws<InvalidFirstNameFormatException>(() => target.Create(email, firstName, lastName, password));
 
-            this._userValidationMock.Verify(v => v.IsValidFirstName(firstName), Times.Once);
+            this._userValidationMock.Verify(v => v.IsValidName(firstName), Times.Once);
         }
 
         [Test]
@@ -693,7 +693,7 @@
             string password = "password";
 
             // Arrange - mock userValidation
-            this._userValidationMock.Setup(v => v.IsValidLastName(lastName))
+            this._userValidationMock.Setup(v => v.IsValidName(lastName))
             .Returns(false);
 
             // Arrange - create target
@@ -703,7 +703,7 @@
             // Act and Assert
             Assert.Throws<InvalidLastNameFormatException>(() => target.Create(email, firstName, lastName, password));
 
-            this._userValidationMock.Verify(v => v.IsValidLastName(lastName), Times.Once);
+            this._userValidationMock.Verify(v => v.IsValidName(lastName), Times.Once);
         }
 
         [Test]
@@ -1372,10 +1372,7 @@
             this._userValidationMock.Setup(v => v.IsValidEmail(It.IsAny<string>()))
             .Returns(true);
 
-            this._userValidationMock.Setup(v => v.IsValidFirstName(It.IsAny<string>()))
-            .Returns(true);
-
-            this._userValidationMock.Setup(v => v.IsValidLastName(It.IsAny<string>()))
+            this._userValidationMock.Setup(v => v.IsValidName(It.IsAny<string>()))
             .Returns(true);
 
             this._userValidationMock.Setup(v => v.IsValidPassword(It.IsAny<string>()))

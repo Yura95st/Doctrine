@@ -10,18 +10,11 @@
         bool IsValidEmail(string email);
 
         /// <summary>
-        ///     Checks whether string value represents valid first name.
+        ///     Checks whether string value represents valid name.
         /// </summary>
-        /// <param name="firstName">The first name.</param>
-        /// <returns>True if first name is valid, false - otherwise</returns>
-        bool IsValidFirstName(string firstName);
-
-        /// <summary>
-        ///     Checks whether string value represents valid last name.
-        /// </summary>
-        /// <param name="lastName">The last name.</param>
-        /// <returns>True if last name is valid, false - otherwise</returns>
-        bool IsValidLastName(string lastName);
+        /// <param name="name"></param>
+        /// <returns>True if name is valid, false - otherwise</returns>
+        bool IsValidName(string name);
 
         /// <summary>
         ///     Checks whether string value represents valid password.
