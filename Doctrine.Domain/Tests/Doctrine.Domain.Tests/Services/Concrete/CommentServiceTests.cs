@@ -1090,6 +1090,330 @@
             Assert.Throws<ArgumentOutOfRangeException>(() => target.DeleteVote(commentId, 0));
         }
 
+        [Test]
+        public void Edit_CommentHasAlreadyBeenEdited_EditsTheCommentAndUpdatesTheEditDate()
+        {
+            // Arrange
+            string newCommentText = "new_comment_text";
+            string newValidatedCommentText = "new_validated_comment_text";
+            DateTime editDate = DateTime.Now;
+            Comment comment = new Comment
+            { CommentId = 1, UserId = 2, Date = DateTime.Now, CommentEdit = new CommentEdit { EditDate = editDate } };
+            int permittedPeriodForEditing = 300;
+
+            this._serviceSettings = new CommentServiceSettings(0, permittedPeriodForEditing);
+
+            // Arrange - mock commentRepository
+            Mock<ICommentRepository> commentRepositoryMock = new Mock<ICommentRepository>();
+
+            commentRepositoryMock.Setup(
+            r => r.Get(It.IsAny<Expression<Func<Comment, bool>>>(), null, It.IsAny<Expression<Func<Comment, object>>[]>()))
+            .Returns(new[] { comment });
+
+            CommentEdit newCommentEdit = null;
+
+            commentRepositoryMock.Setup(r => r.Update(It.IsAny<Comment>()))
+            .Callback((Comment c) => newCommentEdit = c.CommentEdit);
+
+            // Arrange - mock unitOfWork
+            Mock<IUnitOfWork> unitOfWorkMock = new Mock<IUnitOfWork>();
+
+            unitOfWorkMock.SetupGet(u => u.CommentRepository)
+            .Returns(commentRepositoryMock.Object);
+
+            // Arrange - mock commentValidation
+            this._commentValidationMock.Setup(v => v.ValidateCommentText(newCommentText))
+            .Returns(newValidatedCommentText);
+
+            // Arrange - create target
+            ICommentService target = new CommentService(unitOfWorkMock.Object, this._commentValidationMock.Object,
+            this._serviceSettings);
+
+            // Act
+            target.Edit(comment.CommentId, comment.UserId, newCommentText);
+
+            // Assert
+            Assert.IsNotNull(newCommentEdit);
+            Assert.IsTrue(newCommentEdit.EditDate.Subtract(editDate)
+            .TotalMilliseconds > 0);
+
+            commentRepositoryMock.Verify(
+            r => r.Get(It.IsAny<Expression<Func<Comment, bool>>>(), null, It.IsAny<Expression<Func<Comment, object>>[]>()),
+            Times.Once);
+            commentRepositoryMock.Verify(
+            r => r.Update(It.Is<Comment>(c => c.CommentId == comment.CommentId && c.Text == newValidatedCommentText)),
+            Times.Once);
+
+            unitOfWorkMock.Verify(r => r.Save(), Times.Once);
+
+            this._commentValidationMock.Verify(v => v.ValidateCommentText(newCommentText), Times.Once);
+        }
+
+        [Test]
+        public void Edit_CommentHasNotBeenEditedYet_EditsTheComment()
+        {
+            // Arrange
+            string newCommentText = "new_comment_text";
+            string newValidatedCommentText = "new_validated_comment_text";
+            Comment comment = new Comment { CommentId = 1, UserId = 2, Date = DateTime.Now };
+            int permittedPeriodForEditing = 300;
+
+            this._serviceSettings = new CommentServiceSettings(0, permittedPeriodForEditing);
+
+            // Arrange - mock commentRepository
+            Mock<ICommentRepository> commentRepositoryMock = new Mock<ICommentRepository>();
+
+            commentRepositoryMock.Setup(
+            r => r.Get(It.IsAny<Expression<Func<Comment, bool>>>(), null, It.IsAny<Expression<Func<Comment, object>>[]>()))
+            .Returns(new[] { comment });
+
+            CommentEdit commentEdit = null;
+
+            commentRepositoryMock.Setup(r => r.Update(It.IsAny<Comment>()))
+            .Callback((Comment c) => commentEdit = c.CommentEdit);
+
+            // Arrange - mock unitOfWork
+            Mock<IUnitOfWork> unitOfWorkMock = new Mock<IUnitOfWork>();
+
+            unitOfWorkMock.SetupGet(u => u.CommentRepository)
+            .Returns(commentRepositoryMock.Object);
+
+            // Arrange - mock commentValidation
+            this._commentValidationMock.Setup(v => v.ValidateCommentText(newCommentText))
+            .Returns(newValidatedCommentText);
+
+            // Arrange - create target
+            ICommentService target = new CommentService(unitOfWorkMock.Object, this._commentValidationMock.Object,
+            this._serviceSettings);
+
+            // Act
+            target.Edit(comment.CommentId, comment.UserId, newCommentText);
+
+            // Assert
+            Assert.IsNotNull(commentEdit);
+            Assert.IsTrue(new DateTime() != commentEdit.EditDate);
+
+            commentRepositoryMock.Verify(
+            r => r.Get(It.IsAny<Expression<Func<Comment, bool>>>(), null, It.IsAny<Expression<Func<Comment, object>>[]>()),
+            Times.Once);
+            commentRepositoryMock.Verify(
+            r => r.Update(It.Is<Comment>(c => c.CommentId == comment.CommentId && c.Text == newValidatedCommentText)),
+            Times.Once);
+
+            unitOfWorkMock.Verify(r => r.Save(), Times.Once);
+
+            this._commentValidationMock.Verify(v => v.ValidateCommentText(newCommentText), Times.Once);
+        }
+
+        [Test]
+        public void Edit_CommentIdIsLessOrEqualToZero_ThrowsArgumentOutOfRangeException()
+        {
+            // Arrange
+            int userId = 1;
+            string newCommentText = "new_comment's_text";
+
+            ICommentService target = new CommentService(new Mock<IUnitOfWork>().Object, this._commentValidationMock.Object,
+            this._serviceSettings);
+
+            // Act and Assert
+            Assert.Throws<ArgumentOutOfRangeException>(() => target.Edit(-1, userId, newCommentText));
+            Assert.Throws<ArgumentOutOfRangeException>(() => target.Edit(0, userId, newCommentText));
+        }
+
+        [Test]
+        public void Edit_CommentIsDeleted_ThrowsEditingCommentIsForbiddenException()
+        {
+            // Arrange
+            string newCommentText = "new_comment's_text";
+            Comment comment = new Comment { CommentId = 1, UserId = 2, Date = DateTime.Now, IsDeleted = true };
+
+            // Arrange - mock commentRepository
+            Mock<ICommentRepository> commentRepositoryMock = new Mock<ICommentRepository>();
+
+            commentRepositoryMock.Setup(
+            r => r.Get(It.IsAny<Expression<Func<Comment, bool>>>(), null, It.IsAny<Expression<Func<Comment, object>>[]>()))
+            .Returns(new[] { comment });
+
+            // Arrange - mock unitOfWork
+            Mock<IUnitOfWork> unitOfWorkMock = new Mock<IUnitOfWork>();
+
+            unitOfWorkMock.SetupGet(u => u.CommentRepository)
+            .Returns(commentRepositoryMock.Object);
+
+            // Arrange - create target
+            ICommentService target = new CommentService(unitOfWorkMock.Object, this._commentValidationMock.Object,
+            this._serviceSettings);
+
+            // Act and Assert
+            Assert.Throws<EditingCommentIsForbiddenException>(
+            () => target.Edit(comment.CommentId, comment.UserId, newCommentText));
+
+            commentRepositoryMock.Verify(
+            r => r.Get(It.IsAny<Expression<Func<Comment, bool>>>(), null, It.IsAny<Expression<Func<Comment, object>>[]>()),
+            Times.Once);
+            commentRepositoryMock.Verify(r => r.Update(It.Is<Comment>(c => c.CommentId == comment.CommentId)), Times.Never);
+
+            unitOfWorkMock.Verify(r => r.Save(), Times.Never);
+        }
+
+        [Test]
+        public void Edit_NewCommentTextIsEmpty_ThrowsArgumentException()
+        {
+            // Arrange
+            int commentId = 1;
+            int userId = 2;
+
+            ICommentService target = new CommentService(new Mock<IUnitOfWork>().Object, this._commentValidationMock.Object,
+            this._serviceSettings);
+
+            // Act and Assert
+            Assert.Throws<ArgumentException>(() => target.Edit(commentId, userId, ""));
+        }
+
+        [Test]
+        public void Edit_NewCommentTextIsNull_ThrowsArgumentNullException()
+        {
+            // Arrange
+            int commentId = 1;
+            int userId = 2;
+
+            ICommentService target = new CommentService(new Mock<IUnitOfWork>().Object, this._commentValidationMock.Object,
+            this._serviceSettings);
+
+            // Act and Assert
+            Assert.Throws<ArgumentNullException>(() => target.Edit(commentId, userId, null));
+        }
+
+        [Test]
+        public void Edit_NonexistentCommentId_ThrowsCommentNotFoundException()
+        {
+            // Arrange
+            int commentId = 1;
+            int userId = 1;
+            string newCommentText = "new_comment's_text";
+
+            // Arrange - mock commentRepository
+            Mock<ICommentRepository> commentRepositoryMock = new Mock<ICommentRepository>();
+
+            commentRepositoryMock.Setup(
+            r => r.Get(It.IsAny<Expression<Func<Comment, bool>>>(), null, It.IsAny<Expression<Func<Comment, object>>[]>()))
+            .Returns(new Comment[] { });
+
+            // Arrange - mock unitOfWork
+            Mock<IUnitOfWork> unitOfWorkMock = new Mock<IUnitOfWork>();
+
+            unitOfWorkMock.SetupGet(u => u.CommentRepository)
+            .Returns(commentRepositoryMock.Object);
+
+            // Arrange - create target
+            ICommentService target = new CommentService(unitOfWorkMock.Object, this._commentValidationMock.Object,
+            this._serviceSettings);
+
+            // Act and Assert
+            Assert.Throws<CommentNotFoundException>(() => target.Edit(commentId, userId, newCommentText));
+
+            commentRepositoryMock.Verify(
+            r => r.Get(It.IsAny<Expression<Func<Comment, bool>>>(), null, It.IsAny<Expression<Func<Comment, object>>[]>()),
+            Times.Once);
+            commentRepositoryMock.Verify(r => r.Update(It.Is<Comment>(c => c.CommentId == commentId)), Times.Never);
+
+            unitOfWorkMock.Verify(r => r.Save(), Times.Never);
+        }
+
+        [Test]
+        public void Edit_PermittedPeriodForEditingExpired_ThrowsPermittedPeriodForEditingExpiredException()
+        {
+            // Arrange
+            int permittedPeriodForEditing = 300;
+            string newCommentText = "new_comment's_text";
+            Comment comment = new Comment
+            { CommentId = 1, UserId = 2, Date = DateTime.Now.AddSeconds(-(permittedPeriodForEditing + 1)) };
+
+            this._serviceSettings = new CommentServiceSettings(0, permittedPeriodForEditing);
+
+            // Arrange - mock commentRepository
+            Mock<ICommentRepository> commentRepositoryMock = new Mock<ICommentRepository>();
+
+            commentRepositoryMock.Setup(
+            r => r.Get(It.IsAny<Expression<Func<Comment, bool>>>(), null, It.IsAny<Expression<Func<Comment, object>>[]>()))
+            .Returns(new[] { comment });
+
+            // Arrange - mock unitOfWork
+            Mock<IUnitOfWork> unitOfWorkMock = new Mock<IUnitOfWork>();
+
+            unitOfWorkMock.SetupGet(u => u.CommentRepository)
+            .Returns(commentRepositoryMock.Object);
+
+            // Arrange - create target
+            ICommentService target = new CommentService(unitOfWorkMock.Object, this._commentValidationMock.Object,
+            this._serviceSettings);
+
+            // Act and Assert
+            Assert.Throws<PermittedPeriodForEditingExpiredException>(
+            () => target.Edit(comment.CommentId, comment.UserId, newCommentText));
+
+            commentRepositoryMock.Verify(
+            r => r.Get(It.IsAny<Expression<Func<Comment, bool>>>(), null, It.IsAny<Expression<Func<Comment, object>>[]>()),
+            Times.Once);
+            commentRepositoryMock.Verify(r => r.Update(It.Is<Comment>(c => c.CommentId == comment.CommentId)), Times.Never);
+
+            unitOfWorkMock.Verify(r => r.Save(), Times.Never);
+        }
+
+        [Test]
+        public void Edit_UserIdIsLessOrEqualToZero_ThrowsArgumentOutOfRangeException()
+        {
+            // Arrange
+            int commentId = 1;
+            string newCommentText = "new_comment's_text";
+
+            ICommentService target = new CommentService(new Mock<IUnitOfWork>().Object, this._commentValidationMock.Object,
+            this._serviceSettings);
+
+            // Act and Assert
+            Assert.Throws<ArgumentOutOfRangeException>(() => target.Edit(commentId, -1, newCommentText));
+            Assert.Throws<ArgumentOutOfRangeException>(() => target.Edit(commentId, 0, newCommentText));
+        }
+
+        [Test]
+        public void Edit_UserIsNotAuthorOfTheComment_ThrowsEditingCommentIsForbiddenException()
+        {
+            // Arrange
+            int userId = 1;
+            string newCommentText = "new_comment's_text";
+            Comment comment = new Comment { CommentId = 2, UserId = userId + 1 };
+            int permittedPeriodForEditing = 300;
+
+            this._serviceSettings = new CommentServiceSettings(0, permittedPeriodForEditing);
+
+            // Arrange - mock commentRepository
+            Mock<ICommentRepository> commentRepositoryMock = new Mock<ICommentRepository>();
+
+            commentRepositoryMock.Setup(
+            r => r.Get(It.IsAny<Expression<Func<Comment, bool>>>(), null, It.IsAny<Expression<Func<Comment, object>>[]>()))
+            .Returns(new[] { comment });
+
+            // Arrange - mock unitOfWork
+            Mock<IUnitOfWork> unitOfWorkMock = new Mock<IUnitOfWork>();
+
+            unitOfWorkMock.SetupGet(u => u.CommentRepository)
+            .Returns(commentRepositoryMock.Object);
+
+            // Arrange - create target
+            ICommentService target = new CommentService(unitOfWorkMock.Object, this._commentValidationMock.Object,
+            this._serviceSettings);
+
+            // Act and Assert
+            Assert.Throws<EditingCommentIsForbiddenException>(() => target.Edit(comment.CommentId, userId, newCommentText));
+
+            commentRepositoryMock.Verify(
+            r => r.Get(It.IsAny<Expression<Func<Comment, bool>>>(), null, It.IsAny<Expression<Func<Comment, object>>[]>()),
+            Times.Once);
+            commentRepositoryMock.Verify(r => r.Update(It.Is<Comment>(c => c.CommentId == comment.CommentId)), Times.Never);
+
+            unitOfWorkMock.Verify(r => r.Save(), Times.Never);
+        }
+
         [SetUp]
         public void Init()
         {

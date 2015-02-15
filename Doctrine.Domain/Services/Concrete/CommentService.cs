@@ -192,6 +192,57 @@
             this._unitOfWork.Save();
         }
 
+        public void Edit(int commentId, int userId, string newCommentText)
+        {
+            Guard.IntMoreThanZero(commentId, "commentId");
+            Guard.IntMoreThanZero(userId, "userId");
+            Guard.NotNullOrEmpty(newCommentText, "newCommentText");
+
+            Comment comment =
+            this._unitOfWork.CommentRepository.Get(c => c.CommentId == commentId, selector: c => c.CommentEdit)
+            .FirstOrDefault();
+
+            if (comment == null)
+            {
+                throw new CommentNotFoundException(String.Format("Comment with ID '{0}' was not found.", commentId));
+            }
+
+            if (comment.IsDeleted)
+            {
+                throw new EditingCommentIsForbiddenException(
+                String.Format("Comment with ID '{0}' has been deleted and can't be edited.", commentId));
+            }
+
+            if (comment.UserId != userId)
+            {
+                throw new EditingCommentIsForbiddenException(
+                String.Format(
+                "User with ID '{0}' is not the author of the comment with ID '{0}' and aren't allowed to edit it.", commentId));
+            }
+
+            if (CommentService.IsPermittedPeriodExpired(comment.Date, this._serviceSettings.PermittedPeriodForEditing))
+            {
+                throw new PermittedPeriodForEditingExpiredException(
+                String.Format("Permitted period ('{0}' seconds) for editing comment with dateTime '{1}' is expired.",
+                this._serviceSettings.PermittedPeriodForEditing, comment.Date));
+            }
+
+            if (comment.CommentEdit == null)
+            {
+                comment.CommentEdit = new CommentEdit();
+            }
+
+            comment.CommentEdit.EditDate = DateTime.Now;
+
+            // Validate comment's text
+            string validatedNewCommentText = this._commentValidation.ValidateCommentText(newCommentText);
+
+            comment.Text = validatedNewCommentText;
+
+            this._unitOfWork.CommentRepository.Update(comment);
+            this._unitOfWork.Save();
+        }
+
         public Comment Reply(int commentId, int userId, string commentText)
         {
             Guard.IntMoreThanZero(commentId, "commentId");

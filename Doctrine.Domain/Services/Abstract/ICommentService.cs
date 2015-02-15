@@ -51,6 +51,12 @@
         /// <param name="userId">The user identifier.</param>
         void DeleteVote(int commentId, int userId);
 
+        /// <summary>Edits the comment with specified identifier.</summary>
+        /// <param name="commentId">The comment identifier.</param>
+        /// <param name="userId">The user identifier.</param>
+        /// <param name="newCommentText">The new comment's text.</param>
+        void Edit(int commentId, int userId, string newCommentText);
+
         /// <summary>Creates the comment as a reply for the comment with specified identifier.</summary>
         /// <param name="commentId">The comment identifier.</param>
         /// <param name="userId">The user identifier.</param>
