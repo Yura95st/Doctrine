@@ -23,6 +23,12 @@ namespace Doctrine.Domain.Dal
             set;
         }
 
+        public virtual DbSet<CommentEdit> CommentEdits
+        {
+            get;
+            set;
+        }
+
         public virtual DbSet<Comment> Comments
         {
             get;
@@ -105,6 +111,10 @@ namespace Doctrine.Domain.Dal
             .Map(m => m.ToTable("ArticleTag")
             .MapLeftKey("ArticleId")
             .MapRightKey("TagId"));
+
+            modelBuilder.Entity<Comment>()
+            .HasOptional(e => e.CommentEdit)
+            .WithRequired(e => e.Comment);
 
             modelBuilder.Entity<Comment>()
             .HasMany(e => e.CommentVotes)

@@ -33,6 +33,12 @@ namespace Doctrine.Domain.Models
             set;
         }
 
+        public virtual CommentEdit CommentEdit
+        {
+            get;
+            set;
+        }
+
         public int CommentId
         {
             get;
