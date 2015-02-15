@@ -192,6 +192,42 @@
             this._unitOfWork.Save();
         }
 
+        public Comment Reply(int commentId, int userId, string commentText)
+        {
+            Guard.IntMoreThanZero(commentId, "commentId");
+            Guard.IntMoreThanZero(userId, "userId");
+            Guard.NotNullOrEmpty(commentText, "commentText");
+
+            Comment comment =
+            this._unitOfWork.CommentRepository.Get(c => c.CommentId == commentId, selector: c => c.Comment1)
+            .FirstOrDefault();
+
+            if (comment == null)
+            {
+                throw new CommentNotFoundException(String.Format("Comment with ID '{0}' was not found.", commentId));
+            }
+
+            User user = this._unitOfWork.UserRepository.GetById(userId);
+
+            if (user == null)
+            {
+                throw new UserNotFoundException(String.Format("User with ID '{0}' was not found.", userId));
+            }
+
+            // Validate comment's text
+            string validatedCommentText = this._commentValidation.ValidateCommentText(commentText);
+
+            Comment replyComment = new Comment
+            { ArticleId = comment.ArticleId, UserId = user.UserId, Text = validatedCommentText, Date = DateTime.Now };
+
+            comment.Comment1.Add(replyComment);
+
+            this._unitOfWork.CommentRepository.Update(comment);
+            this._unitOfWork.Save();
+
+            return replyComment;
+        }
+
         public CommentServiceSettings ServiceSettings
         {
             get

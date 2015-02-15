@@ -1098,6 +1098,222 @@
             this.MockCommentValidation();
         }
 
+        [Test]
+        public void Reply_AllCredentialsAreValid_CreatesAndReturnsReply()
+        {
+            // Arrange
+            User user = new User { UserId = 1 };
+            string commentText = "comment_text";
+            string validatedCommentText = "validated_comment_text";
+            Comment[] commentReplies = { new Comment { CommentId = 2 }, new Comment { CommentId = 3 } };
+
+            Comment comment = new Comment { CommentId = 4, ArticleId = 5, Comment1 = commentReplies.ToList() };
+
+            // Arrange - mock commentRepository
+            Mock<ICommentRepository> commentRepositoryMock = new Mock<ICommentRepository>();
+
+            commentRepositoryMock.Setup(
+            r => r.Get(It.IsAny<Expression<Func<Comment, bool>>>(), null, It.IsAny<Expression<Func<Comment, object>>[]>()))
+            .Returns(new[] { comment });
+
+            IEnumerable<Comment> newCommentReplies = null;
+
+            commentRepositoryMock.Setup(r => r.Update(It.IsAny<Comment>()))
+            .Callback((Comment c) => newCommentReplies = c.Comment1);
+
+            // Arrange - mock userRepository
+            Mock<IUserRepository> userRepositoryMock = new Mock<IUserRepository>();
+
+            userRepositoryMock.Setup(r => r.GetById(user.UserId))
+            .Returns(user);
+
+            // Arrange - mock unitOfWork
+            Mock<IUnitOfWork> unitOfWorkMock = new Mock<IUnitOfWork>();
+
+            unitOfWorkMock.SetupGet(u => u.CommentRepository)
+            .Returns(commentRepositoryMock.Object);
+
+            unitOfWorkMock.SetupGet(u => u.UserRepository)
+            .Returns(userRepositoryMock.Object);
+
+            // Arrange - mock commentValidation
+            this._commentValidationMock.Setup(v => v.ValidateCommentText(commentText))
+            .Returns(validatedCommentText);
+
+            // Arrange - create target
+            ICommentService target = new CommentService(unitOfWorkMock.Object, this._commentValidationMock.Object,
+            this._serviceSettings);
+
+            // Act
+            Comment reply = target.Reply(comment.CommentId, user.UserId, commentText);
+
+            // Assert
+            Assert.IsNotNull(reply);
+            Assert.AreEqual(user.UserId, reply.UserId);
+            Assert.AreEqual(comment.ArticleId, reply.ArticleId);
+            Assert.AreEqual(validatedCommentText, reply.Text);
+            Assert.IsTrue(new DateTime() != reply.Date);
+
+            Assert.IsNotNull(newCommentReplies);
+            Assert.AreEqual(commentReplies.Count() + 1, newCommentReplies.Count());
+            Assert.IsTrue(newCommentReplies.Contains(reply));
+
+            commentRepositoryMock.Verify(
+            r => r.Get(It.IsAny<Expression<Func<Comment, bool>>>(), null, It.IsAny<Expression<Func<Comment, object>>[]>()),
+            Times.Once);
+
+            commentRepositoryMock.Verify(r => r.Update(It.Is<Comment>(c => c.CommentId == comment.CommentId)), Times.Once);
+
+            userRepositoryMock.Verify(r => r.GetById(user.UserId), Times.Once);
+
+            unitOfWorkMock.Verify(r => r.Save(), Times.Once);
+
+            this._commentValidationMock.Verify(v => v.ValidateCommentText(commentText), Times.Once);
+        }
+
+        [Test]
+        public void Reply_CommentIdIsLessOrEqualToZero_ThrowsArgumentOutOfRangeException()
+        {
+            // Arrange
+            int userId = 1;
+            string commentText = "comment_text";
+
+            ICommentService target = new CommentService(new Mock<IUnitOfWork>().Object, this._commentValidationMock.Object,
+            this._serviceSettings);
+
+            // Act and Assert
+            Assert.Throws<ArgumentOutOfRangeException>(() => target.Reply(-1, userId, commentText));
+            Assert.Throws<ArgumentOutOfRangeException>(() => target.Reply(0, userId, commentText));
+        }
+
+        [Test]
+        public void Reply_CommentTextIsEmpty_ThrowsArgumentException()
+        {
+            // Arrange
+            int commentId = 1;
+            int userId = 2;
+
+            ICommentService target = new CommentService(new Mock<IUnitOfWork>().Object, this._commentValidationMock.Object,
+            this._serviceSettings);
+
+            // Act and Assert
+            Assert.Throws<ArgumentException>(() => target.Reply(commentId, userId, ""));
+        }
+
+        [Test]
+        public void Reply_CommentTextIsNull_ThrowsArgumentNullException()
+        {
+            // Arrange
+            int commentId = 1;
+            int userId = 2;
+
+            ICommentService target = new CommentService(new Mock<IUnitOfWork>().Object, this._commentValidationMock.Object,
+            this._serviceSettings);
+
+            // Act and Assert
+            Assert.Throws<ArgumentNullException>(() => target.Reply(commentId, userId, null));
+        }
+
+        [Test]
+        public void Reply_NonexistentCommentId_ThrowsCommentNotFoundException()
+        {
+            // Arrange
+            int commentId = 1;
+            int userId = 2;
+            string commentText = "comment_text";
+
+            // Arrange - mock articleRepository
+            Mock<ICommentRepository> commentRepositoryMock = new Mock<ICommentRepository>();
+
+            commentRepositoryMock.Setup(
+            r => r.Get(It.IsAny<Expression<Func<Comment, bool>>>(), null, It.IsAny<Expression<Func<Comment, object>>[]>()))
+            .Returns(new Comment[] { });
+
+            // Arrange - mock unitOfWork
+            Mock<IUnitOfWork> unitOfWorkMock = new Mock<IUnitOfWork>();
+
+            unitOfWorkMock.SetupGet(u => u.CommentRepository)
+            .Returns(commentRepositoryMock.Object);
+
+            // Arrange - create target
+            ICommentService target = new CommentService(unitOfWorkMock.Object, this._commentValidationMock.Object,
+            this._serviceSettings);
+
+            // Act and Assert
+            Assert.Throws<CommentNotFoundException>(() => target.Reply(commentId, userId, commentText));
+
+            commentRepositoryMock.Verify(
+            r => r.Get(It.IsAny<Expression<Func<Comment, bool>>>(), null, It.IsAny<Expression<Func<Comment, object>>[]>()),
+            Times.Once);
+
+            commentRepositoryMock.Verify(r => r.Update(It.Is<Comment>(c => c.CommentId == commentId)), Times.Never);
+
+            unitOfWorkMock.Verify(r => r.Save(), Times.Never);
+        }
+
+        [Test]
+        public void Reply_NonexistentUserId_ThrowsUserNotFoundException()
+        {
+            // Arrange
+            Comment comment = new Comment { CommentId = 1 };
+            int userId = 2;
+            string commentText = "comment_text";
+
+            // Arrange - mock articleRepository
+            Mock<ICommentRepository> commentRepositoryMock = new Mock<ICommentRepository>();
+
+            commentRepositoryMock.Setup(
+            r => r.Get(It.IsAny<Expression<Func<Comment, bool>>>(), null, It.IsAny<Expression<Func<Comment, object>>[]>()))
+            .Returns(new[] { comment });
+
+            // Arrange - mock userRepository
+            Mock<IUserRepository> userRepositoryMock = new Mock<IUserRepository>();
+
+            userRepositoryMock.Setup(r => r.GetById(userId))
+            .Returns((User)null);
+
+            // Arrange - mock unitOfWork
+            Mock<IUnitOfWork> unitOfWorkMock = new Mock<IUnitOfWork>();
+
+            unitOfWorkMock.SetupGet(u => u.CommentRepository)
+            .Returns(commentRepositoryMock.Object);
+
+            unitOfWorkMock.SetupGet(u => u.UserRepository)
+            .Returns(userRepositoryMock.Object);
+
+            // Arrange - Reply target
+            ICommentService target = new CommentService(unitOfWorkMock.Object, this._commentValidationMock.Object,
+            this._serviceSettings);
+
+            // Act and Assert
+            Assert.Throws<UserNotFoundException>(() => target.Reply(comment.CommentId, userId, commentText));
+
+            commentRepositoryMock.Verify(
+            r => r.Get(It.IsAny<Expression<Func<Comment, bool>>>(), null, It.IsAny<Expression<Func<Comment, object>>[]>()),
+            Times.Once);
+
+            commentRepositoryMock.Verify(r => r.Update(It.Is<Comment>(c => c.CommentId == comment.CommentId)), Times.Never);
+
+            userRepositoryMock.Verify(r => r.GetById(userId), Times.Once);
+
+            unitOfWorkMock.Verify(r => r.Save(), Times.Never);
+        }
+
+        [Test]
+        public void Reply_UserIdIsLessOrEqualToZero_ThrowsArgumentOutOfRangeException()
+        {
+            // Arrange
+            int commentId = 1;
+            string commentText = "comment_text";
+
+            ICommentService target = new CommentService(new Mock<IUnitOfWork>().Object, this._commentValidationMock.Object,
+            this._serviceSettings);
+
+            // Act and Assert
+            Assert.Throws<ArgumentOutOfRangeException>(() => target.Reply(commentId, -1, commentText));
+            Assert.Throws<ArgumentOutOfRangeException>(() => target.Reply(commentId, 0, commentText));
+        }
+
         private void MockCommentValidation()
         {
             this._commentValidationMock = new Mock<ICommentValidation>();

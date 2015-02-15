@@ -50,5 +50,12 @@
         /// <param name="commentId">The comment identifier.</param>
         /// <param name="userId">The user identifier.</param>
         void DeleteVote(int commentId, int userId);
+
+        /// <summary>Creates the comment as a reply for the comment with specified identifier.</summary>
+        /// <param name="commentId">The comment identifier.</param>
+        /// <param name="userId">The user identifier.</param>
+        /// <param name="commentText">The comment text.</param>
+        /// <returns>Created reply comment.</returns>
+        Comment Reply(int commentId, int userId, string commentText);
     }
 }
