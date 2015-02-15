@@ -93,6 +93,13 @@
                     && !CommentService.IsPermittedPeriodExpired(comment.Date, this._serviceSettings.PermittedPeriodForEditing));
         }
 
+        public bool CanHaveReply(Comment comment)
+        {
+            Guard.NotNull(comment, "comment");
+
+            return comment.TreeLevel < this._serviceSettings.MaxCommentTreeLevel;
+        }
+
         public Comment Create(int userId, int articleId, string commentText)
         {
             Guard.IntMoreThanZero(userId, "userId");
@@ -256,6 +263,14 @@
             if (comment == null)
             {
                 throw new CommentNotFoundException(String.Format("Comment with ID '{0}' was not found.", commentId));
+            }
+
+            if (comment.TreeLevel >= this._serviceSettings.MaxCommentTreeLevel)
+            {
+                throw new MaxCommentTreeLevelReachedException(
+                String.Format(
+                "Tree level value of the comment with ID '{0}' is equal to the maximum comments' tree level value ('{1}').",
+                commentId, this._serviceSettings.MaxCommentTreeLevel));
             }
 
             User user = this._unitOfWork.UserRepository.GetById(userId);

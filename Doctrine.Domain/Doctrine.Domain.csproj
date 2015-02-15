@@ -58,6 +58,7 @@
     <Compile Include="Dal\Repositories\Concrete\VisitorRepository.cs" />
     <Compile Include="Dal\UnitOfWork.cs" />
     <Compile Include="Enums\PasswordStrength.cs" />
+    <Compile Include="Exceptions\MaxCommentTreeLevelReachedException.cs" />
     <Compile Include="Exceptions\PermittedPeriodForEditingExpiredException.cs" />
     <Compile Include="Exceptions\EditingCommentIsForbiddenException.cs" />
     <Compile Include="Exceptions\PermittedPeriodForDeletingExpiredException.cs" />

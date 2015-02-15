@@ -34,6 +34,13 @@
         /// <returns>True if user can edit comment, false - otherwise</returns>
         bool CanEdit(int userId, Comment comment);
 
+        /// <summary>
+        ///     Checks whether specified comment can have a reply.
+        /// </summary>
+        /// <param name="comment">The comment.</param>
+        /// <returns>True if comment can have a reply, false - otherwise</returns>
+        bool CanHaveReply(Comment comment);
+
         /// <summary>Creates the comment from user with specified identifier for article with specified identifier.</summary>
         /// <param name="userId">The user identifier.</param>
         /// <param name="articleId">The article identifier.</param>

@@ -317,10 +317,7 @@
         public void CanDelete_CommentIsDeleted_ReturnsFalse()
         {
             // Arrange
-            int permittedPeriodForDeleting = 300;
             Comment comment = new Comment { UserId = 1, Date = DateTime.Now, IsDeleted = true };
-
-            this._serviceSettings = new CommentServiceSettings(permittedPeriodForDeleting, 0);
 
             // Arrange - create target
             ICommentService target = new CommentService(new Mock<IUnitOfWork>().Object, this._commentValidationMock.Object,
@@ -350,11 +347,8 @@
         public void CanDelete_PermittedPeriodForDeletingExpired_ReturnsFalse()
         {
             // Arrange
-            int permittedPeriodForDeleting = 300;
-
-            Comment comment = new Comment { UserId = 1, Date = DateTime.Now.AddSeconds(-(permittedPeriodForDeleting + 1)) };
-
-            this._serviceSettings = new CommentServiceSettings(permittedPeriodForDeleting, 0);
+            Comment comment = new Comment
+            { UserId = 1, Date = DateTime.Now.AddSeconds(-(this._serviceSettings.PermittedPeriodForDeleting + 1)) };
 
             // Arrange - create target
             ICommentService target = new CommentService(new Mock<IUnitOfWork>().Object, this._commentValidationMock.Object,
@@ -371,11 +365,7 @@
         public void CanDelete_UserCanDeleteTheComment_ReturnsTrue()
         {
             // Arrange
-            int permittedPeriodForDeleting = 300;
-
             Comment comment = new Comment { UserId = 1, Date = DateTime.Now };
-
-            this._serviceSettings = new CommentServiceSettings(permittedPeriodForDeleting, 0);
 
             // Arrange - create target
             ICommentService target = new CommentService(new Mock<IUnitOfWork>().Object, this._commentValidationMock.Object,
@@ -423,10 +413,7 @@
         public void CanEdit_CommentIsDeleted_ReturnsFalse()
         {
             // Arrange
-            int permittedPeriodForEditing = 300;
             Comment comment = new Comment { UserId = 1, Date = DateTime.Now, IsDeleted = true };
-
-            this._serviceSettings = new CommentServiceSettings(0, permittedPeriodForEditing);
 
             // Arrange - create target
             ICommentService target = new CommentService(new Mock<IUnitOfWork>().Object, this._commentValidationMock.Object,
@@ -456,10 +443,8 @@
         public void CanEdit_PermittedPeriodForEditingExpired_ReturnsFalse()
         {
             // Arrange
-            int permittedPeriodForEditing = 300;
-            Comment comment = new Comment { UserId = 1, Date = DateTime.Now.AddSeconds(-(permittedPeriodForEditing + 1)) };
-
-            this._serviceSettings = new CommentServiceSettings(0, permittedPeriodForEditing);
+            Comment comment = new Comment
+            { UserId = 1, Date = DateTime.Now.AddSeconds(-(this._serviceSettings.PermittedPeriodForEditing + 1)) };
 
             // Arrange - create target
             ICommentService target = new CommentService(new Mock<IUnitOfWork>().Object, this._commentValidationMock.Object,
@@ -476,11 +461,7 @@
         public void CanEdit_UserCanEditTheComment_ReturnsTrue()
         {
             // Arrange
-            int permittedPeriodForEditing = 300;
-
             Comment comment = new Comment { UserId = 1, Date = DateTime.Now };
-
-            this._serviceSettings = new CommentServiceSettings(0, permittedPeriodForEditing);
 
             // Arrange - create target
             ICommentService target = new CommentService(new Mock<IUnitOfWork>().Object, this._commentValidationMock.Object,
@@ -522,6 +503,50 @@
 
             //Assert
             Assert.IsFalse(result);
+        }
+
+        [Test]
+        public void CanHaveReply_CommentIsNull_ThrowsArgumentNullException()
+        {
+            // Arrange
+            ICommentService target = new CommentService(new Mock<IUnitOfWork>().Object, this._commentValidationMock.Object,
+            this._serviceSettings);
+
+            // Act and Assert
+            Assert.Throws<ArgumentNullException>(() => target.CanHaveReply(null));
+        }
+
+        [Test]
+        public void CanHaveReply_CommentTreeLevelIsEqualToMaxCommentTreeLevel_ReturnsFalse()
+        {
+            // Arrange
+            Comment comment = new Comment { TreeLevel = (byte)this._serviceSettings.MaxCommentTreeLevel };
+
+            ICommentService target = new CommentService(new Mock<IUnitOfWork>().Object, this._commentValidationMock.Object,
+            this._serviceSettings);
+
+            // Act
+            bool result = target.CanHaveReply(comment);
+
+            // Assert
+            Assert.IsFalse(result);
+        }
+
+        [Test]
+        public void CanHaveReply_CommentTreeLevelIsLessThanMaxCommentTreeLevel_ReturnsTrue()
+        {
+            // Arrange
+            Comment comment = new Comment { TreeLevel = (byte)(this._serviceSettings.MaxCommentTreeLevel - 1) };
+
+            // Arrange - create target
+            ICommentService target = new CommentService(new Mock<IUnitOfWork>().Object, this._commentValidationMock.Object,
+            this._serviceSettings);
+
+            // Act
+            bool result = target.CanHaveReply(comment);
+
+            // Assert
+            Assert.IsTrue(result);
         }
 
         [Test]
@@ -727,9 +752,6 @@
         {
             // Arrange
             Comment comment = new Comment { CommentId = 1, UserId = 2, Date = DateTime.Now };
-            int permittedPeriodForDeleting = 300;
-
-            this._serviceSettings = new CommentServiceSettings(permittedPeriodForDeleting, 0);
 
             // Arrange - mock commentRepository
             Mock<ICommentRepository> commentRepositoryMock = new Mock<ICommentRepository>();
@@ -785,9 +807,6 @@
         {
             // Arrange
             Comment comment = new Comment { CommentId = 1, UserId = 2, Date = DateTime.Now, IsDeleted = true };
-            int permittedPeriodForDeleting = 300;
-
-            this._serviceSettings = new CommentServiceSettings(permittedPeriodForDeleting, 0);
 
             // Arrange - mock commentRepository
             Mock<ICommentRepository> commentRepositoryMock = new Mock<ICommentRepository>();
@@ -850,11 +869,11 @@
         public void Delete_PermittedPeriodForDeletingExpired_ThrowsPermittedPeriodForDeletingExpiredException()
         {
             // Arrange
-            int permittedPeriodForDeleting = 300;
             Comment comment = new Comment
-            { CommentId = 1, UserId = 2, Date = DateTime.Now.AddSeconds(-(permittedPeriodForDeleting + 1)) };
-
-            this._serviceSettings = new CommentServiceSettings(permittedPeriodForDeleting, 0);
+            {
+                CommentId = 1, UserId = 2,
+                Date = DateTime.Now.AddSeconds(-(this._serviceSettings.PermittedPeriodForDeleting + 1))
+            };
 
             // Arrange - mock commentRepository
             Mock<ICommentRepository> commentRepositoryMock = new Mock<ICommentRepository>();
@@ -901,9 +920,6 @@
             // Arrange
             int userId = 1;
             Comment comment = new Comment { CommentId = 2, UserId = userId + 1, Date = DateTime.Now };
-            int permittedPeriodForDeleting = 300;
-
-            this._serviceSettings = new CommentServiceSettings(permittedPeriodForDeleting, 0);
 
             // Arrange - mock commentRepository
             Mock<ICommentRepository> commentRepositoryMock = new Mock<ICommentRepository>();
@@ -1099,9 +1115,6 @@
             DateTime editDate = DateTime.Now;
             Comment comment = new Comment
             { CommentId = 1, UserId = 2, Date = DateTime.Now, CommentEdit = new CommentEdit { EditDate = editDate } };
-            int permittedPeriodForEditing = 300;
-
-            this._serviceSettings = new CommentServiceSettings(0, permittedPeriodForEditing);
 
             // Arrange - mock commentRepository
             Mock<ICommentRepository> commentRepositoryMock = new Mock<ICommentRepository>();
@@ -1156,9 +1169,6 @@
             string newCommentText = "new_comment_text";
             string newValidatedCommentText = "new_validated_comment_text";
             Comment comment = new Comment { CommentId = 1, UserId = 2, Date = DateTime.Now };
-            int permittedPeriodForEditing = 300;
-
-            this._serviceSettings = new CommentServiceSettings(0, permittedPeriodForEditing);
 
             // Arrange - mock commentRepository
             Mock<ICommentRepository> commentRepositoryMock = new Mock<ICommentRepository>();
@@ -1324,12 +1334,12 @@
         public void Edit_PermittedPeriodForEditingExpired_ThrowsPermittedPeriodForEditingExpiredException()
         {
             // Arrange
-            int permittedPeriodForEditing = 300;
             string newCommentText = "new_comment's_text";
             Comment comment = new Comment
-            { CommentId = 1, UserId = 2, Date = DateTime.Now.AddSeconds(-(permittedPeriodForEditing + 1)) };
-
-            this._serviceSettings = new CommentServiceSettings(0, permittedPeriodForEditing);
+            {
+                CommentId = 1, UserId = 2,
+                Date = DateTime.Now.AddSeconds(-(this._serviceSettings.PermittedPeriodForEditing + 1))
+            };
 
             // Arrange - mock commentRepository
             Mock<ICommentRepository> commentRepositoryMock = new Mock<ICommentRepository>();
@@ -1382,9 +1392,6 @@
             int userId = 1;
             string newCommentText = "new_comment's_text";
             Comment comment = new Comment { CommentId = 2, UserId = userId + 1 };
-            int permittedPeriodForEditing = 300;
-
-            this._serviceSettings = new CommentServiceSettings(0, permittedPeriodForEditing);
 
             // Arrange - mock commentRepository
             Mock<ICommentRepository> commentRepositoryMock = new Mock<ICommentRepository>();
@@ -1417,7 +1424,12 @@
         [SetUp]
         public void Init()
         {
-            this._serviceSettings = new CommentServiceSettings(0, 0);
+            int permittedPeriodForDeleting = 300;
+            int permittedPeriodForEditing = 300;
+            int maxCommentTreeLevel = 5;
+
+            this._serviceSettings = new CommentServiceSettings(permittedPeriodForDeleting, permittedPeriodForEditing,
+            maxCommentTreeLevel);
 
             this.MockCommentValidation();
         }
@@ -1536,6 +1548,43 @@
 
             // Act and Assert
             Assert.Throws<ArgumentNullException>(() => target.Reply(commentId, userId, null));
+        }
+
+        [Test]
+        public void Reply_CommentTreeLevelIsEqualToMaxCommentTreeLevel_ThrowsMaxCommentTreeLevelReachedException()
+        {
+            // Arrange
+            int userId = 1;
+            string commentText = "comment_text";
+            Comment comment = new Comment { CommentId = 2, TreeLevel = (byte)this._serviceSettings.MaxCommentTreeLevel };
+
+            // Arrange - mock commentRepository
+            Mock<ICommentRepository> commentRepositoryMock = new Mock<ICommentRepository>();
+
+            commentRepositoryMock.Setup(
+            r => r.Get(It.IsAny<Expression<Func<Comment, bool>>>(), null, It.IsAny<Expression<Func<Comment, object>>[]>()))
+            .Returns(new[] { comment });
+
+            // Arrange - mock unitOfWork
+            Mock<IUnitOfWork> unitOfWorkMock = new Mock<IUnitOfWork>();
+
+            unitOfWorkMock.SetupGet(u => u.CommentRepository)
+            .Returns(commentRepositoryMock.Object);
+
+            // Arrange - create target
+            ICommentService target = new CommentService(unitOfWorkMock.Object, this._commentValidationMock.Object,
+            this._serviceSettings);
+
+            // Act and Assert
+            Assert.Throws<MaxCommentTreeLevelReachedException>(() => target.Reply(comment.CommentId, userId, commentText));
+
+            commentRepositoryMock.Verify(
+            r => r.Get(It.IsAny<Expression<Func<Comment, bool>>>(), null, It.IsAny<Expression<Func<Comment, object>>[]>()),
+            Times.Once);
+
+            commentRepositoryMock.Verify(r => r.Update(It.Is<Comment>(c => c.CommentId == comment.CommentId)), Times.Never);
+
+            unitOfWorkMock.Verify(r => r.Save(), Times.Never);
         }
 
         [Test]
