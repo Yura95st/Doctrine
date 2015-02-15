@@ -77,6 +77,12 @@ namespace Doctrine.Domain.Models
             set;
         }
 
+        public byte TreeLevel
+        {
+            get;
+            set;
+        }
+
         public virtual User User
         {
             get;
