@@ -117,6 +117,7 @@
     <Compile Include="Utils\SecuredPasswordHelper\SecuredPasswordHelper.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Validation\Abstract\IArticleValidation.cs" />
     <Compile Include="Validation\Abstract\ICommentValidation.cs" />
     <Compile Include="Validation\Abstract\ITagValidation.cs" />
     <Compile Include="Validation\Abstract\ITopicValidation.cs" />
