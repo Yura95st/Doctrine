@@ -75,7 +75,19 @@ namespace Doctrine.Domain.Models
             set;
         }
 
+        public virtual User User
+        {
+            get;
+            set;
+        }
+
         public virtual ICollection<UserFavorite> UserFavorites
+        {
+            get;
+            set;
+        }
+
+        public int UserId
         {
             get;
             set;

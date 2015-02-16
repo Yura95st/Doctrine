@@ -10,11 +10,18 @@ namespace Doctrine.Domain.Models
     {
         public User()
         {
+            this.Articles = new HashSet<Article>();
             this.Comments = new HashSet<Comment>();
             this.CommentVotes = new HashSet<CommentVote>();
             this.UserActivities = new HashSet<UserActivity>();
             this.UserFavorites = new HashSet<UserFavorite>();
             this.UserReadHistories = new HashSet<UserReadHistory>();
+        }
+
+        public virtual ICollection<Article> Articles
+        {
+            get;
+            set;
         }
 
         public virtual ICollection<Comment> Comments

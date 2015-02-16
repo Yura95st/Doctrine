@@ -139,6 +139,11 @@ namespace Doctrine.Domain.Dal
             .IsUnicode(false);
 
             modelBuilder.Entity<User>()
+            .HasMany(e => e.Articles)
+            .WithRequired(e => e.User)
+            .WillCascadeOnDelete(false);
+
+            modelBuilder.Entity<User>()
             .HasMany(e => e.Comments)
             .WithRequired(e => e.User)
             .WillCascadeOnDelete(false);
