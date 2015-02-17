@@ -13,6 +13,7 @@
     using Doctrine.Domain.Services.Abstract;
     using Doctrine.Domain.Services.Concrete;
     using Doctrine.Domain.Services.Settings;
+    using Doctrine.Domain.Tests.TestHelpers;
     using Doctrine.Domain.Validation.Abstract;
 
     using Moq;
@@ -49,12 +50,17 @@
             int userId = 1;
             bool voteIsPositive = true;
 
-            // Arrange - mock commentRepository
+            Expression<Func<Comment, object>>[] propertiesToInclude = { c => c.CommentVotes };
+
+            // Arrange - mock visitorRepository
             Mock<ICommentRepository> commentRepositoryMock = new Mock<ICommentRepository>();
 
             commentRepositoryMock.Setup(
-            r => r.Get(It.IsAny<Expression<Func<Comment, bool>>>(), null, It.IsAny<Expression<Func<Comment, object>>[]>()))
-            .Returns(new Comment[] { });
+            r =>
+            r.GetById(commentId,
+            It.Is<Expression<Func<Comment, object>>[]>(
+            selector => ExpressionHelper.AreExpressionArraysEqual(selector, propertiesToInclude))))
+            .Returns((Comment)null);
 
             // Arrange - mock unitOfWork
             Mock<IUnitOfWork> unitOfWorkMock = new Mock<IUnitOfWork>();
@@ -70,8 +76,10 @@
             Assert.Throws<CommentNotFoundException>(() => target.AddVote(commentId, userId, voteIsPositive));
 
             commentRepositoryMock.Verify(
-            r => r.Get(It.IsAny<Expression<Func<Comment, bool>>>(), null, It.IsAny<Expression<Func<Comment, object>>[]>()),
-            Times.Once);
+            r =>
+            r.GetById(commentId,
+            It.Is<Expression<Func<Comment, object>>[]>(
+            selector => ExpressionHelper.AreExpressionArraysEqual(selector, propertiesToInclude))), Times.Once);
 
             commentRepositoryMock.Verify(r => r.Update(It.Is<Comment>(c => c.CommentId == commentId)), Times.Never);
 
@@ -88,12 +96,17 @@
 
             Comment comment = new Comment { CommentId = commentId, CommentVotes = new List<CommentVote>() };
 
-            // Arrange - mock commentRepository
+            Expression<Func<Comment, object>>[] propertiesToInclude = { c => c.CommentVotes };
+
+            // Arrange - mock visitorRepository
             Mock<ICommentRepository> commentRepositoryMock = new Mock<ICommentRepository>();
 
             commentRepositoryMock.Setup(
-            r => r.Get(It.IsAny<Expression<Func<Comment, bool>>>(), null, It.IsAny<Expression<Func<Comment, object>>[]>()))
-            .Returns(new[] { comment });
+            r =>
+            r.GetById(commentId,
+            It.Is<Expression<Func<Comment, object>>[]>(
+            selector => ExpressionHelper.AreExpressionArraysEqual(selector, propertiesToInclude))))
+            .Returns(comment);
 
             // Arrange - mock userRepository
             Mock<IUserRepository> userRepositoryMock = new Mock<IUserRepository>();
@@ -118,8 +131,11 @@
             Assert.Throws<UserNotFoundException>(() => target.AddVote(commentId, userId, voteIsPositive));
 
             commentRepositoryMock.Verify(
-            r => r.Get(It.IsAny<Expression<Func<Comment, bool>>>(), null, It.IsAny<Expression<Func<Comment, object>>[]>()),
-            Times.Once);
+            r =>
+            r.GetById(commentId,
+            It.Is<Expression<Func<Comment, object>>[]>(
+            selector => ExpressionHelper.AreExpressionArraysEqual(selector, propertiesToInclude))), Times.Once);
+
             commentRepositoryMock.Verify(r => r.Update(It.Is<Comment>(c => c.CommentId == commentId)), Times.Never);
 
             userRepositoryMock.Verify(r => r.GetById(userId), Times.Once());
@@ -143,12 +159,17 @@
             User user = new User { UserId = userId };
             Comment comment = new Comment { CommentId = commentId, CommentVotes = commentVotes.ToList() };
 
-            // Arrange - mock commentRepository
+            Expression<Func<Comment, object>>[] propertiesToInclude = { c => c.CommentVotes };
+
+            // Arrange - mock visitorRepository
             Mock<ICommentRepository> commentRepositoryMock = new Mock<ICommentRepository>();
 
             commentRepositoryMock.Setup(
-            r => r.Get(It.IsAny<Expression<Func<Comment, bool>>>(), null, It.IsAny<Expression<Func<Comment, object>>[]>()))
-            .Returns(new[] { comment });
+            r =>
+            r.GetById(commentId,
+            It.Is<Expression<Func<Comment, object>>[]>(
+            selector => ExpressionHelper.AreExpressionArraysEqual(selector, propertiesToInclude))))
+            .Returns(comment);
 
             IEnumerable<CommentVote> newCommentVotes = null;
 
@@ -187,8 +208,11 @@
             Assert.IsNotNull(commentVote);
 
             commentRepositoryMock.Verify(
-            r => r.Get(It.IsAny<Expression<Func<Comment, bool>>>(), null, It.IsAny<Expression<Func<Comment, object>>[]>()),
-            Times.Once);
+            r =>
+            r.GetById(commentId,
+            It.Is<Expression<Func<Comment, object>>[]>(
+            selector => ExpressionHelper.AreExpressionArraysEqual(selector, propertiesToInclude))), Times.Once);
+
             commentRepositoryMock.Verify(r => r.Update(It.Is<Comment>(c => c.CommentId == commentId)), Times.Once);
 
             userRepositoryMock.Verify(r => r.GetById(userId), Times.Once());
@@ -212,12 +236,17 @@
 
             Comment comment = new Comment { CommentId = commentId, CommentVotes = commentVotes.ToList() };
 
-            // Arrange - mock commentRepository
+            Expression<Func<Comment, object>>[] propertiesToInclude = { c => c.CommentVotes };
+
+            // Arrange - mock visitorRepository
             Mock<ICommentRepository> commentRepositoryMock = new Mock<ICommentRepository>();
 
             commentRepositoryMock.Setup(
-            r => r.Get(It.IsAny<Expression<Func<Comment, bool>>>(), null, It.IsAny<Expression<Func<Comment, object>>[]>()))
-            .Returns(new[] { comment });
+            r =>
+            r.GetById(commentId,
+            It.Is<Expression<Func<Comment, object>>[]>(
+            selector => ExpressionHelper.AreExpressionArraysEqual(selector, propertiesToInclude))))
+            .Returns(comment);
 
             IEnumerable<CommentVote> newCommentVotes = null;
 
@@ -248,8 +277,11 @@
             Assert.IsNotNull(commentVote);
 
             commentRepositoryMock.Verify(
-            r => r.Get(It.IsAny<Expression<Func<Comment, bool>>>(), null, It.IsAny<Expression<Func<Comment, object>>[]>()),
-            Times.Once);
+            r =>
+            r.GetById(commentId,
+            It.Is<Expression<Func<Comment, object>>[]>(
+            selector => ExpressionHelper.AreExpressionArraysEqual(selector, propertiesToInclude))), Times.Once);
+
             commentRepositoryMock.Verify(r => r.Update(It.Is<Comment>(c => c.CommentId == commentId)), Times.Once);
 
             unitOfWorkMock.Verify(r => r.Save(), Times.Once);
@@ -269,12 +301,17 @@
                 CommentVotes = { new CommentVote { CommentId = commentId, UserId = userId, IsPositive = voteIsPositive } }
             };
 
-            // Arrange - mock commentRepository
+            Expression<Func<Comment, object>>[] propertiesToInclude = { c => c.CommentVotes };
+
+            // Arrange - mock visitorRepository
             Mock<ICommentRepository> commentRepositoryMock = new Mock<ICommentRepository>();
 
             commentRepositoryMock.Setup(
-            r => r.Get(It.IsAny<Expression<Func<Comment, bool>>>(), null, It.IsAny<Expression<Func<Comment, object>>[]>()))
-            .Returns(new[] { comment });
+            r =>
+            r.GetById(commentId,
+            It.Is<Expression<Func<Comment, object>>[]>(
+            selector => ExpressionHelper.AreExpressionArraysEqual(selector, propertiesToInclude))))
+            .Returns(comment);
 
             // Arrange - mock unitOfWork
             Mock<IUnitOfWork> unitOfWorkMock = new Mock<IUnitOfWork>();
@@ -291,8 +328,11 @@
 
             // Assert
             commentRepositoryMock.Verify(
-            r => r.Get(It.IsAny<Expression<Func<Comment, bool>>>(), null, It.IsAny<Expression<Func<Comment, object>>[]>()),
-            Times.Once);
+            r =>
+            r.GetById(commentId,
+            It.Is<Expression<Func<Comment, object>>[]>(
+            selector => ExpressionHelper.AreExpressionArraysEqual(selector, propertiesToInclude))), Times.Once);
+
             commentRepositoryMock.Verify(r => r.Update(It.Is<Comment>(c => c.CommentId == commentId)), Times.Never);
 
             unitOfWorkMock.Verify(r => r.Save(), Times.Never);
@@ -961,12 +1001,17 @@
 
             Comment comment = new Comment { CommentId = commentId, CommentVotes = commentVotes.ToList() };
 
-            // Arrange - mock commentRepository
+            Expression<Func<Comment, object>>[] propertiesToInclude = { c => c.CommentVotes };
+
+            // Arrange - mock visitorRepository
             Mock<ICommentRepository> commentRepositoryMock = new Mock<ICommentRepository>();
 
             commentRepositoryMock.Setup(
-            r => r.Get(It.IsAny<Expression<Func<Comment, bool>>>(), null, It.IsAny<Expression<Func<Comment, object>>[]>()))
-            .Returns(new[] { comment });
+            r =>
+            r.GetById(commentId,
+            It.Is<Expression<Func<Comment, object>>[]>(
+            selector => ExpressionHelper.AreExpressionArraysEqual(selector, propertiesToInclude))))
+            .Returns(comment);
 
             IEnumerable<CommentVote> newCommentVotes = null;
 
@@ -991,8 +1036,11 @@
             Assert.AreEqual(0, newCommentVotes.Count(v => v.CommentId == commentId && v.UserId == userId));
 
             commentRepositoryMock.Verify(
-            r => r.Get(It.IsAny<Expression<Func<Comment, bool>>>(), null, It.IsAny<Expression<Func<Comment, object>>[]>()),
-            Times.Once);
+            r =>
+            r.GetById(commentId,
+            It.Is<Expression<Func<Comment, object>>[]>(
+            selector => ExpressionHelper.AreExpressionArraysEqual(selector, propertiesToInclude))), Times.Once);
+
             commentRepositoryMock.Verify(r => r.Update(It.Is<Comment>(c => c.CommentId == comment.CommentId)), Times.Once);
 
             unitOfWorkMock.Verify(r => r.Save(), Times.Once);
@@ -1019,12 +1067,17 @@
             int commentId = 1;
             int userId = 1;
 
-            // Arrange - mock commentRepository
+            Expression<Func<Comment, object>>[] propertiesToInclude = { c => c.CommentVotes };
+
+            // Arrange - mock visitorRepository
             Mock<ICommentRepository> commentRepositoryMock = new Mock<ICommentRepository>();
 
             commentRepositoryMock.Setup(
-            r => r.Get(It.IsAny<Expression<Func<Comment, bool>>>(), null, It.IsAny<Expression<Func<Comment, object>>[]>()))
-            .Returns(new Comment[] { });
+            r =>
+            r.GetById(commentId,
+            It.Is<Expression<Func<Comment, object>>[]>(
+            selector => ExpressionHelper.AreExpressionArraysEqual(selector, propertiesToInclude))))
+            .Returns((Comment)null);
 
             // Arrange - mock unitOfWork
             Mock<IUnitOfWork> unitOfWorkMock = new Mock<IUnitOfWork>();
@@ -1040,8 +1093,11 @@
             Assert.Throws<CommentNotFoundException>(() => target.DeleteVote(commentId, userId));
 
             commentRepositoryMock.Verify(
-            r => r.Get(It.IsAny<Expression<Func<Comment, bool>>>(), null, It.IsAny<Expression<Func<Comment, object>>[]>()),
-            Times.Once);
+            r =>
+            r.GetById(commentId,
+            It.Is<Expression<Func<Comment, object>>[]>(
+            selector => ExpressionHelper.AreExpressionArraysEqual(selector, propertiesToInclude))), Times.Once);
+
             commentRepositoryMock.Verify(r => r.Update(It.Is<Comment>(c => c.CommentId == commentId)), Times.Never);
 
             unitOfWorkMock.Verify(r => r.Save(), Times.Never);
@@ -1064,12 +1120,17 @@
                 }
             };
 
-            // Arrange - mock commentRepository
+            Expression<Func<Comment, object>>[] propertiesToInclude = { c => c.CommentVotes };
+
+            // Arrange - mock visitorRepository
             Mock<ICommentRepository> commentRepositoryMock = new Mock<ICommentRepository>();
 
             commentRepositoryMock.Setup(
-            r => r.Get(It.IsAny<Expression<Func<Comment, bool>>>(), null, It.IsAny<Expression<Func<Comment, object>>[]>()))
-            .Returns(new[] { comment });
+            r =>
+            r.GetById(commentId,
+            It.Is<Expression<Func<Comment, object>>[]>(
+            selector => ExpressionHelper.AreExpressionArraysEqual(selector, propertiesToInclude))))
+            .Returns(comment);
 
             // Arrange - mock unitOfWork
             Mock<IUnitOfWork> unitOfWorkMock = new Mock<IUnitOfWork>();
@@ -1085,8 +1146,11 @@
             Assert.Throws<CommentVoteNotFoundException>(() => target.DeleteVote(commentId, userId));
 
             commentRepositoryMock.Verify(
-            r => r.Get(It.IsAny<Expression<Func<Comment, bool>>>(), null, It.IsAny<Expression<Func<Comment, object>>[]>()),
-            Times.Once);
+            r =>
+            r.GetById(commentId,
+            It.Is<Expression<Func<Comment, object>>[]>(
+            selector => ExpressionHelper.AreExpressionArraysEqual(selector, propertiesToInclude))), Times.Once);
+
             commentRepositoryMock.Verify(r => r.Update(It.Is<Comment>(c => c.CommentId == commentId)), Times.Never);
 
             unitOfWorkMock.Verify(r => r.Save(), Times.Never);
@@ -1116,12 +1180,17 @@
             Comment comment = new Comment
             { CommentId = 1, UserId = 2, Date = DateTime.Now, CommentEdit = new CommentEdit { EditDate = editDate } };
 
-            // Arrange - mock commentRepository
+            Expression<Func<Comment, object>>[] propertiesToInclude = { c => c.CommentEdit };
+
+            // Arrange - mock visitorRepository
             Mock<ICommentRepository> commentRepositoryMock = new Mock<ICommentRepository>();
 
             commentRepositoryMock.Setup(
-            r => r.Get(It.IsAny<Expression<Func<Comment, bool>>>(), null, It.IsAny<Expression<Func<Comment, object>>[]>()))
-            .Returns(new[] { comment });
+            r =>
+            r.GetById(comment.CommentId,
+            It.Is<Expression<Func<Comment, object>>[]>(
+            selector => ExpressionHelper.AreExpressionArraysEqual(selector, propertiesToInclude))))
+            .Returns(comment);
 
             CommentEdit newCommentEdit = null;
 
@@ -1151,8 +1220,11 @@
             .TotalMilliseconds > 0);
 
             commentRepositoryMock.Verify(
-            r => r.Get(It.IsAny<Expression<Func<Comment, bool>>>(), null, It.IsAny<Expression<Func<Comment, object>>[]>()),
-            Times.Once);
+            r =>
+            r.GetById(comment.CommentId,
+            It.Is<Expression<Func<Comment, object>>[]>(
+            selector => ExpressionHelper.AreExpressionArraysEqual(selector, propertiesToInclude))), Times.Once);
+
             commentRepositoryMock.Verify(
             r => r.Update(It.Is<Comment>(c => c.CommentId == comment.CommentId && c.Text == newValidatedCommentText)),
             Times.Once);
@@ -1170,12 +1242,17 @@
             string newValidatedCommentText = "new_validated_comment_text";
             Comment comment = new Comment { CommentId = 1, UserId = 2, Date = DateTime.Now };
 
-            // Arrange - mock commentRepository
+            Expression<Func<Comment, object>>[] propertiesToInclude = { c => c.CommentEdit };
+
+            // Arrange - mock visitorRepository
             Mock<ICommentRepository> commentRepositoryMock = new Mock<ICommentRepository>();
 
             commentRepositoryMock.Setup(
-            r => r.Get(It.IsAny<Expression<Func<Comment, bool>>>(), null, It.IsAny<Expression<Func<Comment, object>>[]>()))
-            .Returns(new[] { comment });
+            r =>
+            r.GetById(comment.CommentId,
+            It.Is<Expression<Func<Comment, object>>[]>(
+            selector => ExpressionHelper.AreExpressionArraysEqual(selector, propertiesToInclude))))
+            .Returns(comment);
 
             CommentEdit commentEdit = null;
 
@@ -1204,8 +1281,11 @@
             Assert.IsTrue(new DateTime() != commentEdit.EditDate);
 
             commentRepositoryMock.Verify(
-            r => r.Get(It.IsAny<Expression<Func<Comment, bool>>>(), null, It.IsAny<Expression<Func<Comment, object>>[]>()),
-            Times.Once);
+            r =>
+            r.GetById(comment.CommentId,
+            It.Is<Expression<Func<Comment, object>>[]>(
+            selector => ExpressionHelper.AreExpressionArraysEqual(selector, propertiesToInclude))), Times.Once);
+
             commentRepositoryMock.Verify(
             r => r.Update(It.Is<Comment>(c => c.CommentId == comment.CommentId && c.Text == newValidatedCommentText)),
             Times.Once);
@@ -1237,12 +1317,17 @@
             string newCommentText = "new_comment's_text";
             Comment comment = new Comment { CommentId = 1, UserId = 2, Date = DateTime.Now, IsDeleted = true };
 
-            // Arrange - mock commentRepository
+            Expression<Func<Comment, object>>[] propertiesToInclude = { c => c.CommentEdit };
+
+            // Arrange - mock visitorRepository
             Mock<ICommentRepository> commentRepositoryMock = new Mock<ICommentRepository>();
 
             commentRepositoryMock.Setup(
-            r => r.Get(It.IsAny<Expression<Func<Comment, bool>>>(), null, It.IsAny<Expression<Func<Comment, object>>[]>()))
-            .Returns(new[] { comment });
+            r =>
+            r.GetById(comment.CommentId,
+            It.Is<Expression<Func<Comment, object>>[]>(
+            selector => ExpressionHelper.AreExpressionArraysEqual(selector, propertiesToInclude))))
+            .Returns(comment);
 
             // Arrange - mock unitOfWork
             Mock<IUnitOfWork> unitOfWorkMock = new Mock<IUnitOfWork>();
@@ -1259,8 +1344,11 @@
             () => target.Edit(comment.CommentId, comment.UserId, newCommentText));
 
             commentRepositoryMock.Verify(
-            r => r.Get(It.IsAny<Expression<Func<Comment, bool>>>(), null, It.IsAny<Expression<Func<Comment, object>>[]>()),
-            Times.Once);
+            r =>
+            r.GetById(comment.CommentId,
+            It.Is<Expression<Func<Comment, object>>[]>(
+            selector => ExpressionHelper.AreExpressionArraysEqual(selector, propertiesToInclude))), Times.Once);
+
             commentRepositoryMock.Verify(r => r.Update(It.Is<Comment>(c => c.CommentId == comment.CommentId)), Times.Never);
 
             unitOfWorkMock.Verify(r => r.Save(), Times.Never);
@@ -1302,12 +1390,17 @@
             int userId = 1;
             string newCommentText = "new_comment's_text";
 
-            // Arrange - mock commentRepository
+            Expression<Func<Comment, object>>[] propertiesToInclude = { c => c.CommentEdit };
+
+            // Arrange - mock visitorRepository
             Mock<ICommentRepository> commentRepositoryMock = new Mock<ICommentRepository>();
 
             commentRepositoryMock.Setup(
-            r => r.Get(It.IsAny<Expression<Func<Comment, bool>>>(), null, It.IsAny<Expression<Func<Comment, object>>[]>()))
-            .Returns(new Comment[] { });
+            r =>
+            r.GetById(commentId,
+            It.Is<Expression<Func<Comment, object>>[]>(
+            selector => ExpressionHelper.AreExpressionArraysEqual(selector, propertiesToInclude))))
+            .Returns((Comment)null);
 
             // Arrange - mock unitOfWork
             Mock<IUnitOfWork> unitOfWorkMock = new Mock<IUnitOfWork>();
@@ -1323,8 +1416,11 @@
             Assert.Throws<CommentNotFoundException>(() => target.Edit(commentId, userId, newCommentText));
 
             commentRepositoryMock.Verify(
-            r => r.Get(It.IsAny<Expression<Func<Comment, bool>>>(), null, It.IsAny<Expression<Func<Comment, object>>[]>()),
-            Times.Once);
+            r =>
+            r.GetById(commentId,
+            It.Is<Expression<Func<Comment, object>>[]>(
+            selector => ExpressionHelper.AreExpressionArraysEqual(selector, propertiesToInclude))), Times.Once);
+
             commentRepositoryMock.Verify(r => r.Update(It.Is<Comment>(c => c.CommentId == commentId)), Times.Never);
 
             unitOfWorkMock.Verify(r => r.Save(), Times.Never);
@@ -1341,12 +1437,17 @@
                 Date = DateTime.Now.AddSeconds(-(this._serviceSettings.PermittedPeriodForEditing + 1))
             };
 
-            // Arrange - mock commentRepository
+            Expression<Func<Comment, object>>[] propertiesToInclude = { c => c.CommentEdit };
+
+            // Arrange - mock visitorRepository
             Mock<ICommentRepository> commentRepositoryMock = new Mock<ICommentRepository>();
 
             commentRepositoryMock.Setup(
-            r => r.Get(It.IsAny<Expression<Func<Comment, bool>>>(), null, It.IsAny<Expression<Func<Comment, object>>[]>()))
-            .Returns(new[] { comment });
+            r =>
+            r.GetById(comment.CommentId,
+            It.Is<Expression<Func<Comment, object>>[]>(
+            selector => ExpressionHelper.AreExpressionArraysEqual(selector, propertiesToInclude))))
+            .Returns(comment);
 
             // Arrange - mock unitOfWork
             Mock<IUnitOfWork> unitOfWorkMock = new Mock<IUnitOfWork>();
@@ -1363,8 +1464,11 @@
             () => target.Edit(comment.CommentId, comment.UserId, newCommentText));
 
             commentRepositoryMock.Verify(
-            r => r.Get(It.IsAny<Expression<Func<Comment, bool>>>(), null, It.IsAny<Expression<Func<Comment, object>>[]>()),
-            Times.Once);
+            r =>
+            r.GetById(comment.CommentId,
+            It.Is<Expression<Func<Comment, object>>[]>(
+            selector => ExpressionHelper.AreExpressionArraysEqual(selector, propertiesToInclude))), Times.Once);
+
             commentRepositoryMock.Verify(r => r.Update(It.Is<Comment>(c => c.CommentId == comment.CommentId)), Times.Never);
 
             unitOfWorkMock.Verify(r => r.Save(), Times.Never);
@@ -1393,12 +1497,17 @@
             string newCommentText = "new_comment's_text";
             Comment comment = new Comment { CommentId = 2, UserId = userId + 1 };
 
-            // Arrange - mock commentRepository
+            Expression<Func<Comment, object>>[] propertiesToInclude = { c => c.CommentEdit };
+
+            // Arrange - mock visitorRepository
             Mock<ICommentRepository> commentRepositoryMock = new Mock<ICommentRepository>();
 
             commentRepositoryMock.Setup(
-            r => r.Get(It.IsAny<Expression<Func<Comment, bool>>>(), null, It.IsAny<Expression<Func<Comment, object>>[]>()))
-            .Returns(new[] { comment });
+            r =>
+            r.GetById(comment.CommentId,
+            It.Is<Expression<Func<Comment, object>>[]>(
+            selector => ExpressionHelper.AreExpressionArraysEqual(selector, propertiesToInclude))))
+            .Returns(comment);
 
             // Arrange - mock unitOfWork
             Mock<IUnitOfWork> unitOfWorkMock = new Mock<IUnitOfWork>();
@@ -1414,8 +1523,11 @@
             Assert.Throws<EditingCommentIsForbiddenException>(() => target.Edit(comment.CommentId, userId, newCommentText));
 
             commentRepositoryMock.Verify(
-            r => r.Get(It.IsAny<Expression<Func<Comment, bool>>>(), null, It.IsAny<Expression<Func<Comment, object>>[]>()),
-            Times.Once);
+            r =>
+            r.GetById(comment.CommentId,
+            It.Is<Expression<Func<Comment, object>>[]>(
+            selector => ExpressionHelper.AreExpressionArraysEqual(selector, propertiesToInclude))), Times.Once);
+
             commentRepositoryMock.Verify(r => r.Update(It.Is<Comment>(c => c.CommentId == comment.CommentId)), Times.Never);
 
             unitOfWorkMock.Verify(r => r.Save(), Times.Never);
@@ -1445,12 +1557,17 @@
 
             Comment comment = new Comment { CommentId = 4, ArticleId = 5, Comment1 = commentReplies.ToList() };
 
-            // Arrange - mock commentRepository
+            Expression<Func<Comment, object>>[] propertiesToInclude = { c => c.Comment1 };
+
+            // Arrange - mock visitorRepository
             Mock<ICommentRepository> commentRepositoryMock = new Mock<ICommentRepository>();
 
             commentRepositoryMock.Setup(
-            r => r.Get(It.IsAny<Expression<Func<Comment, bool>>>(), null, It.IsAny<Expression<Func<Comment, object>>[]>()))
-            .Returns(new[] { comment });
+            r =>
+            r.GetById(comment.CommentId,
+            It.Is<Expression<Func<Comment, object>>[]>(
+            selector => ExpressionHelper.AreExpressionArraysEqual(selector, propertiesToInclude))))
+            .Returns(comment);
 
             IEnumerable<Comment> newCommentReplies = null;
 
@@ -1495,8 +1612,10 @@
             Assert.IsTrue(newCommentReplies.Contains(reply));
 
             commentRepositoryMock.Verify(
-            r => r.Get(It.IsAny<Expression<Func<Comment, bool>>>(), null, It.IsAny<Expression<Func<Comment, object>>[]>()),
-            Times.Once);
+            r =>
+            r.GetById(comment.CommentId,
+            It.Is<Expression<Func<Comment, object>>[]>(
+            selector => ExpressionHelper.AreExpressionArraysEqual(selector, propertiesToInclude))), Times.Once);
 
             commentRepositoryMock.Verify(r => r.Update(It.Is<Comment>(c => c.CommentId == comment.CommentId)), Times.Once);
 
@@ -1558,12 +1677,17 @@
             string commentText = "comment_text";
             Comment comment = new Comment { CommentId = 2, TreeLevel = (byte)this._serviceSettings.MaxCommentTreeLevel };
 
-            // Arrange - mock commentRepository
+            Expression<Func<Comment, object>>[] propertiesToInclude = { c => c.Comment1 };
+
+            // Arrange - mock visitorRepository
             Mock<ICommentRepository> commentRepositoryMock = new Mock<ICommentRepository>();
 
             commentRepositoryMock.Setup(
-            r => r.Get(It.IsAny<Expression<Func<Comment, bool>>>(), null, It.IsAny<Expression<Func<Comment, object>>[]>()))
-            .Returns(new[] { comment });
+            r =>
+            r.GetById(comment.CommentId,
+            It.Is<Expression<Func<Comment, object>>[]>(
+            selector => ExpressionHelper.AreExpressionArraysEqual(selector, propertiesToInclude))))
+            .Returns(comment);
 
             // Arrange - mock unitOfWork
             Mock<IUnitOfWork> unitOfWorkMock = new Mock<IUnitOfWork>();
@@ -1579,8 +1703,10 @@
             Assert.Throws<MaxCommentTreeLevelReachedException>(() => target.Reply(comment.CommentId, userId, commentText));
 
             commentRepositoryMock.Verify(
-            r => r.Get(It.IsAny<Expression<Func<Comment, bool>>>(), null, It.IsAny<Expression<Func<Comment, object>>[]>()),
-            Times.Once);
+            r =>
+            r.GetById(comment.CommentId,
+            It.Is<Expression<Func<Comment, object>>[]>(
+            selector => ExpressionHelper.AreExpressionArraysEqual(selector, propertiesToInclude))), Times.Once);
 
             commentRepositoryMock.Verify(r => r.Update(It.Is<Comment>(c => c.CommentId == comment.CommentId)), Times.Never);
 
@@ -1595,12 +1721,17 @@
             int userId = 2;
             string commentText = "comment_text";
 
-            // Arrange - mock articleRepository
+            Expression<Func<Comment, object>>[] propertiesToInclude = { c => c.Comment1 };
+
+            // Arrange - mock visitorRepository
             Mock<ICommentRepository> commentRepositoryMock = new Mock<ICommentRepository>();
 
             commentRepositoryMock.Setup(
-            r => r.Get(It.IsAny<Expression<Func<Comment, bool>>>(), null, It.IsAny<Expression<Func<Comment, object>>[]>()))
-            .Returns(new Comment[] { });
+            r =>
+            r.GetById(commentId,
+            It.Is<Expression<Func<Comment, object>>[]>(
+            selector => ExpressionHelper.AreExpressionArraysEqual(selector, propertiesToInclude))))
+            .Returns((Comment)null);
 
             // Arrange - mock unitOfWork
             Mock<IUnitOfWork> unitOfWorkMock = new Mock<IUnitOfWork>();
@@ -1616,8 +1747,10 @@
             Assert.Throws<CommentNotFoundException>(() => target.Reply(commentId, userId, commentText));
 
             commentRepositoryMock.Verify(
-            r => r.Get(It.IsAny<Expression<Func<Comment, bool>>>(), null, It.IsAny<Expression<Func<Comment, object>>[]>()),
-            Times.Once);
+            r =>
+            r.GetById(commentId,
+            It.Is<Expression<Func<Comment, object>>[]>(
+            selector => ExpressionHelper.AreExpressionArraysEqual(selector, propertiesToInclude))), Times.Once);
 
             commentRepositoryMock.Verify(r => r.Update(It.Is<Comment>(c => c.CommentId == commentId)), Times.Never);
 
@@ -1632,12 +1765,17 @@
             int userId = 2;
             string commentText = "comment_text";
 
-            // Arrange - mock articleRepository
+            Expression<Func<Comment, object>>[] propertiesToInclude = { c => c.Comment1 };
+
+            // Arrange - mock visitorRepository
             Mock<ICommentRepository> commentRepositoryMock = new Mock<ICommentRepository>();
 
             commentRepositoryMock.Setup(
-            r => r.Get(It.IsAny<Expression<Func<Comment, bool>>>(), null, It.IsAny<Expression<Func<Comment, object>>[]>()))
-            .Returns(new[] { comment });
+            r =>
+            r.GetById(comment.CommentId,
+            It.Is<Expression<Func<Comment, object>>[]>(
+            selector => ExpressionHelper.AreExpressionArraysEqual(selector, propertiesToInclude))))
+            .Returns(comment);
 
             // Arrange - mock userRepository
             Mock<IUserRepository> userRepositoryMock = new Mock<IUserRepository>();
@@ -1662,8 +1800,10 @@
             Assert.Throws<UserNotFoundException>(() => target.Reply(comment.CommentId, userId, commentText));
 
             commentRepositoryMock.Verify(
-            r => r.Get(It.IsAny<Expression<Func<Comment, bool>>>(), null, It.IsAny<Expression<Func<Comment, object>>[]>()),
-            Times.Once);
+            r =>
+            r.GetById(comment.CommentId,
+            It.Is<Expression<Func<Comment, object>>[]>(
+            selector => ExpressionHelper.AreExpressionArraysEqual(selector, propertiesToInclude))), Times.Once);
 
             commentRepositoryMock.Verify(r => r.Update(It.Is<Comment>(c => c.CommentId == comment.CommentId)), Times.Never);
 

@@ -37,9 +37,7 @@
             Guard.IntMoreThanZero(commentId, "commentId");
             Guard.IntMoreThanZero(userId, "userId");
 
-            Comment comment =
-            this._unitOfWork.CommentRepository.Get(c => c.CommentId == commentId, selector: c => c.CommentVotes)
-            .FirstOrDefault();
+            Comment comment = this._unitOfWork.CommentRepository.GetById(commentId, c => c.CommentVotes);
 
             if (comment == null)
             {
@@ -176,9 +174,7 @@
             Guard.IntMoreThanZero(commentId, "commentId");
             Guard.IntMoreThanZero(userId, "userId");
 
-            Comment comment =
-            this._unitOfWork.CommentRepository.Get(c => c.CommentId == commentId, selector: c => c.CommentVotes)
-            .FirstOrDefault();
+            Comment comment = this._unitOfWork.CommentRepository.GetById(commentId, c => c.CommentVotes);
 
             if (comment == null)
             {
@@ -205,9 +201,7 @@
             Guard.IntMoreThanZero(userId, "userId");
             Guard.NotNullOrEmpty(newCommentText, "newCommentText");
 
-            Comment comment =
-            this._unitOfWork.CommentRepository.Get(c => c.CommentId == commentId, selector: c => c.CommentEdit)
-            .FirstOrDefault();
+            Comment comment = this._unitOfWork.CommentRepository.GetById(commentId, c => c.CommentEdit);
 
             if (comment == null)
             {
@@ -256,9 +250,7 @@
             Guard.IntMoreThanZero(userId, "userId");
             Guard.NotNullOrEmpty(commentText, "commentText");
 
-            Comment comment =
-            this._unitOfWork.CommentRepository.Get(c => c.CommentId == commentId, selector: c => c.Comment1)
-            .FirstOrDefault();
+            Comment comment = this._unitOfWork.CommentRepository.GetById(commentId, c => c.Comment1);
 
             if (comment == null)
             {
