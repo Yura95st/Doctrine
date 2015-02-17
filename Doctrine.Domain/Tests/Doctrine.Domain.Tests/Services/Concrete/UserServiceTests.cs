@@ -247,7 +247,6 @@
             int userId = 1;
             int articleId = 2;
 
-            // Arrange - mock userRepository
             Expression<Func<User, object>>[] propertiesToInclude = { u => u.UserFavorites };
 
             // Arrange - mock userRepository

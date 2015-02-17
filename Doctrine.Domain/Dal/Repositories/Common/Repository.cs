@@ -49,9 +49,12 @@
                 query = query.Where(filter);
             }
 
-            for (int i = 0; i < selector.Length; i++)
+            if (selector != null)
             {
-                query = query.Include(selector[i]);
+                foreach (Expression<Func<TEntity, object>> selectorItem in selector)
+                {
+                    query = query.Include(selectorItem);
+                }
             }
 
             if (orderBy != null)

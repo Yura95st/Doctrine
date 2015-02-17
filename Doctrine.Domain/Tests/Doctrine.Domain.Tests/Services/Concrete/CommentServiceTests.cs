@@ -52,7 +52,7 @@
 
             Expression<Func<Comment, object>>[] propertiesToInclude = { c => c.CommentVotes };
 
-            // Arrange - mock visitorRepository
+            // Arrange - mock commentRepository
             Mock<ICommentRepository> commentRepositoryMock = new Mock<ICommentRepository>();
 
             commentRepositoryMock.Setup(
@@ -98,7 +98,7 @@
 
             Expression<Func<Comment, object>>[] propertiesToInclude = { c => c.CommentVotes };
 
-            // Arrange - mock visitorRepository
+            // Arrange - mock commentRepository
             Mock<ICommentRepository> commentRepositoryMock = new Mock<ICommentRepository>();
 
             commentRepositoryMock.Setup(
@@ -161,7 +161,7 @@
 
             Expression<Func<Comment, object>>[] propertiesToInclude = { c => c.CommentVotes };
 
-            // Arrange - mock visitorRepository
+            // Arrange - mock commentRepository
             Mock<ICommentRepository> commentRepositoryMock = new Mock<ICommentRepository>();
 
             commentRepositoryMock.Setup(
@@ -238,7 +238,7 @@
 
             Expression<Func<Comment, object>>[] propertiesToInclude = { c => c.CommentVotes };
 
-            // Arrange - mock visitorRepository
+            // Arrange - mock commentRepository
             Mock<ICommentRepository> commentRepositoryMock = new Mock<ICommentRepository>();
 
             commentRepositoryMock.Setup(
@@ -303,7 +303,7 @@
 
             Expression<Func<Comment, object>>[] propertiesToInclude = { c => c.CommentVotes };
 
-            // Arrange - mock visitorRepository
+            // Arrange - mock commentRepository
             Mock<ICommentRepository> commentRepositoryMock = new Mock<ICommentRepository>();
 
             commentRepositoryMock.Setup(
@@ -1003,7 +1003,7 @@
 
             Expression<Func<Comment, object>>[] propertiesToInclude = { c => c.CommentVotes };
 
-            // Arrange - mock visitorRepository
+            // Arrange - mock commentRepository
             Mock<ICommentRepository> commentRepositoryMock = new Mock<ICommentRepository>();
 
             commentRepositoryMock.Setup(
@@ -1069,7 +1069,7 @@
 
             Expression<Func<Comment, object>>[] propertiesToInclude = { c => c.CommentVotes };
 
-            // Arrange - mock visitorRepository
+            // Arrange - mock commentRepository
             Mock<ICommentRepository> commentRepositoryMock = new Mock<ICommentRepository>();
 
             commentRepositoryMock.Setup(
@@ -1122,7 +1122,7 @@
 
             Expression<Func<Comment, object>>[] propertiesToInclude = { c => c.CommentVotes };
 
-            // Arrange - mock visitorRepository
+            // Arrange - mock commentRepository
             Mock<ICommentRepository> commentRepositoryMock = new Mock<ICommentRepository>();
 
             commentRepositoryMock.Setup(
@@ -1182,7 +1182,7 @@
 
             Expression<Func<Comment, object>>[] propertiesToInclude = { c => c.CommentEdit };
 
-            // Arrange - mock visitorRepository
+            // Arrange - mock commentRepository
             Mock<ICommentRepository> commentRepositoryMock = new Mock<ICommentRepository>();
 
             commentRepositoryMock.Setup(
@@ -1244,7 +1244,7 @@
 
             Expression<Func<Comment, object>>[] propertiesToInclude = { c => c.CommentEdit };
 
-            // Arrange - mock visitorRepository
+            // Arrange - mock commentRepository
             Mock<ICommentRepository> commentRepositoryMock = new Mock<ICommentRepository>();
 
             commentRepositoryMock.Setup(
@@ -1319,7 +1319,7 @@
 
             Expression<Func<Comment, object>>[] propertiesToInclude = { c => c.CommentEdit };
 
-            // Arrange - mock visitorRepository
+            // Arrange - mock commentRepository
             Mock<ICommentRepository> commentRepositoryMock = new Mock<ICommentRepository>();
 
             commentRepositoryMock.Setup(
@@ -1392,7 +1392,7 @@
 
             Expression<Func<Comment, object>>[] propertiesToInclude = { c => c.CommentEdit };
 
-            // Arrange - mock visitorRepository
+            // Arrange - mock commentRepository
             Mock<ICommentRepository> commentRepositoryMock = new Mock<ICommentRepository>();
 
             commentRepositoryMock.Setup(
@@ -1439,7 +1439,7 @@
 
             Expression<Func<Comment, object>>[] propertiesToInclude = { c => c.CommentEdit };
 
-            // Arrange - mock visitorRepository
+            // Arrange - mock commentRepository
             Mock<ICommentRepository> commentRepositoryMock = new Mock<ICommentRepository>();
 
             commentRepositoryMock.Setup(
@@ -1499,7 +1499,7 @@
 
             Expression<Func<Comment, object>>[] propertiesToInclude = { c => c.CommentEdit };
 
-            // Arrange - mock visitorRepository
+            // Arrange - mock commentRepository
             Mock<ICommentRepository> commentRepositoryMock = new Mock<ICommentRepository>();
 
             commentRepositoryMock.Setup(
@@ -1559,7 +1559,7 @@
 
             Expression<Func<Comment, object>>[] propertiesToInclude = { c => c.Comment1 };
 
-            // Arrange - mock visitorRepository
+            // Arrange - mock commentRepository
             Mock<ICommentRepository> commentRepositoryMock = new Mock<ICommentRepository>();
 
             commentRepositoryMock.Setup(
@@ -1679,7 +1679,7 @@
 
             Expression<Func<Comment, object>>[] propertiesToInclude = { c => c.Comment1 };
 
-            // Arrange - mock visitorRepository
+            // Arrange - mock commentRepository
             Mock<ICommentRepository> commentRepositoryMock = new Mock<ICommentRepository>();
 
             commentRepositoryMock.Setup(
@@ -1723,7 +1723,7 @@
 
             Expression<Func<Comment, object>>[] propertiesToInclude = { c => c.Comment1 };
 
-            // Arrange - mock visitorRepository
+            // Arrange - mock commentRepository
             Mock<ICommentRepository> commentRepositoryMock = new Mock<ICommentRepository>();
 
             commentRepositoryMock.Setup(
@@ -1767,7 +1767,7 @@
 
             Expression<Func<Comment, object>>[] propertiesToInclude = { c => c.Comment1 };
 
-            // Arrange - mock visitorRepository
+            // Arrange - mock commentRepository
             Mock<ICommentRepository> commentRepositoryMock = new Mock<ICommentRepository>();
 
             commentRepositoryMock.Setup(
