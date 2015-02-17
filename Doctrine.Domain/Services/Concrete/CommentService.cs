@@ -294,14 +294,6 @@
             return replyComment;
         }
 
-        public CommentServiceSettings ServiceSettings
-        {
-            get
-            {
-                return this._serviceSettings;
-            }
-        }
-
         #endregion
 
         private static bool IsPermittedPeriodExpired(DateTime dateTime, int permittedPeriod)

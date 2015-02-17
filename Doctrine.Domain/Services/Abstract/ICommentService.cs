@@ -5,13 +5,6 @@
 
     public interface ICommentService
     {
-        /// <summary>Gets the service settings.</summary>
-        /// <value>The service settings.</value>
-        CommentServiceSettings ServiceSettings
-        {
-            get;
-        }
-
         /// <summary>Adds the user's vote to the comment with specified identifier.</summary>
         /// <param name="commentId">The comment identifier.</param>
         /// <param name="userId">The user identifier.</param>
