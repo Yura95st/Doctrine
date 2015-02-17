@@ -54,9 +54,7 @@
             Guard.IntMoreThanZero(visitorId, "userId");
             Guard.IntMoreThanZero(articleId, "articleId");
 
-            Visitor visitor =
-            this._unitOfWork.VisitorRepository.Get(v => v.VisitorId == visitorId, selector: v => v.ArticleVisitors)
-            .FirstOrDefault();
+            Visitor visitor = this._unitOfWork.VisitorRepository.GetById(visitorId, v => v.ArticleVisitors);
 
             if (visitor == null)
             {

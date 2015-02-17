@@ -48,6 +48,7 @@
     <Compile Include="Services\Concrete\UserServiceTests.cs" />
     <Compile Include="Services\Concrete\VisitorServiceTests.cs" />
     <Compile Include="TestHelpers\CollectionHelper.cs" />
+    <Compile Include="TestHelpers\ExpressionHelper.cs" />
     <Compile Include="Utils\GuardTests.cs" />
     <Compile Include="Utils\SecuredPasswordHelper\SecuredPasswordHelperTests.cs" />
     <Compile Include="Validation\Concrete\UserValidationTests.cs" />

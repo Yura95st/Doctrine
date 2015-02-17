@@ -12,6 +12,7 @@
     using Doctrine.Domain.Models;
     using Doctrine.Domain.Services.Abstract;
     using Doctrine.Domain.Services.Concrete;
+    using Doctrine.Domain.Tests.TestHelpers;
     using Doctrine.Domain.Validation.Abstract;
 
     using Moq;
@@ -27,11 +28,6 @@
         public void Init()
         {
             this.MockVisitorValidation();
-
-            //mockRepository.Setup(r => r.Get(It.IsAny<Expression<Func<Visitor, bool>>>(), null, ""))
-            //.Returns(
-            //(Expression<Func<Visitor, bool>> predicate, Func<IQueryable<Visitor>, IOrderedQueryable<Visitor>> orderBy,
-            // string includeProperties) => new[] { visitor }.Where(predicate.Compile()));
         }
 
         [Test]
@@ -143,12 +139,17 @@
             Visitor visitor = new Visitor { VisitorId = visitorId, ArticleVisitors = articleVisitors.ToList() };
             Article article = new Article { ArticleId = articleId };
 
+            Expression<Func<Visitor, object>>[] propertiesToInclude = { v => v.ArticleVisitors };
+
             // Arrange - mock visitorRepository
             Mock<IVisitorRepository> visitorRepositoryMock = new Mock<IVisitorRepository>();
 
             visitorRepositoryMock.Setup(
-            r => r.Get(It.IsAny<Expression<Func<Visitor, bool>>>(), null, It.IsAny<Expression<Func<Visitor, object>>[]>()))
-            .Returns(new[] { visitor });
+            r =>
+            r.GetById(visitorId,
+            It.Is<Expression<Func<Visitor, object>>[]>(
+            selector => ExpressionHelper.AreExpressionArraysEqual(selector, propertiesToInclude))))
+            .Returns(visitor);
 
             IEnumerable<ArticleVisitor> newArticleVisitors = null;
 
@@ -186,8 +187,11 @@
             Assert.IsTrue(new DateTime() != articleVisitor.LastViewDate);
 
             visitorRepositoryMock.Verify(
-            r => r.Get(It.IsAny<Expression<Func<Visitor, bool>>>(), null, It.IsAny<Expression<Func<Visitor, object>>[]>()),
-            Times.Once);
+            r =>
+            r.GetById(visitorId,
+            It.Is<Expression<Func<Visitor, object>>[]>(
+            selector => ExpressionHelper.AreExpressionArraysEqual(selector, propertiesToInclude))), Times.Once);
+
             visitorRepositoryMock.Verify(r => r.Update(It.Is<Visitor>(v => v.VisitorId == visitorId)), Times.Once);
 
             articleRepositoryMock.Verify(r => r.GetById(articleId), Times.Once);
@@ -211,12 +215,17 @@
 
             Visitor visitor = new Visitor { VisitorId = visitorId, ArticleVisitors = articleVisitors.ToList() };
 
+            Expression<Func<Visitor, object>>[] propertiesToInclude = { v => v.ArticleVisitors };
+
             // Arrange - mock visitorRepository
             Mock<IVisitorRepository> visitorRepositoryMock = new Mock<IVisitorRepository>();
 
             visitorRepositoryMock.Setup(
-            r => r.Get(It.IsAny<Expression<Func<Visitor, bool>>>(), null, It.IsAny<Expression<Func<Visitor, object>>[]>()))
-            .Returns(new[] { visitor });
+            r =>
+            r.GetById(visitorId,
+            It.Is<Expression<Func<Visitor, object>>[]>(
+            selector => ExpressionHelper.AreExpressionArraysEqual(selector, propertiesToInclude))))
+            .Returns(visitor);
 
             IEnumerable<ArticleVisitor> newArticleVisitors = null;
 
@@ -246,8 +255,11 @@
             .TotalMilliseconds > 0);
 
             visitorRepositoryMock.Verify(
-            r => r.Get(It.IsAny<Expression<Func<Visitor, bool>>>(), null, It.IsAny<Expression<Func<Visitor, object>>[]>()),
-            Times.Once);
+            r =>
+            r.GetById(visitorId,
+            It.Is<Expression<Func<Visitor, object>>[]>(
+            selector => ExpressionHelper.AreExpressionArraysEqual(selector, propertiesToInclude))), Times.Once);
+
             visitorRepositoryMock.Verify(r => r.Update(It.Is<Visitor>(v => v.VisitorId == visitorId)), Times.Once);
 
             unitOfWorkMock.Verify(u => u.Save(), Times.Once);
@@ -274,12 +286,17 @@
 
             int articleId = 2;
 
+            Expression<Func<Visitor, object>>[] propertiesToInclude = { v => v.ArticleVisitors };
+
             // Arrange - mock visitorRepository
             Mock<IVisitorRepository> visitorRepositoryMock = new Mock<IVisitorRepository>();
 
             visitorRepositoryMock.Setup(
-            r => r.Get(It.IsAny<Expression<Func<Visitor, bool>>>(), null, It.IsAny<Expression<Func<Visitor, object>>[]>()))
-            .Returns(new[] { visitor });
+            r =>
+            r.GetById(visitor.VisitorId,
+            It.Is<Expression<Func<Visitor, object>>[]>(
+            selector => ExpressionHelper.AreExpressionArraysEqual(selector, propertiesToInclude))))
+            .Returns(visitor);
 
             // Arrange - mock articleRepository
             Mock<IArticleRepository> articleRepositoryMock = new Mock<IArticleRepository>();
@@ -303,8 +320,11 @@
             Assert.Throws<ArticleNotFoundException>(() => target.ViewArticle(visitor.VisitorId, articleId));
 
             visitorRepositoryMock.Verify(
-            r => r.Get(It.IsAny<Expression<Func<Visitor, bool>>>(), null, It.IsAny<Expression<Func<Visitor, object>>[]>()),
-            Times.Once);
+            r =>
+            r.GetById(visitor.VisitorId,
+            It.Is<Expression<Func<Visitor, object>>[]>(
+            selector => ExpressionHelper.AreExpressionArraysEqual(selector, propertiesToInclude))), Times.Once);
+
             visitorRepositoryMock.Verify(r => r.Update(It.Is<Visitor>(v => v.VisitorId == visitor.VisitorId)), Times.Never);
 
             articleRepositoryMock.Verify(r => r.GetById(articleId), Times.Once);
@@ -319,12 +339,17 @@
             int visitorId = 1;
             int articleId = 2;
 
+            Expression<Func<Visitor, object>>[] propertiesToInclude = { v => v.ArticleVisitors };
+
             // Arrange - mock visitorRepository
             Mock<IVisitorRepository> visitorRepositoryMock = new Mock<IVisitorRepository>();
 
             visitorRepositoryMock.Setup(
-            r => r.Get(It.IsAny<Expression<Func<Visitor, bool>>>(), null, It.IsAny<Expression<Func<Visitor, object>>[]>()))
-            .Returns(new Visitor[] { });
+            r =>
+            r.GetById(visitorId,
+            It.Is<Expression<Func<Visitor, object>>[]>(
+            selector => ExpressionHelper.AreExpressionArraysEqual(selector, propertiesToInclude))))
+            .Returns((Visitor)null);
 
             // Arrange - mock unitOfWork
             Mock<IUnitOfWork> unitOfWorkMock = new Mock<IUnitOfWork>();
@@ -339,8 +364,11 @@
             Assert.Throws<VisitorNotFoundException>(() => target.ViewArticle(visitorId, articleId));
 
             visitorRepositoryMock.Verify(
-            r => r.Get(It.IsAny<Expression<Func<Visitor, bool>>>(), null, It.IsAny<Expression<Func<Visitor, object>>[]>()),
-            Times.Once);
+            r =>
+            r.GetById(visitorId,
+            It.Is<Expression<Func<Visitor, object>>[]>(
+            selector => ExpressionHelper.AreExpressionArraysEqual(selector, propertiesToInclude))), Times.Once);
+
             visitorRepositoryMock.Verify(r => r.Update(It.Is<Visitor>(v => v.VisitorId == visitorId)), Times.Never);
 
             unitOfWorkMock.Verify(u => u.Save(), Times.Never);
