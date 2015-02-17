@@ -14,6 +14,7 @@
     using Doctrine.Domain.Models;
     using Doctrine.Domain.Services.Abstract;
     using Doctrine.Domain.Services.Concrete;
+    using Doctrine.Domain.Tests.TestHelpers;
     using Doctrine.Domain.Utils.SecuredPasswordHelper;
     using Doctrine.Domain.Utils.SecuredPasswordHelper.Model;
     using Doctrine.Domain.Validation.Abstract;
@@ -44,12 +45,17 @@
             User user = new User { UserId = userId, UserFavorites = userFavorites.ToList() };
             Article article = new Article { ArticleId = articleId };
 
+            Expression<Func<User, object>>[] propertiesToInclude = { u => u.UserFavorites };
+
             // Arrange - mock userRepository
             Mock<IUserRepository> userRepositoryMock = new Mock<IUserRepository>();
 
             userRepositoryMock.Setup(
-            r => r.Get(It.IsAny<Expression<Func<User, bool>>>(), null, It.IsAny<Expression<Func<User, object>>[]>()))
-            .Returns(new[] { user });
+            r =>
+            r.GetById(userId,
+            It.Is<Expression<Func<User, object>>[]>(
+            selector => ExpressionHelper.AreExpressionArraysEqual(selector, propertiesToInclude))))
+            .Returns(user);
 
             IEnumerable<UserFavorite> newUserFavorites = null;
 
@@ -86,8 +92,11 @@
             Assert.IsTrue(new DateTime() != userFavorite.AddDate);
 
             userRepositoryMock.Verify(
-            r => r.Get(It.IsAny<Expression<Func<User, bool>>>(), null, It.IsAny<Expression<Func<User, object>>[]>()),
-            Times.Once);
+            r =>
+            r.GetById(userId,
+            It.Is<Expression<Func<User, object>>[]>(
+            selector => ExpressionHelper.AreExpressionArraysEqual(selector, propertiesToInclude))), Times.Once);
+
             userRepositoryMock.Verify(r => r.Update(It.Is<User>(u => u.UserId == userId)), Times.Once);
 
             articleRepositoryMock.Verify(r => r.GetById(articleId), Times.Once);
@@ -111,12 +120,17 @@
 
             User user = new User { UserId = userId, UserFavorites = userFavorites.ToList() };
 
+            Expression<Func<User, object>>[] propertiesToInclude = { u => u.UserFavorites };
+
             // Arrange - mock userRepository
             Mock<IUserRepository> userRepositoryMock = new Mock<IUserRepository>();
 
             userRepositoryMock.Setup(
-            r => r.Get(It.IsAny<Expression<Func<User, bool>>>(), null, It.IsAny<Expression<Func<User, object>>[]>()))
-            .Returns(new[] { user });
+            r =>
+            r.GetById(userId,
+            It.Is<Expression<Func<User, object>>[]>(
+            selector => ExpressionHelper.AreExpressionArraysEqual(selector, propertiesToInclude))))
+            .Returns(user);
 
             IEnumerable<UserFavorite> newUserFavorites = null;
 
@@ -147,8 +161,11 @@
             .TotalMilliseconds > 0);
 
             userRepositoryMock.Verify(
-            r => r.Get(It.IsAny<Expression<Func<User, bool>>>(), null, It.IsAny<Expression<Func<User, object>>[]>()),
-            Times.Once);
+            r =>
+            r.GetById(userId,
+            It.Is<Expression<Func<User, object>>[]>(
+            selector => ExpressionHelper.AreExpressionArraysEqual(selector, propertiesToInclude))), Times.Once);
+
             userRepositoryMock.Verify(r => r.Update(It.Is<User>(u => u.UserId == userId)), Times.Once);
 
             unitOfWorkMock.Verify(u => u.Save(), Times.Once);
@@ -176,12 +193,17 @@
 
             int articleId = 2;
 
+            Expression<Func<User, object>>[] propertiesToInclude = { u => u.UserFavorites };
+
             // Arrange - mock userRepository
             Mock<IUserRepository> userRepositoryMock = new Mock<IUserRepository>();
 
             userRepositoryMock.Setup(
-            r => r.Get(It.IsAny<Expression<Func<User, bool>>>(), null, It.IsAny<Expression<Func<User, object>>[]>()))
-            .Returns(new[] { user });
+            r =>
+            r.GetById(user.UserId,
+            It.Is<Expression<Func<User, object>>[]>(
+            selector => ExpressionHelper.AreExpressionArraysEqual(selector, propertiesToInclude))))
+            .Returns(user);
 
             // Arrange - mock articleRepository
             Mock<IArticleRepository> articleRepositoryMock = new Mock<IArticleRepository>();
@@ -206,8 +228,11 @@
             Assert.Throws<ArticleNotFoundException>(() => target.AddArticleToFavorites(user.UserId, articleId));
 
             userRepositoryMock.Verify(
-            r => r.Get(It.IsAny<Expression<Func<User, bool>>>(), null, It.IsAny<Expression<Func<User, object>>[]>()),
-            Times.Once);
+            r =>
+            r.GetById(user.UserId,
+            It.Is<Expression<Func<User, object>>[]>(
+            selector => ExpressionHelper.AreExpressionArraysEqual(selector, propertiesToInclude))), Times.Once);
+
             userRepositoryMock.Verify(r => r.Update(It.Is<User>(u => u.UserId == user.UserId)), Times.Never);
 
             articleRepositoryMock.Verify(r => r.GetById(articleId), Times.Once);
@@ -223,10 +248,17 @@
             int articleId = 2;
 
             // Arrange - mock userRepository
+            Expression<Func<User, object>>[] propertiesToInclude = { u => u.UserFavorites };
+
+            // Arrange - mock userRepository
             Mock<IUserRepository> userRepositoryMock = new Mock<IUserRepository>();
+
             userRepositoryMock.Setup(
-            r => r.Get(It.IsAny<Expression<Func<User, bool>>>(), null, It.IsAny<Expression<Func<User, object>>[]>()))
-            .Returns(new User[] { });
+            r =>
+            r.GetById(userId,
+            It.Is<Expression<Func<User, object>>[]>(
+            selector => ExpressionHelper.AreExpressionArraysEqual(selector, propertiesToInclude))))
+            .Returns((User)null);
 
             // Arrange - mock unitOfWork
             Mock<IUnitOfWork> unitOfWorkMock = new Mock<IUnitOfWork>();
@@ -242,8 +274,11 @@
             Assert.Throws<UserNotFoundException>(() => target.AddArticleToFavorites(userId, articleId));
 
             userRepositoryMock.Verify(
-            r => r.Get(It.IsAny<Expression<Func<User, bool>>>(), null, It.IsAny<Expression<Func<User, object>>[]>()),
-            Times.Once);
+            r =>
+            r.GetById(userId,
+            It.Is<Expression<Func<User, object>>[]>(
+            selector => ExpressionHelper.AreExpressionArraysEqual(selector, propertiesToInclude))), Times.Once);
+
             userRepositoryMock.Verify(r => r.Update(It.Is<User>(u => u.UserId == userId)), Times.Never);
 
             unitOfWorkMock.Verify(u => u.Save(), Times.Never);
@@ -838,12 +873,17 @@
             User user = new User { UserId = userId, UserReadHistories = userReadHistories.ToList() };
             Article article = new Article { ArticleId = articleId };
 
+            Expression<Func<User, object>>[] propertiesToInclude = { u => u.UserReadHistories };
+
             // Arrange - mock userRepository
             Mock<IUserRepository> userRepositoryMock = new Mock<IUserRepository>();
 
             userRepositoryMock.Setup(
-            r => r.Get(It.IsAny<Expression<Func<User, bool>>>(), null, It.IsAny<Expression<Func<User, object>>[]>()))
-            .Returns(new[] { user });
+            r =>
+            r.GetById(userId,
+            It.Is<Expression<Func<User, object>>[]>(
+            selector => ExpressionHelper.AreExpressionArraysEqual(selector, propertiesToInclude))))
+            .Returns(user);
 
             IEnumerable<UserReadHistory> newUserReadHistories = null;
 
@@ -882,8 +922,11 @@
             Assert.IsTrue(new DateTime() != userReadHistory.ReadDate);
 
             userRepositoryMock.Verify(
-            r => r.Get(It.IsAny<Expression<Func<User, bool>>>(), null, It.IsAny<Expression<Func<User, object>>[]>()),
-            Times.Once);
+            r =>
+            r.GetById(userId,
+            It.Is<Expression<Func<User, object>>[]>(
+            selector => ExpressionHelper.AreExpressionArraysEqual(selector, propertiesToInclude))), Times.Once);
+
             userRepositoryMock.Verify(r => r.Update(It.Is<User>(u => u.UserId == userId)), Times.Once);
 
             articleRepositoryMock.Verify(r => r.GetById(articleId), Times.Once);
@@ -907,12 +950,17 @@
 
             User user = new User { UserId = userId, UserReadHistories = userReadHistories.ToList() };
 
+            Expression<Func<User, object>>[] propertiesToInclude = { u => u.UserReadHistories };
+
             // Arrange - mock userRepository
             Mock<IUserRepository> userRepositoryMock = new Mock<IUserRepository>();
 
             userRepositoryMock.Setup(
-            r => r.Get(It.IsAny<Expression<Func<User, bool>>>(), null, It.IsAny<Expression<Func<User, object>>[]>()))
-            .Returns(new[] { user });
+            r =>
+            r.GetById(userId,
+            It.Is<Expression<Func<User, object>>[]>(
+            selector => ExpressionHelper.AreExpressionArraysEqual(selector, propertiesToInclude))))
+            .Returns(user);
 
             IEnumerable<UserReadHistory> newUserReadHistories = null;
 
@@ -943,8 +991,11 @@
             .TotalMilliseconds > 0);
 
             userRepositoryMock.Verify(
-            r => r.Get(It.IsAny<Expression<Func<User, bool>>>(), null, It.IsAny<Expression<Func<User, object>>[]>()),
-            Times.Once);
+            r =>
+            r.GetById(userId,
+            It.Is<Expression<Func<User, object>>[]>(
+            selector => ExpressionHelper.AreExpressionArraysEqual(selector, propertiesToInclude))), Times.Once);
+
             userRepositoryMock.Verify(r => r.Update(It.Is<User>(u => u.UserId == userId)), Times.Once);
 
             unitOfWorkMock.Verify(u => u.Save(), Times.Once);
@@ -972,12 +1023,17 @@
 
             int articleId = 2;
 
+            Expression<Func<User, object>>[] propertiesToInclude = { u => u.UserReadHistories };
+
             // Arrange - mock userRepository
             Mock<IUserRepository> userRepositoryMock = new Mock<IUserRepository>();
 
             userRepositoryMock.Setup(
-            r => r.Get(It.IsAny<Expression<Func<User, bool>>>(), null, It.IsAny<Expression<Func<User, object>>[]>()))
-            .Returns(new[] { user });
+            r =>
+            r.GetById(user.UserId,
+            It.Is<Expression<Func<User, object>>[]>(
+            selector => ExpressionHelper.AreExpressionArraysEqual(selector, propertiesToInclude))))
+            .Returns(user);
 
             // Arrange - mock articleRepository
             Mock<IArticleRepository> articleRepositoryMock = new Mock<IArticleRepository>();
@@ -1002,8 +1058,11 @@
             Assert.Throws<ArticleNotFoundException>(() => target.ReadArticle(user.UserId, articleId));
 
             userRepositoryMock.Verify(
-            r => r.Get(It.IsAny<Expression<Func<User, bool>>>(), null, It.IsAny<Expression<Func<User, object>>[]>()),
-            Times.Once);
+            r =>
+            r.GetById(user.UserId,
+            It.Is<Expression<Func<User, object>>[]>(
+            selector => ExpressionHelper.AreExpressionArraysEqual(selector, propertiesToInclude))), Times.Once);
+
             userRepositoryMock.Verify(r => r.Update(It.Is<User>(u => u.UserId == user.UserId)), Times.Never);
 
             articleRepositoryMock.Verify(r => r.GetById(articleId), Times.Once);
@@ -1018,12 +1077,17 @@
             int userId = 1;
             int articleId = 2;
 
+            Expression<Func<User, object>>[] propertiesToInclude = { u => u.UserReadHistories };
+
             // Arrange - mock userRepository
             Mock<IUserRepository> userRepositoryMock = new Mock<IUserRepository>();
 
             userRepositoryMock.Setup(
-            r => r.Get(It.IsAny<Expression<Func<User, bool>>>(), null, It.IsAny<Expression<Func<User, object>>[]>()))
-            .Returns(new User[] { });
+            r =>
+            r.GetById(userId,
+            It.Is<Expression<Func<User, object>>[]>(
+            selector => ExpressionHelper.AreExpressionArraysEqual(selector, propertiesToInclude))))
+            .Returns((User)null);
 
             // Arrange - mock unitOfWork
             Mock<IUnitOfWork> unitOfWorkMock = new Mock<IUnitOfWork>();
@@ -1039,8 +1103,11 @@
             Assert.Throws<UserNotFoundException>(() => target.ReadArticle(userId, articleId));
 
             userRepositoryMock.Verify(
-            r => r.Get(It.IsAny<Expression<Func<User, bool>>>(), null, It.IsAny<Expression<Func<User, object>>[]>()),
-            Times.Once);
+            r =>
+            r.GetById(userId,
+            It.Is<Expression<Func<User, object>>[]>(
+            selector => ExpressionHelper.AreExpressionArraysEqual(selector, propertiesToInclude))), Times.Once);
+
             userRepositoryMock.Verify(r => r.Update(It.Is<User>(u => u.UserId == userId)), Times.Never);
 
             unitOfWorkMock.Verify(u => u.Save(), Times.Never);
@@ -1075,12 +1142,17 @@
 
             User user = new User { UserId = userId, UserFavorites = userFavorites.ToList() };
 
+            Expression<Func<User, object>>[] propertiesToInclude = { u => u.UserFavorites };
+
             // Arrange - mock userRepository
             Mock<IUserRepository> userRepositoryMock = new Mock<IUserRepository>();
 
             userRepositoryMock.Setup(
-            r => r.Get(It.IsAny<Expression<Func<User, bool>>>(), null, It.IsAny<Expression<Func<User, object>>[]>()))
-            .Returns(new[] { user });
+            r =>
+            r.GetById(userId,
+            It.Is<Expression<Func<User, object>>[]>(
+            selector => ExpressionHelper.AreExpressionArraysEqual(selector, propertiesToInclude))))
+            .Returns(user);
 
             IEnumerable<UserFavorite> newUserFavorites = null;
 
@@ -1106,8 +1178,11 @@
             Assert.AreEqual(0, newUserFavorites.Count(f => f.ArticleId == articleId));
 
             userRepositoryMock.Verify(
-            r => r.Get(It.IsAny<Expression<Func<User, bool>>>(), null, It.IsAny<Expression<Func<User, object>>[]>()),
-            Times.Once);
+            r =>
+            r.GetById(userId,
+            It.Is<Expression<Func<User, object>>[]>(
+            selector => ExpressionHelper.AreExpressionArraysEqual(selector, propertiesToInclude))), Times.Once);
+
             userRepositoryMock.Verify(r => r.Update(It.Is<User>(u => u.UserId == userId)), Times.Once);
 
             unitOfWorkMock.Verify(u => u.Save(), Times.Once);
@@ -1122,12 +1197,17 @@
 
             User user = new User { UserId = userId, UserFavorites = new List<UserFavorite>() };
 
+            Expression<Func<User, object>>[] propertiesToInclude = { u => u.UserFavorites };
+
             // Arrange - mock userRepository
             Mock<IUserRepository> userRepositoryMock = new Mock<IUserRepository>();
 
             userRepositoryMock.Setup(
-            r => r.Get(It.IsAny<Expression<Func<User, bool>>>(), null, It.IsAny<Expression<Func<User, object>>[]>()))
-            .Returns(new[] { user });
+            r =>
+            r.GetById(userId,
+            It.Is<Expression<Func<User, object>>[]>(
+            selector => ExpressionHelper.AreExpressionArraysEqual(selector, propertiesToInclude))))
+            .Returns(user);
 
             // Arrange - mock unitOfWork
             Mock<IUnitOfWork> unitOfWorkMock = new Mock<IUnitOfWork>();
@@ -1143,8 +1223,11 @@
             Assert.Throws<ArticleNotFoundException>(() => target.RemoveArticleFromFavorites(userId, articleId));
 
             userRepositoryMock.Verify(
-            r => r.Get(It.IsAny<Expression<Func<User, bool>>>(), null, It.IsAny<Expression<Func<User, object>>[]>()),
-            Times.Once);
+            r =>
+            r.GetById(userId,
+            It.Is<Expression<Func<User, object>>[]>(
+            selector => ExpressionHelper.AreExpressionArraysEqual(selector, propertiesToInclude))), Times.Once);
+
             userRepositoryMock.Verify(r => r.Update(It.Is<User>(u => u.UserId == userId)), Times.Never);
 
             unitOfWorkMock.Verify(u => u.Save(), Times.Never);
@@ -1171,12 +1254,17 @@
             int userId = 1;
             int articleId = 2;
 
+            Expression<Func<User, object>>[] propertiesToInclude = { u => u.UserFavorites };
+
             // Arrange - mock userRepository
             Mock<IUserRepository> userRepositoryMock = new Mock<IUserRepository>();
 
             userRepositoryMock.Setup(
-            r => r.Get(It.IsAny<Expression<Func<User, bool>>>(), null, It.IsAny<Expression<Func<User, object>>[]>()))
-            .Returns(new User[] { });
+            r =>
+            r.GetById(userId,
+            It.Is<Expression<Func<User, object>>[]>(
+            selector => ExpressionHelper.AreExpressionArraysEqual(selector, propertiesToInclude))))
+            .Returns((User)null);
 
             // Arrange - mock unitOfWork
             Mock<IUnitOfWork> unitOfWorkMock = new Mock<IUnitOfWork>();
@@ -1192,8 +1280,11 @@
             Assert.Throws<UserNotFoundException>(() => target.RemoveArticleFromFavorites(userId, articleId));
 
             userRepositoryMock.Verify(
-            r => r.Get(It.IsAny<Expression<Func<User, bool>>>(), null, It.IsAny<Expression<Func<User, object>>[]>()),
-            Times.Once);
+            r =>
+            r.GetById(userId,
+            It.Is<Expression<Func<User, object>>[]>(
+            selector => ExpressionHelper.AreExpressionArraysEqual(selector, propertiesToInclude))), Times.Once);
+
             userRepositoryMock.Verify(r => r.Update(It.Is<User>(u => u.UserId == userId)), Times.Never);
 
             unitOfWorkMock.Verify(u => u.Save(), Times.Never);
@@ -1228,12 +1319,17 @@
 
             User user = new User { UserId = userId, UserReadHistories = userReadHistories.ToList() };
 
+            Expression<Func<User, object>>[] propertiesToInclude = { u => u.UserReadHistories };
+
             // Arrange - mock userRepository
             Mock<IUserRepository> userRepositoryMock = new Mock<IUserRepository>();
 
             userRepositoryMock.Setup(
-            r => r.Get(It.IsAny<Expression<Func<User, bool>>>(), null, It.IsAny<Expression<Func<User, object>>[]>()))
-            .Returns(new[] { user });
+            r =>
+            r.GetById(userId,
+            It.Is<Expression<Func<User, object>>[]>(
+            selector => ExpressionHelper.AreExpressionArraysEqual(selector, propertiesToInclude))))
+            .Returns(user);
 
             IEnumerable<UserReadHistory> newUserReadHistories = null;
 
@@ -1259,8 +1355,11 @@
             Assert.AreEqual(0, newUserReadHistories.Count(h => h.UserId == userId && h.ArticleId == articleId));
 
             userRepositoryMock.Verify(
-            r => r.Get(It.IsAny<Expression<Func<User, bool>>>(), null, It.IsAny<Expression<Func<User, object>>[]>()),
-            Times.Once);
+            r =>
+            r.GetById(userId,
+            It.Is<Expression<Func<User, object>>[]>(
+            selector => ExpressionHelper.AreExpressionArraysEqual(selector, propertiesToInclude))), Times.Once);
+
             userRepositoryMock.Verify(r => r.Update(It.Is<User>(u => u.UserId == userId)), Times.Once);
 
             unitOfWorkMock.Verify(u => u.Save(), Times.Once);
@@ -1275,12 +1374,17 @@
 
             User user = new User { UserId = userId, UserReadHistories = new List<UserReadHistory>() };
 
+            Expression<Func<User, object>>[] propertiesToInclude = { u => u.UserReadHistories };
+
             // Arrange - mock userRepository
             Mock<IUserRepository> userRepositoryMock = new Mock<IUserRepository>();
 
             userRepositoryMock.Setup(
-            r => r.Get(It.IsAny<Expression<Func<User, bool>>>(), null, It.IsAny<Expression<Func<User, object>>[]>()))
-            .Returns(new[] { user });
+            r =>
+            r.GetById(userId,
+            It.Is<Expression<Func<User, object>>[]>(
+            selector => ExpressionHelper.AreExpressionArraysEqual(selector, propertiesToInclude))))
+            .Returns(user);
 
             // Arrange - mock unitOfWork
             Mock<IUnitOfWork> unitOfWorkMock = new Mock<IUnitOfWork>();
@@ -1296,8 +1400,11 @@
             Assert.Throws<ArticleNotFoundException>(() => target.UnreadArticle(userId, articleId));
 
             userRepositoryMock.Verify(
-            r => r.Get(It.IsAny<Expression<Func<User, bool>>>(), null, It.IsAny<Expression<Func<User, object>>[]>()),
-            Times.Once);
+            r =>
+            r.GetById(userId,
+            It.Is<Expression<Func<User, object>>[]>(
+            selector => ExpressionHelper.AreExpressionArraysEqual(selector, propertiesToInclude))), Times.Once);
+
             userRepositoryMock.Verify(r => r.Update(It.Is<User>(u => u.UserId == userId)), Times.Never);
 
             unitOfWorkMock.Verify(u => u.Save(), Times.Never);
@@ -1324,12 +1431,17 @@
             int userId = 1;
             int articleId = 2;
 
+            Expression<Func<User, object>>[] propertiesToInclude = { u => u.UserReadHistories };
+
             // Arrange - mock userRepository
             Mock<IUserRepository> userRepositoryMock = new Mock<IUserRepository>();
 
             userRepositoryMock.Setup(
-            r => r.Get(It.IsAny<Expression<Func<User, bool>>>(), null, It.IsAny<Expression<Func<User, object>>[]>()))
-            .Returns(new User[] { });
+            r =>
+            r.GetById(userId,
+            It.Is<Expression<Func<User, object>>[]>(
+            selector => ExpressionHelper.AreExpressionArraysEqual(selector, propertiesToInclude))))
+            .Returns((User)null);
 
             // Arrange - mock unitOfWork
             Mock<IUnitOfWork> unitOfWorkMock = new Mock<IUnitOfWork>();
@@ -1345,8 +1457,11 @@
             Assert.Throws<UserNotFoundException>(() => target.UnreadArticle(userId, articleId));
 
             userRepositoryMock.Verify(
-            r => r.Get(It.IsAny<Expression<Func<User, bool>>>(), null, It.IsAny<Expression<Func<User, object>>[]>()),
-            Times.Once);
+            r =>
+            r.GetById(userId,
+            It.Is<Expression<Func<User, object>>[]>(
+            selector => ExpressionHelper.AreExpressionArraysEqual(selector, propertiesToInclude))), Times.Once);
+
             userRepositoryMock.Verify(r => r.Update(It.Is<User>(u => u.UserId == userId)), Times.Never);
 
             unitOfWorkMock.Verify(u => u.Save(), Times.Never);

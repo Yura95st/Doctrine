@@ -165,8 +165,7 @@
             Guard.IntMoreThanZero(userId, "userId");
             Guard.IntMoreThanZero(articleId, "articleId");
 
-            User user = this._unitOfWork.UserRepository.Get(u => u.UserId == userId, selector: u => u.UserFavorites)
-            .FirstOrDefault();
+            User user = this._unitOfWork.UserRepository.GetById(userId, u => u.UserFavorites);
 
             if (user == null)
             {
@@ -214,8 +213,7 @@
             Guard.IntMoreThanZero(userId, "userId");
             Guard.IntMoreThanZero(articleId, "articleId");
 
-            User user = this._unitOfWork.UserRepository.Get(u => u.UserId == userId, selector: u => u.UserReadHistories)
-            .FirstOrDefault();
+            User user = this._unitOfWork.UserRepository.GetById(userId, u => u.UserReadHistories);
 
             if (user == null)
             {
