@@ -1,4 +1,4 @@
-﻿namespace Doctrine.Domain.Exceptions
+﻿namespace Doctrine.Domain.Exceptions.AlreadyExists
 {
     using System;
 

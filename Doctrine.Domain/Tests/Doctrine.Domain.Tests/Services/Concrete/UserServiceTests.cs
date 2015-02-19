@@ -9,6 +9,7 @@
     using Doctrine.Domain.Dal.Repositories.Abstract;
     using Doctrine.Domain.Enums;
     using Doctrine.Domain.Exceptions;
+    using Doctrine.Domain.Exceptions.AlreadyExists;
     using Doctrine.Domain.Exceptions.InvalidFormat;
     using Doctrine.Domain.Exceptions.NotFound;
     using Doctrine.Domain.Models;
