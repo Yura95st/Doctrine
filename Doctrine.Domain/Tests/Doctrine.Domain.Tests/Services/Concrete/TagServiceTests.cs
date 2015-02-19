@@ -168,19 +168,16 @@
         public void Edit_NewTagNameAlreadyExists_ThrowsTagNameAlreadyExistsException()
         {
             // Arrange
-            Tag tag = new Tag { TagId = 1 };
+            int tagId = 1;
             string newTagName = "new_tag_name";
 
-            Tag anotherTag = new Tag { Name = newTagName };
+            Tag tag = new Tag { Name = newTagName };
 
             // Arrange - mock tagRepository
             Mock<ITagRepository> tagRepositoryMock = new Mock<ITagRepository>();
 
-            tagRepositoryMock.Setup(r => r.GetById(tag.TagId))
-            .Returns(tag);
-
             tagRepositoryMock.Setup(r => r.GetByName(newTagName))
-            .Returns(anotherTag);
+            .Returns(tag);
 
             // Arrange - mock unitOfWork
             Mock<IUnitOfWork> unitOfWorkMock = new Mock<IUnitOfWork>();
@@ -192,11 +189,11 @@
             ITagService target = new TagService(unitOfWorkMock.Object, this._tagValidationMock.Object);
 
             // Act and Assert
-            Assert.Throws<TagNameAlreadyExistsException>(() => target.Edit(tag.TagId, newTagName));
+            Assert.Throws<TagNameAlreadyExistsException>(() => target.Edit(tagId, newTagName));
 
-            tagRepositoryMock.Verify(r => r.GetById(tag.TagId), Times.Once);
             tagRepositoryMock.Verify(r => r.GetByName(newTagName), Times.Once);
-            tagRepositoryMock.Verify(r => r.Update(It.Is<Tag>(t => t.TagId == tag.TagId)), Times.Never);
+            tagRepositoryMock.Verify(r => r.GetById(tagId), Times.Never);
+            tagRepositoryMock.Verify(r => r.Update(It.Is<Tag>(t => t.TagId == tagId)), Times.Never);
 
             unitOfWorkMock.Verify(r => r.Save(), Times.Never);
         }
@@ -210,6 +207,9 @@
 
             // Arrange - mock tagRepository
             Mock<ITagRepository> tagRepositoryMock = new Mock<ITagRepository>();
+
+            tagRepositoryMock.Setup(r => r.GetByName(newTagName))
+            .Returns((Tag)null);
 
             tagRepositoryMock.Setup(r => r.GetById(tagId))
             .Returns((Tag)null);
@@ -225,8 +225,8 @@
             // Act and Assert
             Assert.Throws<TagNotFoundException>(() => target.Edit(tagId, newTagName));
 
+            tagRepositoryMock.Verify(r => r.GetByName(newTagName), Times.Once);
             tagRepositoryMock.Verify(r => r.GetById(tagId), Times.Once);
-            tagRepositoryMock.Verify(r => r.GetByName(newTagName), Times.Never);
             tagRepositoryMock.Verify(r => r.Update(It.Is<Tag>(t => t.TagId == tagId)), Times.Never);
 
             unitOfWorkMock.Verify(r => r.Save(), Times.Never);

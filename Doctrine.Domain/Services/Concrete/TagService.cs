@@ -61,18 +61,18 @@
                 throw new InvalidTagNameFormatException(String.Format("Tag's new name '{0}' has invalid format.", newTagName));
             }
 
-            Tag tag = this._unitOfWork.TagRepository.GetById(tagId);
+            Tag tag = this._unitOfWork.TagRepository.GetByName(newTagName);
+
+            if (tag != null)
+            {
+                throw new TagNameAlreadyExistsException(String.Format("Tag with name '{0}' already exists.", newTagName));
+            }
+
+            tag = this._unitOfWork.TagRepository.GetById(tagId);
 
             if (tag == null)
             {
                 throw new TagNotFoundException(String.Format("Tag with ID '{0}' was not found.", tagId));
-            }
-
-            Tag anotherTag = this._unitOfWork.TagRepository.GetByName(newTagName);
-
-            if (anotherTag != null)
-            {
-                throw new TagNameAlreadyExistsException(String.Format("Tag with name '{0}' already exists.", newTagName));
             }
 
             tag.Name = newTagName;
