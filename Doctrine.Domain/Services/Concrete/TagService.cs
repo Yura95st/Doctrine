@@ -51,6 +51,22 @@
             return tag;
         }
 
+        public void Delete(int tagId)
+        {
+            Guard.IntMoreThanZero(tagId, "tagId");
+
+            Tag tag = this._unitOfWork.TagRepository.GetById(tagId);
+
+            if (tag == null)
+            {
+                throw new TagNotFoundException(String.Format("Tag with ID '{0}' was not found.", tagId));
+            }
+
+            this._unitOfWork.TagRepository.Delete(tag);
+
+            this._unitOfWork.Save();
+        }
+
         public void Edit(int tagId, string newTagName)
         {
             Guard.IntMoreThanZero(tagId, "tagId");

@@ -79,6 +79,7 @@
             topic.Name = newTopicName;
 
             this._unitOfWork.TopicRepository.Update(topic);
+
             this._unitOfWork.Save();
         }
 

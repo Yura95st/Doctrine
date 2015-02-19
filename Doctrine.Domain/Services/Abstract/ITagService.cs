@@ -9,6 +9,10 @@
         /// <returns>The tag.</returns>
         Tag Create(string tagName);
 
+        /// <summary>Deletes the tag with specified identifier.</summary>
+        /// <param name="tagId">The tag's identifier.</param>
+        void Delete(int tagId);
+
         /// <summary>Edits the tag.</summary>
         /// <param name="tagId">The tag's identifier.</param>
         /// <param name="newTagName">The tag's new name.</param>

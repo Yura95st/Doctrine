@@ -121,6 +121,76 @@
         }
 
         [Test]
+        public void Delete_NonexistentTagId_ThrowsTagNotFoundException()
+        {
+            // Arrange
+            int tagId = 1;
+
+            // Arrange - mock tagRepository
+            Mock<ITagRepository> tagRepositoryMock = new Mock<ITagRepository>();
+
+            tagRepositoryMock.Setup(r => r.GetById(tagId))
+            .Returns((Tag)null);
+
+            // Arrange - mock unitOfWork
+            Mock<IUnitOfWork> unitOfWorkMock = new Mock<IUnitOfWork>();
+
+            unitOfWorkMock.SetupGet(u => u.TagRepository)
+            .Returns(tagRepositoryMock.Object);
+
+            ITagService target = new TagService(unitOfWorkMock.Object, this._tagValidationMock.Object);
+
+            // Act and Assert
+            Assert.Throws<TagNotFoundException>(() => target.Delete(tagId));
+
+            tagRepositoryMock.Verify(r => r.GetById(tagId), Times.Once);
+            tagRepositoryMock.Verify(r => r.Delete(It.Is<Tag>(t => t.TagId == tagId)), Times.Never);
+
+            unitOfWorkMock.Verify(r => r.Save(), Times.Never);
+        }
+
+        [Test]
+        public void Delete_TagIdIsLessOrEqualToZero_ThrowsArgumentOutOfRangeException()
+        {
+            // Arrange
+            ITagService target = new TagService(new Mock<IUnitOfWork>().Object, this._tagValidationMock.Object);
+
+            // Act and Assert
+            Assert.Throws<ArgumentOutOfRangeException>(() => target.Delete(-1));
+            Assert.Throws<ArgumentOutOfRangeException>(() => target.Delete(0));
+        }
+
+        [Test]
+        public void Delete_TagIdIsValid_DeletesTag()
+        {
+            // Arrange
+            Tag tag = new Tag { TagId = 1 };
+
+            // Arrange - mock tagRepository
+            Mock<ITagRepository> tagRepositoryMock = new Mock<ITagRepository>();
+
+            tagRepositoryMock.Setup(r => r.GetById(tag.TagId))
+            .Returns(tag);
+
+            // Arrange - mock unitOfWork
+            Mock<IUnitOfWork> unitOfWorkMock = new Mock<IUnitOfWork>();
+
+            unitOfWorkMock.SetupGet(u => u.TagRepository)
+            .Returns(tagRepositoryMock.Object);
+
+            ITagService target = new TagService(unitOfWorkMock.Object, this._tagValidationMock.Object);
+
+            // Act
+            target.Delete(tag.TagId);
+
+            // Assert
+            tagRepositoryMock.Verify(r => r.GetById(tag.TagId), Times.Once);
+            tagRepositoryMock.Verify(r => r.Delete(It.Is<Tag>(t => t.TagId == tag.TagId)), Times.Once);
+
+            unitOfWorkMock.Verify(r => r.Save(), Times.Once);
+        }
+
+        [Test]
         public void Edit_AllCredentialsAreValid_EditsTag()
         {
             // Arrange
