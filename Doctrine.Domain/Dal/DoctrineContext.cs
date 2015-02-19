@@ -86,26 +86,6 @@ namespace Doctrine.Domain.Dal
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {
             modelBuilder.Entity<Article>()
-            .HasMany(e => e.ArticleVisitors)
-            .WithRequired(e => e.Article)
-            .WillCascadeOnDelete(false);
-
-            modelBuilder.Entity<Article>()
-            .HasMany(e => e.Comments)
-            .WithRequired(e => e.Article)
-            .WillCascadeOnDelete(false);
-
-            modelBuilder.Entity<Article>()
-            .HasMany(e => e.UserFavorites)
-            .WithRequired(e => e.Article)
-            .WillCascadeOnDelete(false);
-
-            modelBuilder.Entity<Article>()
-            .HasMany(e => e.UserReadHistories)
-            .WithRequired(e => e.Article)
-            .WillCascadeOnDelete(false);
-
-            modelBuilder.Entity<Article>()
             .HasMany(e => e.Tags)
             .WithMany(e => e.Articles)
             .Map(m => m.ToTable("ArticleTag")
@@ -114,12 +94,8 @@ namespace Doctrine.Domain.Dal
 
             modelBuilder.Entity<Comment>()
             .HasOptional(e => e.CommentEdit)
-            .WithRequired(e => e.Comment);
-
-            modelBuilder.Entity<Comment>()
-            .HasMany(e => e.CommentVotes)
             .WithRequired(e => e.Comment)
-            .WillCascadeOnDelete(false);
+            .WillCascadeOnDelete();
 
             modelBuilder.Entity<Comment>()
             .HasMany(e => e.Comment1)
@@ -139,22 +115,12 @@ namespace Doctrine.Domain.Dal
             .IsUnicode(false);
 
             modelBuilder.Entity<User>()
-            .HasMany(e => e.Articles)
-            .WithRequired(e => e.User)
-            .WillCascadeOnDelete(false);
-
-            modelBuilder.Entity<User>()
             .HasMany(e => e.Comments)
             .WithRequired(e => e.User)
             .WillCascadeOnDelete(false);
 
             modelBuilder.Entity<User>()
             .HasMany(e => e.CommentVotes)
-            .WithRequired(e => e.User)
-            .WillCascadeOnDelete(false);
-
-            modelBuilder.Entity<User>()
-            .HasMany(e => e.UserActivities)
             .WithRequired(e => e.User)
             .WillCascadeOnDelete(false);
 
@@ -172,16 +138,6 @@ namespace Doctrine.Domain.Dal
             .Property(e => e.IpAddress)
             .IsFixedLength()
             .IsUnicode(false);
-
-            modelBuilder.Entity<Visitor>()
-            .HasMany(e => e.ArticleVisitors)
-            .WithRequired(e => e.Visitor)
-            .WillCascadeOnDelete(false);
-
-            modelBuilder.Entity<Visitor>()
-            .HasMany(e => e.UserActivities)
-            .WithRequired(e => e.Visitor)
-            .WillCascadeOnDelete(false);
         }
     }
 }
