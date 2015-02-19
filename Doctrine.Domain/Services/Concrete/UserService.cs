@@ -134,7 +134,18 @@
 
         public void Delete(int userId)
         {
-            throw new NotImplementedException();
+            Guard.IntMoreThanZero(userId, "userId");
+
+            User user = this._unitOfWork.UserRepository.GetById(userId);
+
+            if (user == null)
+            {
+                throw new UserNotFoundException(String.Format("User with ID '{0}' was not found.", userId));
+            }
+
+            this._unitOfWork.UserRepository.Delete(user);
+
+            this._unitOfWork.Save();
         }
 
         public User GetById(int userId)

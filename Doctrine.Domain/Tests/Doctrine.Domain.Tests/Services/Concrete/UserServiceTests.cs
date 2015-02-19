@@ -777,6 +777,76 @@
         }
 
         [Test]
+        public void Delete_NonexistentUserId_ThrowsUserNotFoundException()
+        {
+            // Arrange
+            int userId = 1;
+
+            // Arrange - mock userRepository
+            Mock<IUserRepository> userRepositoryMock = new Mock<IUserRepository>();
+
+            userRepositoryMock.Setup(r => r.GetById(userId))
+            .Returns((User)null);
+
+            // Arrange - mock unitOfWork
+            Mock<IUnitOfWork> unitOfWorkMock = new Mock<IUnitOfWork>();
+
+            unitOfWorkMock.SetupGet(u => u.UserRepository)
+            .Returns(userRepositoryMock.Object);
+
+            IUserService target = new UserService(unitOfWorkMock.Object, this._userValidationMock.Object, this._securedPasswordHelperMock.Object);
+
+            // Act and Assert
+            Assert.Throws<UserNotFoundException>(() => target.Delete(userId));
+
+            userRepositoryMock.Verify(r => r.GetById(userId), Times.Once);
+            userRepositoryMock.Verify(r => r.Delete(It.Is<User>(t => t.UserId == userId)), Times.Never);
+
+            unitOfWorkMock.Verify(r => r.Save(), Times.Never);
+        }
+
+        [Test]
+        public void Delete_UserIdIsLessOrEqualToZero_ThrowsArgumentOutOfRangeException()
+        {
+            // Arrange
+            IUserService target = new UserService(new Mock<IUnitOfWork>().Object, this._userValidationMock.Object, this._securedPasswordHelperMock.Object);
+
+            // Act and Assert
+            Assert.Throws<ArgumentOutOfRangeException>(() => target.Delete(-1));
+            Assert.Throws<ArgumentOutOfRangeException>(() => target.Delete(0));
+        }
+
+        [Test]
+        public void Delete_UserIdIsValid_DeletesUser()
+        {
+            // Arrange
+            User user = new User { UserId = 1 };
+
+            // Arrange - mock userRepository
+            Mock<IUserRepository> userRepositoryMock = new Mock<IUserRepository>();
+
+            userRepositoryMock.Setup(r => r.GetById(user.UserId))
+            .Returns(user);
+
+            // Arrange - mock unitOfWork
+            Mock<IUnitOfWork> unitOfWorkMock = new Mock<IUnitOfWork>();
+
+            unitOfWorkMock.SetupGet(u => u.UserRepository)
+            .Returns(userRepositoryMock.Object);
+
+            IUserService target = new UserService(unitOfWorkMock.Object, this._userValidationMock.Object, this._securedPasswordHelperMock.Object);
+
+            // Act
+            target.Delete(user.UserId);
+
+            // Assert
+            userRepositoryMock.Verify(r => r.GetById(user.UserId), Times.Once);
+            userRepositoryMock.Verify(r => r.Delete(It.Is<User>(t => t.UserId == user.UserId)), Times.Once);
+
+            unitOfWorkMock.Verify(r => r.Save(), Times.Once);
+        }
+
+        [Test]
         public void GetById_NonexistentUserId_ReturnsNull()
         {
             // Arrange

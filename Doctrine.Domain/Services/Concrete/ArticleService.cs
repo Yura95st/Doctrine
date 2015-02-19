@@ -81,7 +81,18 @@
 
         public void Delete(int articleId)
         {
-            throw new System.NotImplementedException();
+            Guard.IntMoreThanZero(articleId, "articleId");
+
+            Article article = this._unitOfWork.ArticleRepository.GetById(articleId);
+
+            if (article == null)
+            {
+                throw new ArticleNotFoundException(String.Format("Article with ID '{0}' was not found.", articleId));
+            }
+
+            this._unitOfWork.ArticleRepository.Delete(article);
+
+            this._unitOfWork.Save();
         }
 
         public Article GetById(int articleId)

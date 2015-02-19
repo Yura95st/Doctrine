@@ -482,6 +482,76 @@
         }
 
         [Test]
+        public void Delete_NonexistentArticleId_ThrowsArticleNotFoundException()
+        {
+            // Arrange
+            int articleId = 1;
+
+            // Arrange - mock articleRepository
+            Mock<IArticleRepository> articleRepositoryMock = new Mock<IArticleRepository>();
+
+            articleRepositoryMock.Setup(r => r.GetById(articleId))
+            .Returns((Article)null);
+
+            // Arrange - mock unitOfWork
+            Mock<IUnitOfWork> unitOfWorkMock = new Mock<IUnitOfWork>();
+
+            unitOfWorkMock.SetupGet(u => u.ArticleRepository)
+            .Returns(articleRepositoryMock.Object);
+
+            IArticleService target = new ArticleService(unitOfWorkMock.Object, this._articleValidationMock.Object);
+
+            // Act and Assert
+            Assert.Throws<ArticleNotFoundException>(() => target.Delete(articleId));
+
+            articleRepositoryMock.Verify(r => r.GetById(articleId), Times.Once);
+            articleRepositoryMock.Verify(r => r.Delete(It.Is<Article>(t => t.ArticleId == articleId)), Times.Never);
+
+            unitOfWorkMock.Verify(r => r.Save(), Times.Never);
+        }
+
+        [Test]
+        public void Delete_ArticleIdIsLessOrEqualToZero_ThrowsArgumentOutOfRangeException()
+        {
+            // Arrange
+            IArticleService target = new ArticleService(new Mock<IUnitOfWork>().Object, this._articleValidationMock.Object);
+
+            // Act and Assert
+            Assert.Throws<ArgumentOutOfRangeException>(() => target.Delete(-1));
+            Assert.Throws<ArgumentOutOfRangeException>(() => target.Delete(0));
+        }
+
+        [Test]
+        public void Delete_ArticleIdIsValid_DeletesArticle()
+        {
+            // Arrange
+            Article article = new Article { ArticleId = 1 };
+
+            // Arrange - mock articleRepository
+            Mock<IArticleRepository> articleRepositoryMock = new Mock<IArticleRepository>();
+
+            articleRepositoryMock.Setup(r => r.GetById(article.ArticleId))
+            .Returns(article);
+
+            // Arrange - mock unitOfWork
+            Mock<IUnitOfWork> unitOfWorkMock = new Mock<IUnitOfWork>();
+
+            unitOfWorkMock.SetupGet(u => u.ArticleRepository)
+            .Returns(articleRepositoryMock.Object);
+
+            IArticleService target = new ArticleService(unitOfWorkMock.Object, this._articleValidationMock.Object);
+
+            // Act
+            target.Delete(article.ArticleId);
+
+            // Assert
+            articleRepositoryMock.Verify(r => r.GetById(article.ArticleId), Times.Once);
+            articleRepositoryMock.Verify(r => r.Delete(It.Is<Article>(t => t.ArticleId == article.ArticleId)), Times.Once);
+
+            unitOfWorkMock.Verify(r => r.Save(), Times.Once);
+        }
+
+        [Test]
         public void GetById_ArticleIdIsLessOrEqualToZero_ThrowsArgumentOutOfRangeException()
         {
             // Arrange
