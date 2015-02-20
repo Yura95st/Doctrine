@@ -59,9 +59,7 @@
                 throw new UserNotFoundException(String.Format("User with email '{0}' was not found.", email));
             }
 
-            SecuredPassword securedPassword = new SecuredPassword(user.Password, user.Salt);
-
-            if (!this._securedPasswordHelper.ArePasswordsEqual(password, securedPassword))
+            if (!this.IsPasswordCorrect(password, user))
             {
                 throw new WrongPasswordException(String.Format("Password '{0}' is wrong.", password));
             }
@@ -144,9 +142,7 @@
                 throw new UserNotFoundException(String.Format("User with ID '{0}' was not found.", userId));
             }
 
-            SecuredPassword securedPassword = new SecuredPassword(user.Password, user.Salt);
-
-            if (!this._securedPasswordHelper.ArePasswordsEqual(password, securedPassword))
+            if (!this.IsPasswordCorrect(password, user))
             {
                 throw new WrongPasswordException(String.Format("Password '{0}' is wrong.", password));
             }
@@ -226,6 +222,13 @@
 
             this._unitOfWork.UserRepository.Update(user);
             this._unitOfWork.Save();
+        }
+
+        private bool IsPasswordCorrect(string password, User user)
+        {
+            SecuredPassword securedPassword = new SecuredPassword(user.Password, user.Salt);
+
+            return this._securedPasswordHelper.ArePasswordsEqual(password, securedPassword);
         }
 
         private void ReadOrUnreadArticle(int userId, int articleId, bool readArticle)
