@@ -5,6 +5,7 @@
     using System.Linq;
 
     using Doctrine.Domain.Dal;
+    using Doctrine.Domain.Exceptions;
     using Doctrine.Domain.Exceptions.NotFound;
     using Doctrine.Domain.Models;
     using Doctrine.Domain.Services.Abstract;
@@ -79,15 +80,24 @@
             return article;
         }
 
-        public void Delete(int articleId)
+        public void Delete(int articleId, int userId)
         {
             Guard.IntMoreThanZero(articleId, "articleId");
+            Guard.IntMoreThanZero(userId, "userId");
 
             Article article = this._unitOfWork.ArticleRepository.GetById(articleId);
 
             if (article == null)
             {
                 throw new ArticleNotFoundException(String.Format("Article with ID '{0}' was not found.", articleId));
+            }
+
+            if (article.UserId != userId)
+            {
+                throw new DeletingArticleIsForbiddenException(
+                String.Format(
+                "User with ID '{0}' is not the author of the article with ID '{1}' and aren't allowed to delete it.", userId,
+                article.ArticleId));
             }
 
             this._unitOfWork.ArticleRepository.Delete(article);

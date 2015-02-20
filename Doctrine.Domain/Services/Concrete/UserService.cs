@@ -132,15 +132,23 @@
             return user;
         }
 
-        public void Delete(int userId)
+        public void Delete(int userId, string password)
         {
             Guard.IntMoreThanZero(userId, "userId");
+            Guard.NotNullOrEmpty(password, "password");
 
             User user = this._unitOfWork.UserRepository.GetById(userId);
 
             if (user == null)
             {
                 throw new UserNotFoundException(String.Format("User with ID '{0}' was not found.", userId));
+            }
+
+            SecuredPassword securedPassword = new SecuredPassword(user.Password, user.Salt);
+
+            if (!this._securedPasswordHelper.ArePasswordsEqual(password, securedPassword))
+            {
+                throw new WrongPasswordException(String.Format("Password '{0}' is wrong.", password));
             }
 
             this._unitOfWork.UserRepository.Delete(user);

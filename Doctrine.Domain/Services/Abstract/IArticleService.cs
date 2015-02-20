@@ -15,7 +15,8 @@
 
         /// <summary>Deletes the article.</summary>
         /// <param name="articleId">The article identifier.</param>
-        void Delete(int articleId);
+        /// <param name="userId">The user identifier.</param>
+        void Delete(int articleId, int userId);
 
         /// <summary>Gets the article by identifier.</summary>
         /// <param name="articleId">The article identifier.</param>

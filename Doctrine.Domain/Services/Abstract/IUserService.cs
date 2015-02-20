@@ -26,7 +26,8 @@
 
         /// <summary>Deletes the user.</summary>
         /// <param name="userId">The user identifier.</param>
-        void Delete(int userId);
+        /// <param name="password">The user's password.</param>
+        void Delete(int userId, string password);
 
         /// <summary>Gets the by identifier.</summary>
         /// <param name="userId">The user identifier.</param>

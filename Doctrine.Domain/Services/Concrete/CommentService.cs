@@ -152,8 +152,8 @@
             {
                 throw new DeletingCommentIsForbiddenException(
                 String.Format(
-                "User with ID '{0}' is not the author of the comment with ID '{0}' and aren't allowed to delete it.",
-                commentId));
+                "User with ID '{0}' is not the author of the comment with ID '{1}' and aren't allowed to delete it.",
+                userId, comment.CommentId));
             }
 
             if (CommentService.IsPermittedPeriodExpired(comment.Date, this._serviceSettings.PermittedPeriodForDeleting))
@@ -218,7 +218,7 @@
             {
                 throw new EditingCommentIsForbiddenException(
                 String.Format(
-                "User with ID '{0}' is not the author of the comment with ID '{0}' and aren't allowed to edit it.", commentId));
+                "User with ID '{0}' is not the author of the comment with ID '{1}' and aren't allowed to edit it.", userId, commentId));
             }
 
             if (CommentService.IsPermittedPeriodExpired(comment.Date, this._serviceSettings.PermittedPeriodForEditing))

@@ -60,6 +60,7 @@
     <Compile Include="Enums\PasswordStrength.cs" />
     <Compile Include="Exceptions\AlreadyExists\EmailAlreadyExistsException.cs" />
     <Compile Include="Exceptions\AlreadyExists\TopicNameAlreadyExistsException.cs" />
+    <Compile Include="Exceptions\DeletingArticleIsForbiddenException.cs" />
     <Compile Include="Exceptions\MaxCommentTreeLevelReachedException.cs" />
     <Compile Include="Exceptions\NotFound\TagNotFoundException.cs" />
     <Compile Include="Exceptions\NotFound\TopicNotFoundException.cs" />
