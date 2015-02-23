@@ -1,0 +1,112 @@
+﻿@using Doctrine.Domain.Models
+@model Doctrine.App.ViewModels.ArticleViewModel
+<article class="post" id="post_@Model.Article.ArticleId">
+    <time class="published">@Model.Article.PublicationDate</time>
+
+    <h1 class="title">
+        @if (Model.IsPreviewMode)
+        {
+            <a href="#">@Model.Article.Title</a>
+        }
+        else
+        {
+            @Model.Article.Title
+        }
+    </h1>
+
+    <div class="topic">
+        <a href="#">@Model.Article.Topic.Name</a>
+    </div>
+
+    <div class="content">@Html.Raw(Model.Article.Text)</div>
+
+    @if (Model.IsPreviewMode)
+    {
+        <div class="buttons">
+            <a class="button" href="#">Read more →</a>
+        </div>
+    }
+    else if (Model.Article.Tags.Any())
+    {
+        bool isFirst = true;
+
+        <ul class="tags">
+            @foreach (Tag tag in Model.Article.Tags)
+            {
+                <li>
+                    <a href="#" rel="tag">@String.Format("{0}{1}", isFirst ? "" : ", ", tag.Name)</a>
+                </li>
+
+                isFirst = false;
+            }
+        </ul>
+    }
+    <div class="infopanel-wrapper">
+        <div class="infopanel" id="infopanel_post_@Model.Article.ArticleId">
+            <div class="voting">
+                <div class="vote-button plus" title="Only registered users can vote"></div>
+                @{
+                    int mark = Model.PositiveVotesCount - Model.NegativeVotesCount;
+                    string markSign = "";
+                    string markClass = "";
+
+                    if (mark != 0)
+                    {
+                        if (mark > 0)
+                        {
+                            markSign = "+";
+                            markClass = "is-positive";
+                        }
+                        else
+                        {
+                            markSign = "-";
+                            markClass = "is-negative";
+                        }
+                    }
+                    
+                    <div class="mark @markClass">
+                        <span class="score" title="Total @(Model.PositiveVotesCount + Model.NegativeVotesCount): ↑@Model.PositiveVotesCount и ↓@Model.NegativeVotesCount">@String.Format("{0}{1}", markSign, mark)</span>
+                    </div>
+                }
+                <div class="vote-button minus" title="Only registered users can vote"></div>
+            </div>
+
+            <div class="pageviews" title="Article's views">@Model.ViewsCount</div>
+
+            <div class="favorite">
+                <a class="guest" href="#" title="Only registered users can add articles to favorites" />
+            </div>
+            <div class="favs-count" title="Number of users, who've added this article to favorites">@Model.FavsCount</div>
+
+            <div class="author">
+                <a href="#" title="Article's author">@String.Format("{0} {1}", Model.Article.User.FirstName, Model.Article.User.LastName)</a>
+            </div>
+
+            @if (Model.IsPreviewMode)
+            {
+                <div class="comments">
+                    <a href="#comments" title="Read comments">
+                        <span class="all">@Model.CommentsCount</span>
+                    </a>
+                </div>
+            }
+            else
+            {
+                <div class="share">
+                    <div class="share-item twitter">
+                        <a href="http://twitter.com/intent/tweet?text=" target="_blank" title="Опубликовать ссылку в Twitter"></a>
+                    </div>
+                    <div class="share-item vkontakte">
+                        <a href="http://vk.com/share.php?url=#" onclick=" window.open(this.href, 'Опубликовать ссылку во Вконтакте', 'width=800,height=300'); return false; " title="Опубликовать ссылку во ВКонтакте"></a>
+                    </div>
+                    <div class="share-item facebook">
+                        <a href="https://www.facebook.com/sharer/sharer.php?u=#" onclick=" window.open(this.href, 'Опубликовать ссылку в Facebook', 'width=640,height=436,toolbar=0,status=0'); return false; " title="Опубликовать ссылку в Facebook"></a>
+                    </div>
+                    <div class="share-item googleplus">
+                        <a href="https://plus.google.com/share?url=#" onclick=" window.open(this.href, 'Опубликовать ссылку в Google Plus', 'width=800,height=300'); return false; " title="Опубликовать ссылку в Google Plus"></a>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</article>

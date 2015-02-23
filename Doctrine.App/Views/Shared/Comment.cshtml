@@ -1,0 +1,69 @@
+﻿@using Doctrine.App.ViewModels
+@model Doctrine.App.ViewModels.CommentViewModel
+<div class="comment-item" id="comment_@Model.Comment.CommentId">
+    <span class="parent_id" data-parent_id="0"></span>
+
+    <div class="comment-body">
+        <div class="info clearfix @String.Format("{0}", Model.IsFromArticleAuthor ? "is-topic-starter" : "")" rel="8294035">
+            <div class="folding-dot-holder">
+                <div class="folding-dot"></div>
+            </div>
+
+            <a href="#" class="avatar">
+                <img src="~/Content/images/stub-user-small.gif" alt="">
+            </a>
+
+            <a href="#" class="username">@String.Format("{0} {1}", Model.Comment.User.FirstName, Model.Comment.User.LastName)</a>
+
+            <time class="time">@Model.Comment.Date</time>
+
+            <a href="#comment_@Model.Comment.CommentId" class="link-to-comment">#</a>
+
+            <div class="show-tree" data-id="8294035" data-parent_id="8294027" title="Show comments' branch">↵</div>
+
+            <a href="#comment_@Model.ParentCommentId" data-id="8294035" data-parent_id="8294027" class="to-parent">↑</a>
+
+            <div id="voting_@Model.Comment.CommentId" class="voting">
+                @{
+                    int mark = Model.PositiveVotesCount - Model.NegativeVotesCount;
+                    string markSign = "";
+                    string markClass = "";
+
+                    if (mark != 0)
+                    {
+                        if (mark > 0)
+                        {
+                            markSign = "+";
+                            markClass = "is-positive";
+                        }
+                        else
+                        {
+                            markSign = "-";
+                            markClass = "is-negative";
+                        }
+                    }
+
+                    <div class="mark @markClass">
+                        <span class="score" title="Total @(Model.PositiveVotesCount + Model.NegativeVotesCount): ↑@Model.PositiveVotesCount и ↓@Model.NegativeVotesCount">@String.Format("{0}{1}", markSign, mark)</span>
+                    </div>
+                }
+                <div class="vote-button plus" title="Only registered users can vote"></div>
+
+                <div class="vote-button minus" title="Only registered users can vote"></div>
+            </div>
+        </div>
+
+        <div class="message">@Html.Raw(Model.Comment.Text)</div>
+
+        <div class="reply_form_placeholder"></div>
+
+        <div class="reply"></div>
+    </div>
+
+    <div class="reply-comments" id="reply_comments_@Model.Comment.CommentId">
+        @foreach (CommentViewModel reply in Model.Replies)
+        {
+            Html.RenderPartial("Comment", reply);
+        }
+    </div>
+</div>
