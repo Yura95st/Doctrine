@@ -1,0 +1,164 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <!-- disable iPhone inital scale -->
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>@ViewBag.Title</title>
+    <link href="~/Content/Site.css" rel="stylesheet" type="text/css" />
+    <!-- media queries css -->
+    <link href="~/Content/media-queries.css" rel="stylesheet" type="text/css" />
+    <!-- html5.js for IE less than 9 -->
+    <!--[if lt IE 9]>
+        <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <!-- css3-mediaqueries.js for IE less than 9 -->
+    <!--[if lt IE 9]>
+        <script src="http://css3-mediaqueries-js.googlecode.com/svn/trunk/css3-mediaqueries.js"></script>
+    <![endif]-->
+</head>
+
+<body>
+    <div id="wrapper">
+        <aside id="sidebar-left" class="sidebar-left">
+            <div class="user-panel clearfix">
+                <div class="image">
+                    <img src="~/Content/images/avatar3.png" alt="User Image">
+                </div>
+
+                <div class="info">
+                    <p>Hello, Jane</p>
+
+                    <a href="#">
+                        <i class="fa fa-circle text-success"></i>
+                        Online
+                    </a>
+                </div>
+            </div>
+
+            <form action="#" method="get" class="search-form">
+                <div>
+                    <input type="text" placeholder="Search...">
+
+                    <span class="input-group-btn">
+                        <button type="submit" name="search">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </span>
+                </div>
+            </form>
+
+            <ul class="sidebar-menu">
+                <li class="menu-item is-active">
+                    <a href="#">
+                        <span>Item One</span>
+                    </a>
+                </li>
+
+                <li class="menu-item">
+                    <a href="#">
+                        <span>Item Two</span>
+                    </a>
+                </li>
+
+                <li class="menu-item treeview">
+                    <a href="#">
+                        <i class="fa fa-bar-chart-o"></i>
+                        <span>Item Three</span>
+                        <i class="fa pull-right fa-angle-left"></i>
+                    </a>
+
+                    <ul class="treeview-menu">
+                        <li class="menu-item">
+                            <a href="#">
+                                <i class="fa fa-angle-double-right"></i>
+                                Treeview Item One
+                            </a>
+                        </li>
+
+                        <li class="menu-item">
+                            <a href="#">
+                                <i class="fa fa-angle-double-right"></i>
+                                Treeview Item Two
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+                <li class="menu-item">
+                    <a href="#">
+                        <span>Item Four</span>
+                    </a>
+                </li>
+            </ul>
+        </aside>
+
+        <div class="inner clearfix">
+            <div class="page-head">
+                <h1 class="title">Page title</h1>
+            </div>
+
+            <div id="content">
+                @RenderBody()
+            </div>
+
+            <aside id="sidebar-right">
+                <section class="block daily-best-posts">
+                    <div class="title">
+                        Daily Best Posts #1
+                    </div>
+                    <ul class="posts-list">
+                        <li class="post-item">
+                            <a class="post-name" href="#">
+                                Post Name One
+                            </a>
+                        </li>
+                        <li class="post-item">
+                            <a class="post-name" href="#">
+                                Post Name Two
+                            </a>
+                        </li>
+                        <li class="post-item">
+                            <a class="post-name" href="#">
+                                Post Name Three
+                            </a>
+                        </li>
+                    </ul>
+                    <div class="all">
+                        <a href="#">all posts</a>
+                    </div>
+                </section>
+
+                <section class="block daily-best-posts">
+                    <div class="title">
+                        Daily Best Posts #2
+                    </div>
+                    <ul class="posts-list">
+                        <li class="post-item">
+                            <a class="post-name" href="#">
+                                Post Name One
+                            </a>
+                        </li>
+                        <li class="post-item">
+                            <a class="post-name" href="#">
+                                Post Name Two
+                            </a>
+                        </li>
+                        <li class="post-item">
+                            <a class="post-name" href="#">
+                                Post Name Three
+                            </a>
+                        </li>
+                    </ul>
+                    <div class="all">
+                        <a href="#">all posts</a>
+                    </div>
+                </section>
+            </aside>
+
+            <footer id="footer">
+                #footer
+            </footer>
+        </div>
+    </div>
+</body>
+</html>

@@ -80,6 +80,20 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Content\images\avatar3.png" />
+    <Content Include="Content\images\bg-comments2.gif" />
+    <Content Include="Content\images\bg-folding-dot-light.png" />
+    <Content Include="Content\images\bg-tags2.gif" />
+    <Content Include="Content\images\bg-user2.gif" />
+    <Content Include="Content\images\comments.gif" />
+    <Content Include="Content\images\favorite.gif" />
+    <Content Include="Content\images\hub.icon.png" />
+    <Content Include="Content\images\icons_vote_posts.gif" />
+    <Content Include="Content\images\pageviews.png" />
+    <Content Include="Content\images\share.icons.png" />
+    <Content Include="Content\images\show_tree_icon.png" />
+    <Content Include="Content\images\stub-user-small.gif" />
+    <Content Include="Content\Site.css" />
     <Content Include="Global.asax" />
     <Content Include="Web.config" />
   </ItemGroup>
@@ -93,6 +107,8 @@
   <ItemGroup>
     <Content Include="Views\web.config" />
     <Content Include="packages.config" />
+    <Content Include="Views\_ViewStart.cshtml" />
+    <Content Include="Views\Shared\_Layout.cshtml" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>
@@ -104,6 +120,12 @@
     <Folder Include="App_Data\" />
     <Folder Include="Controllers\" />
     <Folder Include="Models\" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Doctrine.Domain\Doctrine.Domain.csproj">
+      <Project>{b19a70a4-8b35-4b64-b65e-ffa91b29b18f}</Project>
+      <Name>Doctrine.Domain</Name>
+    </ProjectReference>
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
