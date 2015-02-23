@@ -1,0 +1,50 @@
+﻿@using Doctrine.App.ViewModels
+@model Doctrine.App.ViewModels.ArticleViewModel
+@{
+    ViewBag.Title = "Read";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="post-show">
+    @{
+        Html.RenderPartial("Article", Model);
+    }
+</div>
+
+<div class="block-after-post">
+    <section class="block similar-posts">
+        <div class="title">
+            Similar Posts
+        </div>
+
+        <ul class="posts-list">
+            <li class="post-item">
+                <a class="post-name" href="#">Post Name One</a>
+
+                <span class="when">30 декабря 2014 в 14:21</span>
+            </li>
+            <li class="post-item">
+                <a class="post-name" href="#">Post Name Two</a>
+
+                <span class="when">30 декабря 2014 в 14:21</span>
+            </li>
+            <li class="post-item">
+                <a class="post-name" href="#">Post Name Three</a>
+
+                <span class="when">30 декабря 2014 в 14:21</span>
+            </li>
+        </ul>
+    </section>
+</div>
+
+<div class="comments-list " id="comments">
+    <h2 class="title ">
+        Comments (<span id="comments_count">@Model.CommentsCount</span>)
+    </h2>
+
+    @foreach(CommentViewModel comment in Model.Comments)
+    {
+        Html.RenderPartial("Comment", comment);
+    }
+
+</div>

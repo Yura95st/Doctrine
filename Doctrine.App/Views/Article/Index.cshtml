@@ -1,0 +1,73 @@
+﻿@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<nav class="menu-top">
+    <ul>
+        <li class="menu-item is-active">
+            <a href="#">Лучшие за сутки</a>
+        </li>
+        <li class="menu-item">
+            <a href="#">За неделю</a>
+        </li>
+        <li class="menu-item">
+            <a href="#">За месяц</a>
+        </li>
+        <li class="menu-item">
+            <a href="#">За все время</a>
+        </li>
+    </ul>
+</nav>
+
+<div class="posts-list">
+    <div class="posts">
+        @for (int i = 0; i < 10; i++)
+        {
+            Html.RenderPartial("Article", null);
+        }
+    </div>
+
+    <nav class="page-nav">
+        <ul class="next-prev">
+            <li>←&nbsp;сюда</li>
+            <li><a class="next" href="#" id="next_page" rel="" title="На страницу вперед (Alt + →)">туда</a>&nbsp;→</li>
+        </ul>
+
+        <ul id="nav-pages">
+            <li>
+                <noindex>
+                    <a href="#" rel="nofollow" title="Первая страница">←</a>
+                </noindex>
+            </li>
+            <li>
+                <em>1</em>
+            </li>
+            <li>
+                <a href="#">2</a>
+            </li>
+            <li>
+                <a href="#">3</a>
+            </li>
+            <li>
+                <a href="#">4</a>
+            </li>
+            <li>
+                <a href="#">5</a>
+            </li>
+            <li>
+                <a href="#">6</a>
+            </li>
+            <li>
+                <a href="#">7</a>
+            </li>
+            <li>
+                <a href="#">8</a>
+            </li>
+            <li>
+                <noindex>
+                    <a href="#" rel="nofollow" title="Последняя страница">→</a>
+                </noindex>
+            </li>
+        </ul>
+    </nav>
+</div>
