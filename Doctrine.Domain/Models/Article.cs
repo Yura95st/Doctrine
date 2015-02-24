@@ -69,7 +69,7 @@ namespace Doctrine.Domain.Models
             set;
         }
 
-        public int? TopicId
+        public int TopicId
         {
             get;
             set;

@@ -104,6 +104,11 @@ namespace Doctrine.Domain.Dal
             .MapLeftKey("CommentId")
             .MapRightKey("ReplyCommentId"));
 
+            modelBuilder.Entity<Topic>()
+            .HasMany(e => e.Articles)
+            .WithRequired(e => e.Topic)
+            .WillCascadeOnDelete(false);
+
             modelBuilder.Entity<User>()
             .Property(e => e.Password)
             .IsFixedLength()
