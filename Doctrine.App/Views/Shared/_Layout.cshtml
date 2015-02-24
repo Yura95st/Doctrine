@@ -20,10 +20,10 @@
 
 <body>
     <div id="wrapper">
-        <aside id="sidebar-left" class="sidebar-left">
-            <div class="user-panel clearfix">
+        <aside class="sidebar-left" id="sidebar-left">
+            <div class="clearfix user-panel">
                 <div class="image">
-                    <img src="~/Content/images/avatar3.png" alt="User Image">
+                    <img alt="User Image" src="~/Content/images/avatar3.png">
                 </div>
 
                 <div class="info">
@@ -36,12 +36,12 @@
                 </div>
             </div>
 
-            <form action="#" method="get" class="search-form">
+            <form action="#" class="search-form" method="get">
                 <div>
-                    <input type="text" placeholder="Search...">
+                    <input placeholder="Search..." type="text">
 
                     <span class="input-group-btn">
-                        <button type="submit" name="search">
+                        <button name="search" type="submit">
                             <i class="fa fa-search"></i>
                         </button>
                     </span>
@@ -49,7 +49,7 @@
             </form>
 
             <ul class="sidebar-menu">
-                <li class="menu-item is-active">
+                <li class="is-active menu-item">
                     <a href="#">
                         <span>Item One</span>
                     </a>
@@ -65,7 +65,7 @@
                     <a href="#">
                         <i class="fa fa-bar-chart-o"></i>
                         <span>Item Three</span>
-                        <i class="fa pull-right fa-angle-left"></i>
+                        <i class="fa fa-angle-left pull-right"></i>
                     </a>
 
                     <ul class="treeview-menu">
@@ -92,7 +92,7 @@
             </ul>
         </aside>
 
-        <div class="inner clearfix">
+        <div class="clearfix inner">
             <div class="page-head">
                 <h1 class="title">Page title</h1>
             </div>

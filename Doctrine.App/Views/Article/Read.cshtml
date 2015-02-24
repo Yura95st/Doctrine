@@ -42,7 +42,7 @@
         Comments (<span id="comments_count">@Model.CommentsCount</span>)
     </h2>
 
-    @foreach(CommentViewModel comment in Model.Comments)
+    @foreach (CommentViewModel comment in Model.Comments)
     {
         Html.RenderPartial("Comment", comment);
     }

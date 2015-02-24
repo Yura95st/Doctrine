@@ -2,6 +2,7 @@
 {
     using System.Collections.Generic;
 
+    using Doctrine.App.Models;
     using Doctrine.Domain.Models;
 
     public class ArticleViewModel
@@ -9,6 +10,7 @@
         public ArticleViewModel()
         {
             this.Comments = new List<CommentViewModel>();
+            this.VotingInfo = new VotingInfo();
         }
 
         public Article Article
@@ -41,19 +43,13 @@
             set;
         }
 
-        public int NegativeVotesCount
-        {
-            get;
-            set;
-        }
-
-        public int PositiveVotesCount
-        {
-            get;
-            set;
-        }
-
         public int ViewsCount
+        {
+            get;
+            set;
+        }
+
+        public VotingInfo VotingInfo
         {
             get;
             set;

@@ -4,28 +4,28 @@
     <span class="parent_id" data-parent_id="0"></span>
 
     <div class="comment-body">
-        <div class="info clearfix @String.Format("{0}", Model.IsFromArticleAuthor ? "is-topic-starter" : "")" rel="8294035">
+        <div class="clearfix info" rel="8294035">
             <div class="folding-dot-holder">
                 <div class="folding-dot"></div>
             </div>
 
-            <a href="#" class="avatar">
-                <img src="~/Content/images/stub-user-small.gif" alt="">
+            <a class="avatar" href="#">
+                <img alt="" src="~/Content/images/stub-user-small.gif">
             </a>
 
-            <a href="#" class="username">@String.Format("{0} {1}", Model.Comment.User.FirstName, Model.Comment.User.LastName)</a>
+            <a class="username" href="#">@String.Format("{0} {1}", Model.Comment.User.FirstName, Model.Comment.User.LastName)</a>
 
             <time class="time">@Model.Comment.Date</time>
 
-            <a href="#comment_@Model.Comment.CommentId" class="link-to-comment">#</a>
+            <a class="link-to-comment" href="#comment_@Model.Comment.CommentId">#</a>
 
             <div class="show-tree" data-id="8294035" data-parent_id="8294027" title="Show comments' branch">↵</div>
 
-            <a href="#comment_@Model.ParentCommentId" data-id="8294035" data-parent_id="8294027" class="to-parent">↑</a>
+            <a class="to-parent" data-id="8294035" data-parent_id="8294027" href="#comment_@Model.ParentCommentId">↑</a>
 
-            <div id="voting_@Model.Comment.CommentId" class="voting">
+            <div class="voting" id="voting_@Model.Comment.CommentId">
                 @{
-                    int mark = Model.PositiveVotesCount - Model.NegativeVotesCount;
+                    int mark = Model.VotingInfo.PositiveVotesCount - Model.VotingInfo.NegativeVotesCount;
                     string markSign = "";
                     string markClass = "";
 
@@ -42,14 +42,14 @@
                             markClass = "is-negative";
                         }
                     }
-
-                    <div class="mark @markClass">
-                        <span class="score" title="Total @(Model.PositiveVotesCount + Model.NegativeVotesCount): ↑@Model.PositiveVotesCount и ↓@Model.NegativeVotesCount">@String.Format("{0}{1}", markSign, mark)</span>
-                    </div>
                 }
-                <div class="vote-button plus" title="Only registered users can vote"></div>
+                <div class="mark @markClass">
+                    <span class="score" title="Total @(Model.VotingInfo.PositiveVotesCount + Model.VotingInfo.NegativeVotesCount): ↑@(Model.VotingInfo.PositiveVotesCount) и ↓@(Model.VotingInfo.NegativeVotesCount)">@String.Format("{0}{1}", markSign, mark)</span>
+                </div>
 
-                <div class="vote-button minus" title="Only registered users can vote"></div>
+                <div class="plus vote-button" title="Only registered users can vote"></div>
+
+                <div class="minus vote-button" title="Only registered users can vote"></div>
             </div>
         </div>
 

@@ -113,6 +113,7 @@
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ViewModels\ArticleViewModel.cs" />
+    <Compile Include="Models\VotingInfo.cs" />
     <Compile Include="ViewModels\CommentViewModel.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -131,7 +132,6 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
-    <Folder Include="Models\" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Doctrine.Domain\Doctrine.Domain.csproj">

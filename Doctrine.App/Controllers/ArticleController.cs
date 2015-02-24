@@ -3,6 +3,7 @@
     using System;
     using System.Web.Mvc;
 
+    using Doctrine.App.Models;
     using Doctrine.App.ViewModels;
     using Doctrine.Domain.Models;
 
@@ -30,7 +31,8 @@
                         User = new User { UserId = 7, FirstName = "John", LastName = "Grey" }
                     },
                 ViewsCount = 137,
-                CommentsCount = 6, FavsCount = 12, PositiveVotesCount = 1234, NegativeVotesCount = 234,
+                CommentsCount = 6, FavsCount = 12,
+                VotingInfo = new VotingInfo { PositiveVotesCount = 1234, NegativeVotesCount = 234 },
                 Comments =
                     new[]
                     {
@@ -44,8 +46,8 @@
                                     CommentEdit = new CommentEdit { EditDate = new DateTime(2015, 2, 22, 17, 26, 07) },
                                     User = new User { UserId = 7, FirstName = "John", LastName = "Grey" }
                                 },
-                                PositiveVotesCount = 1234, NegativeVotesCount = 234,
-                                IsFromArticleAuthor = true
+                            VotingInfo = new VotingInfo { PositiveVotesCount = 1234, NegativeVotesCount = 234 },
+                            IsFromArticleAuthor = true
                         },
                         new CommentViewModel
                         {

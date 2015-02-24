@@ -26,27 +26,30 @@
             <a class="button" href="#">Read more →</a>
         </div>
     }
-    else if (Model.Article.Tags.Any())
+    else
     {
-        bool isFirst = true;
+        if (Model.Article.Tags.Any())
+        {
+            bool isFirst = true;
 
-        <ul class="tags">
-            @foreach (Tag tag in Model.Article.Tags)
-            {
-                <li>
-                    <a href="#" rel="tag">@String.Format("{0}{1}", isFirst ? "" : ", ", tag.Name)</a>
-                </li>
+            <ul class="tags">
+                @foreach (Tag tag in Model.Article.Tags)
+                {
+                    <li>
+                        <a href="#" rel="tag">@String.Format("{0}{1}", isFirst ? "" : ", ", tag.Name)</a>
+                    </li>
 
-                isFirst = false;
-            }
-        </ul>
+                    isFirst = false;
+                }
+            </ul>
+        }
     }
     <div class="infopanel-wrapper">
         <div class="infopanel" id="infopanel_post_@Model.Article.ArticleId">
             <div class="voting">
-                <div class="vote-button plus" title="Only registered users can vote"></div>
+                <div class="plus vote-button" title="Only registered users can vote"></div>
                 @{
-                    int mark = Model.PositiveVotesCount - Model.NegativeVotesCount;
+                    int mark = Model.VotingInfo.PositiveVotesCount - Model.VotingInfo.NegativeVotesCount;
                     string markSign = "";
                     string markClass = "";
 
@@ -63,12 +66,12 @@
                             markClass = "is-negative";
                         }
                     }
-                    
-                    <div class="mark @markClass">
-                        <span class="score" title="Total @(Model.PositiveVotesCount + Model.NegativeVotesCount): ↑@Model.PositiveVotesCount и ↓@Model.NegativeVotesCount">@String.Format("{0}{1}", markSign, mark)</span>
-                    </div>
                 }
-                <div class="vote-button minus" title="Only registered users can vote"></div>
+                <div class="mark @markClass">
+                    <span class="score" title="Total @(Model.VotingInfo.PositiveVotesCount + Model.VotingInfo.NegativeVotesCount): ↑@(Model.VotingInfo.PositiveVotesCount) и ↓@(Model.VotingInfo.NegativeVotesCount)">@String.Format("{0}{1}", markSign, mark)</span>
+                </div>
+
+                <div class="minus vote-button" title="Only registered users can vote"></div>
             </div>
 
             <div class="pageviews" title="Article's views">@Model.ViewsCount</div>
@@ -99,10 +102,10 @@
                     <div class="share-item vkontakte">
                         <a href="http://vk.com/share.php?url=#" onclick=" window.open(this.href, 'Опубликовать ссылку во Вконтакте', 'width=800,height=300'); return false; " title="Опубликовать ссылку во ВКонтакте"></a>
                     </div>
-                    <div class="share-item facebook">
+                    <div class="facebook share-item">
                         <a href="https://www.facebook.com/sharer/sharer.php?u=#" onclick=" window.open(this.href, 'Опубликовать ссылку в Facebook', 'width=640,height=436,toolbar=0,status=0'); return false; " title="Опубликовать ссылку в Facebook"></a>
                     </div>
-                    <div class="share-item googleplus">
+                    <div class="googleplus share-item">
                         <a href="https://plus.google.com/share?url=#" onclick=" window.open(this.href, 'Опубликовать ссылку в Google Plus', 'width=800,height=300'); return false; " title="Опубликовать ссылку в Google Plus"></a>
                     </div>
                 </div>
