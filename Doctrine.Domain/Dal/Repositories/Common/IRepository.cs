@@ -5,11 +5,14 @@
     using System.Linq;
     using System.Linq.Expressions;
 
+    using Doctrine.Domain.Dal.Query.Abstract;
+
     public interface IRepository<TEntity>
     where TEntity : class
     {
         /// <summary>
-        /// Deletes the entity with specified identifier.</summary>
+        ///     Deletes the entity with specified identifier.
+        /// </summary>
         /// <param name="id">The identifier.</param>
         void Delete(object id);
 
@@ -25,6 +28,11 @@
         IEnumerable<TEntity> Get(Expression<Func<TEntity, bool>> filter = null,
                                  Func<IQueryable<TEntity>, IOrderedQueryable<TEntity>> orderBy = null,
                                  params Expression<Func<TEntity, object>>[] selector);
+
+        /// <summary>Gets the list of entities.</summary>
+        /// <param name="repositoryQuery">The get query.</param>
+        /// <returns>The list of entities.</returns>
+        IEnumerable<TEntity> Get(IRepositoryQuery<TEntity> repositoryQuery);
 
         /// <summary>Gets the entity by specified identifier.</summary>
         /// <param name="id">The identifier.</param>
